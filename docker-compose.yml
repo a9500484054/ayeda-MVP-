@@ -1,15 +1,18 @@
-version: '3.8'
+networks:
+  ayeda-network:
+    driver: bridge
 
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: ayeda-postgres
+    container_name: ayeda_postgres
+    restart: always
     environment:
+      POSTGRES_DB: ayeda_dev
       POSTGRES_USER: ayeda
       POSTGRES_PASSWORD: ayeda
-      POSTGRES_DB: ayeda_dev
     ports:
-      - "5432:5432"
+      - "5436:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -17,10 +20,13 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - ayeda-network
 
   redis:
     image: redis:7-alpine
-    container_name: ayeda-redis
+    container_name: ayeda_redis
+    restart: always
     ports:
       - "6379:6379"
     volumes:
@@ -30,14 +36,62 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - ayeda-network
+
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrate
+    env_file:
+      - ./apps/backend/.env
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: ayeda
+      DB_PASSWORD: ayeda
+      DB_DATABASE: ayeda_dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ayeda-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: backend
+    container_name: ayeda_backend
+    env_file:
+      - ./apps/backend/.env
+    environment:
+      DB_HOST: postgres
+      REDIS_HOST: redis
+    ports:
+      - "4000:4000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    networks:
+      - ayeda-network
+    volumes:
+      - ./apps/backend:/app
+      - /app/node_modules
+    command: pnpm run start:dev
 
   adminer:
     image: adminer
-    container_name: ayeda-adminer
+    container_name: ayeda_adminer
     ports:
       - "8080:8080"
     depends_on:
       - postgres
+    networks:
+      - ayeda-network
 
 volumes:
   postgres_data:
