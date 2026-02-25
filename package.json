@@ -6,7 +6,8 @@
   "scripts": {
     "lint": "eslint . --ext .ts,.js,.vue --max-warnings=0",
     "format": "prettier --write \"**/*.{js,ts,json,md,vue}\"",
-    "lint:fix": "eslint . --ext .ts,.js,.vue --fix"
+    "lint:fix": "eslint . --ext .ts,.js,.vue --fix",
+    "storybook": "pnpm --filter storybook storybook"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
