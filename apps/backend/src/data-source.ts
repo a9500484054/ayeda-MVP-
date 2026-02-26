@@ -1,21 +1,20 @@
 import { DataSource } from 'typeorm';
-import { ConfigService } from '@nestjs/config';
-import { config } from 'dotenv';
+import * as dotenv from 'dotenv';
+import { join } from 'path';
 
-// Загружаем .env
-config();
+dotenv.config();
 
-const configService = new ConfigService();
+const isDocker = process.env.DOCKER_ENV === 'true';
 
-export default new DataSource({
+export const AppDataSource = new DataSource({
   type: 'postgres',
-  host: configService.get('DB_HOST', 'localhost'),
-  port: configService.get('DB_PORT', 5432),
-  username: configService.get('DB_USERNAME', 'ayeda'),
-  password: configService.get('DB_PASSWORD', 'ayeda'),
-  database: configService.get('DB_DATABASE', 'ayeda_dev'),
-  entities: [__dirname + '/**/*.entity{.ts,.js}'],
-  migrations: [__dirname + '/migrations/*{.ts,.js}'],
+  host: isDocker ? 'postgres' : process.env.DB_HOST || 'localhost',
+  port: Number(process.env.DB_PORT) || 5432,  // везде одинаково
+  username: process.env.DB_USERNAME || 'ayeda',
+  password: process.env.DB_PASSWORD || 'ayeda',
+  database: process.env.DB_DATABASE || 'ayeda_dev',
   synchronize: false,
   logging: true,
+  entities: [join(__dirname, '**/*.entity.{ts,js}')],
+  migrations: [join(__dirname, 'migrations/*.{ts,js}')],
 });

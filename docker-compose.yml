@@ -14,7 +14,7 @@ services:
       POSTGRES_USER: ayeda
       POSTGRES_PASSWORD: ayeda
     ports:
-      - "5436:5432"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -56,6 +56,7 @@ services:
       - ./apps/backend/.env
     environment:
       DB_HOST: postgres
+      DOCKER_ENV: true 
     depends_on:
       postgres:
         condition: service_healthy

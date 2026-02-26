@@ -1,12 +1,18 @@
+// apps/backend/src/app.module.ts
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Module({
   imports: [
+    // Загружаем .env
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: '.env',
     }),
+
+    // Асинхронно подключаем TypeORM
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -18,10 +24,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         password: configService.get('DB_PASSWORD', 'ayeda'),
         database: configService.get('DB_DATABASE', 'ayeda_dev'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: false, // false в продакшне, для разработки можно true, но лучше миграции
-        logging: true,
+        migrations: [__dirname + '/migrations/*{.ts,.js}'],
+        synchronize: false, // false в продакшне, используем миграции
+        logging: configService.get('NODE_ENV') === 'development',
       }),
     }),
   ],
+  controllers: [],
+  providers: [],
 })
-export class AppModule {}
+export class AppModule {
+  constructor(private dataSource: DataSource) {} // инжектим DataSource
+}
