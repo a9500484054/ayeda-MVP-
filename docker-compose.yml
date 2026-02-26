@@ -72,7 +72,7 @@ services:
       DB_HOST: postgres
       REDIS_HOST: redis
     ports:
-      - "4000:4000"
+      - "3001:4000"
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -84,6 +84,23 @@ services:
       - ./apps/backend:/app
       - /app/node_modules
     command: pnpm run start:dev
+
+  frontend:
+    build:
+      context: ./apps/frontend
+    container_name: ayeda_frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - dev
+    volumes:
+      - ./apps/frontend:/app
+      - /app/node_modules
+    environment:
+      - NUXT_PUBLIC_API_BASE=http://localhost:3001
+    command: pnpm run dev
 
   pgadmin:
     image: dpage/pgadmin4:latest
