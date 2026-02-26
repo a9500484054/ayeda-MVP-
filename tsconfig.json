@@ -20,6 +20,12 @@
       "@ayeda/ui-kit/*": ["./packages/ui-kit/src/*"]
     }
   },
-  "include": ["apps/**/*", "packages/**/*", "*.config.js", "*.config.ts", "apps/storybook/.storybook/main.ts"],
+  "include": [
+    "apps/**/*",
+    "packages/**/*",
+    "*.config.js",
+    "*.config.ts",
+    "apps/storybook/.storybook/main.ts"
+  ],
   "exclude": ["node_modules", "dist", ".output"]
 }

@@ -10,18 +10,21 @@
 </template>
 
 <script setup lang="ts">
-withDefaults(defineProps<{
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
-  disabled?: boolean;
-}>(), {
-  variant: 'primary',
-  size: 'md',
-  disabled: false
-});
+withDefaults(
+  defineProps<{
+    variant?: "primary" | "secondary" | "outline" | "ghost";
+    size?: "sm" | "md" | "lg";
+    disabled?: boolean;
+  }>(),
+  {
+    variant: "primary",
+    size: "md",
+    disabled: false,
+  },
+);
 
 defineEmits<{
-  (e: 'click', event: MouseEvent): void;
+  (e: "click", event: MouseEvent): void;
 }>();
 </script>
 
