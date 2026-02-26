@@ -1,0 +1,17 @@
+# apps/backend/Dockerfile
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Устанавливаем pnpm
+RUN npm install -g pnpm@latest
+
+# Копируем всё сразу
+COPY . .
+
+# Устанавливаем зависимости (включая dev)
+RUN pnpm install
+
+EXPOSE 4000
+
+CMD ["pnpm", "run", "start:dev"]

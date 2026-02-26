@@ -1,5 +1,7 @@
+version: "3.8"
+
 networks:
-  ayeda-network:
+  dev:
     driver: bridge
 
 services:
@@ -21,7 +23,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - ayeda-network
+      - dev
 
   redis:
     image: redis:7-alpine
@@ -37,32 +39,32 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - ayeda-network
+      - dev
 
   migrate:
     build:
-      context: .
-      dockerfile: Dockerfile
-      target: migrate
+      context: ./apps/backend
+    command:
+      [
+        "node",
+        "node_modules/typeorm/cli.js",
+        "migration:run",
+        "-d",
+        "dist/data-source.js",
+      ]
     env_file:
       - ./apps/backend/.env
     environment:
       DB_HOST: postgres
-      DB_PORT: 5432
-      DB_USERNAME: ayeda
-      DB_PASSWORD: ayeda
-      DB_DATABASE: ayeda_dev
     depends_on:
       postgres:
         condition: service_healthy
     networks:
-      - ayeda-network
+      - dev
 
   backend:
     build:
-      context: .
-      dockerfile: Dockerfile
-      target: backend
+      context: ./apps/backend
     container_name: ayeda_backend
     env_file:
       - ./apps/backend/.env
@@ -77,22 +79,30 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - ayeda-network
+      - dev
     volumes:
       - ./apps/backend:/app
       - /app/node_modules
     command: pnpm run start:dev
 
-  adminer:
-    image: adminer
-    container_name: ayeda_adminer
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: ayeda_pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@ayeda.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
     ports:
-      - "8080:8080"
+      - "5050:80"
     depends_on:
       - postgres
     networks:
-      - ayeda-network
+      - dev
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
 
 volumes:
   postgres_data:
   redis_data:
+  pgadmin_data:
