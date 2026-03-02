@@ -104,6 +104,9 @@ importers:
       typeorm:
         specifier: ^0.3.28
         version: 0.3.28(ioredis@5.9.3)(pg@8.18.0)(ts-node@10.9.2(@types/node@22.19.11)(typescript@5.9.3))
+      uuid:
+        specifier: ^13.0.0
+        version: 13.0.0
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3.2.0
@@ -132,6 +135,9 @@ importers:
       '@types/supertest':
         specifier: ^6.0.2
         version: 6.0.3
+      '@types/uuid':
+        specifier: ^11.0.0
+        version: 11.0.0
       dotenv:
         specifier: ^17.3.1
         version: 17.3.1
@@ -2973,6 +2979,10 @@ packages:
 
   '@types/trusted-types@2.0.7':
     resolution: {integrity: sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==}
+
+  '@types/uuid@11.0.0':
+    resolution: {integrity: sha512-HVyk8nj2m+jcFRNazzqyVKiZezyhDKrGUA3jlEcg/nZ6Ms+qHwocba1Y/AaVaznJTAM9xpdFSh+ptbNrhOGvZA==}
+    deprecated: This is a stub types definition. uuid provides its own type definitions, so you do not need this installed.
 
   '@types/uuid@9.0.8':
     resolution: {integrity: sha512-jg+97EGIcY9AGHJJRaaPVgetKDsrTgbRjQ5Msgjh/DQKEFl0DtyRr/VCOyD1T2R1MNeWPK/u7JoGhlDZnKBAfA==}
@@ -7817,6 +7827,10 @@ packages:
     resolution: {integrity: sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==}
     hasBin: true
 
+  uuid@13.0.0:
+    resolution: {integrity: sha512-XQegIaBTVUjSHliKqcnFqYypAd4S+WCYt5NIeRs6w/UAry7z8Y9j5ZwRRL4kzq9U3sD6v+85er9FvkEaBpji2w==}
+    hasBin: true
+
   uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
     hasBin: true
@@ -11296,6 +11310,10 @@ snapshots:
       '@types/superagent': 8.1.9
 
   '@types/trusted-types@2.0.7': {}
+
+  '@types/uuid@11.0.0':
+    dependencies:
+      uuid: 13.0.0
 
   '@types/uuid@9.0.8': {}
 
@@ -17052,6 +17070,8 @@ snapshots:
   utils-merge@1.0.1: {}
 
   uuid@11.1.0: {}
+
+  uuid@13.0.0: {}
 
   uuid@9.0.1: {}
 
