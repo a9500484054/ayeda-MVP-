@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { DataSource } from 'typeorm';
         logging: configService.get('NODE_ENV') === 'development',
       }),
     }),
+    UsersModule,
   ],
   controllers: [],
   providers: [],

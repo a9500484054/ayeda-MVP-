@@ -19,14 +19,17 @@ async function bootstrap() {
   });
 
   // Cookies
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   app.use(cookieParser());
 
   // Validation
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    transform: true,
-    forbidNonWhitelisted: true
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
 
   // Serialization
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
@@ -41,7 +44,9 @@ async function bootstrap() {
   // Swagger Configuration
   const config = new DocumentBuilder()
     .setTitle('Ayeda API')
-    .setDescription('Документация API для сервиса планирования питания и покупок')
+    .setDescription(
+      'Документация API для сервиса планирования питания и покупок',
+    )
     .setVersion('1.0')
     .addCookieAuth('access_token')
     .addBearerAuth()
