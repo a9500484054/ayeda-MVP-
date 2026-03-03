@@ -8,6 +8,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { EmailModule } from './modules/email/email.module';
 import { UnitsModule } from './modules/units/units.module';
 import { CategoriesModule } from './modules/categories/categories.module';
+import { IngredientsModule } from './modules/ingredients/ingredients.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { CategoriesModule } from './modules/categories/categories.module';
     AuthModule,
     UnitsModule,
     CategoriesModule,
+    IngredientsModule,
   ],
   controllers: [],
   providers: [],
