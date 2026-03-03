@@ -9,11 +9,13 @@ import { UsersModule } from '../users/users.module';
 import { RefreshToken } from './entities/refresh-token.entity';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { RefreshStrategy } from './strategies/refresh.strategy';
+import { EmailModule } from '../email/email.module';
 
 @Module({
   imports: [
     UsersModule,
     PassportModule,
+    EmailModule,
     TypeOrmModule.forFeature([RefreshToken]),
     JwtModule.registerAsync({
       imports: [ConfigModule],

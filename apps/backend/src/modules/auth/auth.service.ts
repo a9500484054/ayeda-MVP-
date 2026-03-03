@@ -16,6 +16,8 @@ import { User } from '../users/entities/user.entity';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { EmailService } from '../email/email.service';
+
 
 @Injectable()
 export class AuthService {
@@ -25,6 +27,8 @@ export class AuthService {
     private configService: ConfigService,
     @InjectRepository(RefreshToken)
     private refreshTokenRepository: Repository<RefreshToken>,
+    // В конструктор добавить:
+    private emailService: EmailService,
   ) {}
 
   // ========== РЕГИСТРАЦИЯ ==========
@@ -162,9 +166,12 @@ export class AuthService {
       },
     );
 
-    // TODO: Отправить реальный email
-    console.log(`🔐 Verification token for ${user.email}: ${verificationToken}`);
-    console.log(`📧 Ссылка для подтверждения: http://localhost:3000/verify-email?token=${verificationToken}`);
+    // Отправляем реальное письмо
+    await this.emailService.sendVerificationEmail({
+      email: user.email,
+      token: verificationToken,
+      username: user.username,
+    });
 
     return { message: 'Письмо с подтверждением отправлено на email' };
   }
@@ -222,9 +229,11 @@ export class AuthService {
       },
     );
 
-    // TODO: Отправить email с токеном
-    console.log(`🔐 Reset token for ${user.email}: ${resetToken}`);
-    console.log(`📧 Ссылка для сброса: http://localhost:3000/reset-password?token=${resetToken}`);
+    // Отправляем реальное письмо
+    await this.emailService.sendPasswordResetEmail({
+      email: user.email,
+      token: resetToken,
+    });
 
     return { message: 'Инструкции отправлены на email' };
   }

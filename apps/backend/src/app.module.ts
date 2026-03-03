@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { EmailModule } from './modules/email/email.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { AuthModule } from './modules/auth/auth.module';
       }),
     }),
     UsersModule,
+    EmailModule,
     AuthModule,
   ],
   controllers: [],
