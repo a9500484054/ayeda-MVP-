@@ -57,7 +57,7 @@ export class RecipesService {
         ...createRecipeDto,
         authorId: userId,
         status:
-          createRecipeDto.type === 'community'
+          createRecipeDto.type === RecipeType.COMMUNITY
             ? RecipeStatus.PENDING
             : RecipeStatus.PRIVATE,
       });

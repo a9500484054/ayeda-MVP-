@@ -10,6 +10,7 @@ import { UnitsModule } from './modules/units/units.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { IngredientsModule } from './modules/ingredients/ingredients.module';
 import { RecipesModule } from './modules/recipes/recipes.module';
+import { LikesModule } from './modules/likes/likes.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { RecipesModule } from './modules/recipes/recipes.module';
     CategoriesModule,
     IngredientsModule,
     RecipesModule,
+    LikesModule,
   ],
   controllers: [],
   providers: [],
