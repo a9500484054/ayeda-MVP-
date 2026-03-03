@@ -66,4 +66,19 @@ export class UnitsService {
     const unit = await this.findOne(id);
     await this.unitsRepository.remove(unit);
   }
+
+  async findAllWithPagination(
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<[Unit[], number]> {
+    const skip = (page - 1) * limit;
+
+    const [units, total] = await this.unitsRepository.findAndCount({
+      skip,
+      take: limit,
+      order: { name: 'ASC' },
+    });
+
+    return [units, total];
+  }
 }

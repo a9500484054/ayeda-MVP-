@@ -10,6 +10,7 @@ import {
   HttpStatus,
   UseInterceptors,
   ClassSerializerInterceptor,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -27,6 +28,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { User } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { PaginatedResponseDto, PaginationDto } from 'src/common/dto/pagination.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -49,15 +51,43 @@ export class UsersController {
     return new UserResponseDto(user);
   }
 
+  // @Get()
+  // @ApiOperation({ summary: 'Получение списка всех пользователей' })
+  // @ApiOkResponse({
+  //   description: 'Список пользователей',
+  //   type: [UserResponseDto],
+  // })
+  // async findAll(): Promise<UserResponseDto[]> {
+  //   const users = await this.usersService.findAll();
+  //   return users.map((user) => new UserResponseDto(user));
+  // }
   @Get()
-  @ApiOperation({ summary: 'Получение списка всех пользователей' })
-  @ApiOkResponse({
-    description: 'Список пользователей',
-    type: [UserResponseDto],
+  @ApiOperation({
+    summary: 'Получить список всех пользователей (с пагинацией)',
   })
-  async findAll(): Promise<UserResponseDto[]> {
-    const users = await this.usersService.findAll();
-    return users.map((user) => new UserResponseDto(user));
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Список пользователей с пагинацией',
+    type: PaginatedResponseDto<UserResponseDto>,
+  })
+  async findAll(
+    @Query() paginationDto: PaginationDto,
+  ): Promise<PaginatedResponseDto<UserResponseDto>> {
+    // Значения по умолчанию уже есть в DTO, но на всякий случай
+    const page = Number(paginationDto.page) || 1;
+    const limit = Number(paginationDto.limit) || 10;
+
+    const [users, total] = await this.usersService.findAllWithPagination(
+      page,
+      limit,
+    );
+
+    return new PaginatedResponseDto(
+      users.map((user) => new UserResponseDto(user)),
+      total,
+      page,
+      limit,
+    );
   }
 
   @Get(':id')

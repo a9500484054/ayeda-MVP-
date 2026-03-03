@@ -87,4 +87,19 @@ export class CategoriesService {
     const category = await this.findOne(id);
     await this.categoriesRepository.remove(category);
   }
+
+  async findAllWithPagination(
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<[Category[], number]> {
+    const skip = (page - 1) * limit;
+
+    const [categories, total] = await this.categoriesRepository.findAndCount({
+      skip,
+      take: limit,
+      order: { name: 'ASC' },
+    });
+
+    return [categories, total];
+  }
 }

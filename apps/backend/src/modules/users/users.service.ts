@@ -100,4 +100,18 @@ export class UsersService {
     const user = await this.findOne(id);
     await this.usersRepository.softRemove(user);
   }
+  async findAllWithPagination(
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<[User[], number]> {
+    const skip = (page - 1) * limit;
+
+    const [users, total] = await this.usersRepository.findAndCount({
+      skip,
+      take: limit,
+      order: { createdAt: 'DESC' },
+    });
+
+    return [users, total];
+  }
 }

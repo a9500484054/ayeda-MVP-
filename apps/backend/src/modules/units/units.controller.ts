@@ -9,6 +9,7 @@ import {
   UseGuards,
   HttpStatus,
   HttpCode,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -25,6 +26,10 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
+import {
+  PaginatedResponseDto,
+  PaginationDto,
+} from 'src/common/dto/pagination.dto';
 
 @ApiTags('units')
 @Controller('units')
@@ -46,11 +51,32 @@ export class UnitsController {
     return this.unitsService.create(createUnitDto);
   }
 
+  // @Get()
+  // @ApiOperation({ summary: 'Получить список всех единиц измерения' })
+  // @ApiResponse({ status: HttpStatus.OK, type: [UnitResponseDto] })
+  // findAll(): Promise<UnitResponseDto[]> {
+  //   return this.unitsService.findAll();
+  // }
   @Get()
-  @ApiOperation({ summary: 'Получить список всех единиц измерения' })
-  @ApiResponse({ status: HttpStatus.OK, type: [UnitResponseDto] })
-  findAll(): Promise<UnitResponseDto[]> {
-    return this.unitsService.findAll();
+  @ApiOperation({
+    summary: 'Получить список всех единиц измерения (с пагинацией)',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: PaginatedResponseDto<UnitResponseDto>,
+  })
+  async findAll(
+    @Query() paginationDto: PaginationDto,
+  ): Promise<PaginatedResponseDto<UnitResponseDto>> {
+    const page = Number(paginationDto.page) || 1;
+    const limit = Number(paginationDto.limit) || 10;
+
+    const [units, total] = await this.unitsService.findAllWithPagination(
+      page,
+      limit,
+    );
+
+    return new PaginatedResponseDto(units, total, page, limit);
   }
 
   @Get(':id')

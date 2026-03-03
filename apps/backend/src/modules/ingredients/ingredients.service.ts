@@ -129,4 +129,42 @@ export class IngredientsService {
     const ingredient = await this.findOne(id);
     await this.ingredientsRepository.remove(ingredient);
   }
+
+  async findAllWithPagination(
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<[Ingredient[], number]> {
+    const skip = (page - 1) * limit;
+
+    const [ingredients, total] = await this.ingredientsRepository.findAndCount({
+      relations: ['unit'],
+      skip,
+      take: limit,
+      order: { name: 'ASC' },
+    });
+
+    return [ingredients, total];
+  }
+
+  async searchWithPagination(
+    query: string,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<[Ingredient[], number]> {
+    const skip = (page - 1) * limit;
+
+    const queryBuilder = this.ingredientsRepository
+      .createQueryBuilder('ingredient')
+      .leftJoinAndSelect('ingredient.unit', 'unit')
+      .where('ingredient.name ILIKE :query OR ingredient.code ILIKE :query', {
+        query: `%${query}%`,
+      })
+      .orderBy('ingredient.name', 'ASC')
+      .skip(skip)
+      .take(limit);
+
+    const [ingredients, total] = await queryBuilder.getManyAndCount();
+
+    return [ingredients, total];
+  }
 }

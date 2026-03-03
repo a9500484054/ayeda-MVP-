@@ -9,6 +9,7 @@ import {
   UseGuards,
   HttpStatus,
   HttpCode,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -25,6 +26,10 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
+import {
+  PaginatedResponseDto,
+  PaginationDto,
+} from 'src/common/dto/pagination.dto';
 
 @ApiTags('categories')
 @Controller('categories')
@@ -47,11 +52,31 @@ export class CategoriesController {
     return this.categoriesService.create(createCategoryDto);
   }
 
+  // @Get()
+  // @ApiOperation({ summary: 'Получить список всех категорий' })
+  // @ApiResponse({ status: HttpStatus.OK, type: [CategoryResponseDto] })
+  // findAll(): Promise<CategoryResponseDto[]> {
+  //   return this.categoriesService.findAll();
+  // }
+
   @Get()
-  @ApiOperation({ summary: 'Получить список всех категорий' })
-  @ApiResponse({ status: HttpStatus.OK, type: [CategoryResponseDto] })
-  findAll(): Promise<CategoryResponseDto[]> {
-    return this.categoriesService.findAll();
+  @ApiOperation({
+    summary: 'Получить список всех категорий (с пагинацией)',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: PaginatedResponseDto<CategoryResponseDto>,
+  })
+  async findAll(
+    @Query() paginationDto: PaginationDto,
+  ): Promise<PaginatedResponseDto<CategoryResponseDto>> {
+    const page = Number(paginationDto.page) || 1;
+    const limit = Number(paginationDto.limit) || 10;
+
+    const [categories, total] =
+      await this.categoriesService.findAllWithPagination(page, limit);
+
+    return new PaginatedResponseDto(categories, total, page, limit);
   }
 
   @Get(':id')

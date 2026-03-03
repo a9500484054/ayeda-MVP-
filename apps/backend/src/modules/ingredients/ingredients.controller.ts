@@ -27,6 +27,10 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
+import {
+  PaginatedResponseDto,
+  PaginationDto,
+} from 'src/common/dto/pagination.dto';
 
 @ApiTags('ingredients')
 @Controller('ingredients')
@@ -53,19 +57,53 @@ export class IngredientsController {
     return this.ingredientsService.create(createIngredientDto);
   }
 
+  // @Get()
+  // @ApiOperation({ summary: 'Получить список всех ингредиентов' })
+  // @ApiResponse({ status: HttpStatus.OK, type: [IngredientResponseDto] })
+  // findAll(): Promise<IngredientResponseDto[]> {
+  //   return this.ingredientsService.findAll();
+  // }
+
+  // @Get('search')
+  // @ApiOperation({ summary: 'Поиск ингредиентов по названию или коду' })
+  // @ApiQuery({ name: 'q', description: 'Поисковый запрос' })
+  // @ApiResponse({ status: HttpStatus.OK, type: [IngredientResponseDto] })
+  // search(@Query('q') query: string): Promise<IngredientResponseDto[]> {
+  //   return this.ingredientsService.search(query);
+  // }
+
   @Get()
-  @ApiOperation({ summary: 'Получить список всех ингредиентов' })
-  @ApiResponse({ status: HttpStatus.OK, type: [IngredientResponseDto] })
-  findAll(): Promise<IngredientResponseDto[]> {
-    return this.ingredientsService.findAll();
+  @ApiOperation({ summary: 'Получить список всех ингредиентов (с пагинацией)' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: PaginatedResponseDto<IngredientResponseDto>,
+  })
+  async findAll(
+    @Query() paginationDto: PaginationDto,
+  ): Promise<PaginatedResponseDto<IngredientResponseDto>> {
+    const page = Number(paginationDto.page) || 1;
+    const limit = Number(paginationDto.limit) || 10;
+
+    const [ingredients, total] =
+      await this.ingredientsService.findAllWithPagination(page, limit);
+
+    return new PaginatedResponseDto(ingredients, total, page, limit);
   }
 
   @Get('search')
-  @ApiOperation({ summary: 'Поиск ингредиентов по названию или коду' })
+  @ApiOperation({ summary: 'Поиск ингредиентов (с пагинацией)' })
   @ApiQuery({ name: 'q', description: 'Поисковый запрос' })
-  @ApiResponse({ status: HttpStatus.OK, type: [IngredientResponseDto] })
-  search(@Query('q') query: string): Promise<IngredientResponseDto[]> {
-    return this.ingredientsService.search(query);
+  async search(
+    @Query('q') query: string,
+    @Query() paginationDto: PaginationDto,
+  ): Promise<PaginatedResponseDto<IngredientResponseDto>> {
+    const page = Number(paginationDto.page) || 1;
+    const limit = Number(paginationDto.limit) || 10;
+
+    const [ingredients, total] =
+      await this.ingredientsService.searchWithPagination(query, page, limit);
+
+    return new PaginatedResponseDto(ingredients, total, page, limit);
   }
 
   @Get(':id')
