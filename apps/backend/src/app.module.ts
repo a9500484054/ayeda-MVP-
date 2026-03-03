@@ -9,6 +9,7 @@ import { EmailModule } from './modules/email/email.module';
 import { UnitsModule } from './modules/units/units.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { IngredientsModule } from './modules/ingredients/ingredients.module';
+import { RecipesModule } from './modules/recipes/recipes.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { IngredientsModule } from './modules/ingredients/ingredients.module';
     UnitsModule,
     CategoriesModule,
     IngredientsModule,
+    RecipesModule,
   ],
   controllers: [],
   providers: [],
