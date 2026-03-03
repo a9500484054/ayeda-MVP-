@@ -7,6 +7,7 @@ import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { EmailModule } from './modules/email/email.module';
 import { UnitsModule } from './modules/units/units.module';
+import { CategoriesModule } from './modules/categories/categories.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { UnitsModule } from './modules/units/units.module';
     EmailModule,
     AuthModule,
     UnitsModule,
+    CategoriesModule,
   ],
   controllers: [],
   providers: [],
