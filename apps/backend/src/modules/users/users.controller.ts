@@ -26,6 +26,7 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { User } from './entities/user.entity';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -75,6 +76,7 @@ export class UsersController {
   @Patch(':id')
   @ApiOperation({ summary: 'Обновление данных пользователя' })
   @ApiParam({ name: 'id', description: 'UUID пользователя' })
+  @ApiBody({ type: UpdateUserDto }) // Добавить эту строку!
   @ApiOkResponse({
     description: 'Пользователь обновлен',
     type: UserResponseDto,

@@ -67,6 +67,31 @@ export class UsersService {
 
   async update(id: string, updateData: Partial<User>): Promise<User> {
     const user = await this.findOne(id);
+
+    // Если обновляем username, проверяем уникальность
+    if (updateData.username && updateData.username !== user.username) {
+      const existingUsername = await this.usersRepository.findOne({
+        where: { username: updateData.username },
+      });
+      if (existingUsername) {
+        throw new ConflictException(
+          'Пользователь с таким username уже существует',
+        );
+      }
+    }
+
+    // Если обновляем email, проверяем уникальность
+    if (updateData.email && updateData.email !== user.email) {
+      const existingEmail = await this.usersRepository.findOne({
+        where: { email: updateData.email.toLowerCase() },
+      });
+      if (existingEmail) {
+        throw new ConflictException(
+          'Пользователь с таким email уже существует',
+        );
+      }
+    }
+
     Object.assign(user, updateData);
     return this.usersRepository.save(user);
   }

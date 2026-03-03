@@ -6,6 +6,7 @@ import { DataSource } from 'typeorm';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { EmailModule } from './modules/email/email.module';
+import { UnitsModule } from './modules/units/units.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { EmailModule } from './modules/email/email.module';
     UsersModule,
     EmailModule,
     AuthModule,
+    UnitsModule,
   ],
   controllers: [],
   providers: [],
