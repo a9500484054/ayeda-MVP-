@@ -13,6 +13,7 @@ import { RecipesModule } from './modules/recipes/recipes.module';
 import { LikesModule } from './modules/likes/likes.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
 import { CommentsModule } from './modules/comments/comments.module';
+import { UploadsModule } from './modules/uploads/uploads.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { CommentsModule } from './modules/comments/comments.module';
     LikesModule,
     FavoritesModule,
     CommentsModule,
+    UploadsModule,
   ],
   controllers: [],
   providers: [],
