@@ -11,6 +11,7 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { IngredientsModule } from './modules/ingredients/ingredients.module';
 import { RecipesModule } from './modules/recipes/recipes.module';
 import { LikesModule } from './modules/likes/likes.module';
+import { FavoritesModule } from './modules/favorites/favorites.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { LikesModule } from './modules/likes/likes.module';
     IngredientsModule,
     RecipesModule,
     LikesModule,
+    FavoritesModule,
   ],
   controllers: [],
   providers: [],
