@@ -280,7 +280,7 @@ export class RecipesService {
           const uniqueIngredients = updateRecipeDto.ingredients.filter(
             (item, index, self) =>
               index === self.findIndex(
-                (t) => t.ingredientId === item.ingredientId && t.unitId === item.unitId
+                (t) => t.ingredientId === item.ingredientId
               )
           );
 
