@@ -47,20 +47,9 @@ export class CreateCommentsTable1741032000009 implements MigrationInterface {
         REFERENCES "users"("id")
         ON DELETE SET NULL
     `);
-
-    // Триггер для updated_at
-    await queryRunner.query(`
-        CREATE TRIGGER trigger_update_comments_updated_at
-            BEFORE UPDATE ON "comments"
-            FOR EACH ROW
-            EXECUTE FUNCTION update_updated_at_column()
-    `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `DROP TRIGGER IF EXISTS trigger_update_comments_updated_at ON "comments"`,
-    );
     await queryRunner.query(
       `ALTER TABLE "comments" DROP CONSTRAINT "FK_comments_author"`,
     );

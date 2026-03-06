@@ -7,6 +7,7 @@ import {
   DeleteDateColumn,
   BeforeInsert,
   BeforeUpdate,
+  Check,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 
@@ -17,6 +18,8 @@ export enum UserRole {
 }
 
 @Entity('users')
+@Check(`"CHK_username_length"`, `"username" IS NULL OR length("username") >= 3`)
+@Check(`"CHK_bio_length"`, `"bio" IS NULL OR length("bio") <= 1200`)
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;

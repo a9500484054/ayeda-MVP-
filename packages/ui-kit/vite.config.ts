@@ -26,6 +26,24 @@ export default defineConfig({
         globals: {
           vue: "Vue",
         },
+        // 👇 Важно: сохраняем имена CSS файлов
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name === "style.css") return "style.css";
+          return assetInfo.name;
+        },
+      },
+    },
+    // 👇 Важно: не разделять CSS на части
+    cssCodeSplit: false,
+    // 👇 Опционально: генерация sourcemap для отладки
+    sourcemap: true,
+  },
+  // 👇 Добавляем поддержку SCSS глобальных переменных (опционально)
+  css: {
+    preprocessorOptions: {
+      scss: {
+        // Если хочешь, чтобы переменные были доступны во всех SCSS файлах без импорта
+        // additionalData: `@import "./src/styles/_variables.scss";`
       },
     },
   },

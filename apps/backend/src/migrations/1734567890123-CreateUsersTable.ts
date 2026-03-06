@@ -53,38 +53,9 @@ export class CreateUsersTable1734567890123 implements MigrationInterface {
         CREATE INDEX "IDX_users_role" ON "users" ("role")
         WHERE "deleted_at" IS NULL
     `);
-
-    // Функция для автоматического обновления updated_at
-    await queryRunner.query(`
-        CREATE OR REPLACE FUNCTION update_updated_at_column()
-        RETURNS TRIGGER AS $$
-        BEGIN
-            NEW.updated_at = now();
-            RETURN NEW;
-        END;
-        $$ language 'plpgsql'
-    `);
-
-    // Триггер для updated_at
-    await queryRunner.query(`
-        CREATE TRIGGER trigger_update_users_updated_at
-            BEFORE UPDATE ON "users"
-            FOR EACH ROW
-            EXECUTE FUNCTION update_updated_at_column()
-    `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    // Удаляем триггер
-    await queryRunner.query(
-      `DROP TRIGGER IF EXISTS trigger_update_users_updated_at ON "users"`,
-    );
-
-    // Удаляем функцию
-    await queryRunner.query(
-      `DROP FUNCTION IF EXISTS update_updated_at_column()`,
-    );
-
     // Удаляем индексы
     await queryRunner.query(`DROP INDEX IF EXISTS "IDX_users_role"`);
     await queryRunner.query(`DROP INDEX IF EXISTS "IDX_users_username"`);

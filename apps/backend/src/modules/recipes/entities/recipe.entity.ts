@@ -8,6 +8,7 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
+  Check,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../users/entities/user.entity';
@@ -27,6 +28,8 @@ export interface RecipeStep {
 }
 
 @Entity('recipes')
+@Check(`"CHK_title_length"`, `"title" IS NULL OR length("title") >= 3`)
+@Check(`"CHK_servings_positive"`, `"servings" IS NULL OR "servings" > 0`)
 export class Recipe {
   @ApiProperty()
   @PrimaryGeneratedColumn('uuid')

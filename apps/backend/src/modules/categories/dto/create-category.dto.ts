@@ -11,7 +11,7 @@ export class CreateCategoryDto {
   @ApiProperty({ example: 'soups', description: 'Уникальный код категории' })
   @IsString()
   @MinLength(2)
-  @MaxLength(50)
+  @MaxLength(20)
   @Matches(/^[a-z-]+$/, {
     message:
       'Код должен содержать только латинские буквы в нижнем регистре и дефисы',

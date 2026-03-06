@@ -11,7 +11,7 @@ export class CreateIngredientsTable1741032000002 implements MigrationInterface {
     await queryRunner.query(`
         CREATE TABLE "ingredients" (
             "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
-            "code" character varying(20) NOT NULL UNIQUE,
+            "code" character varying(50) NOT NULL UNIQUE,
             "name" citext NOT NULL,
             "unit_id" uuid NOT NULL,
             "nutrition_info" jsonb NOT NULL DEFAULT '{}',
@@ -47,22 +47,9 @@ export class CreateIngredientsTable1741032000002 implements MigrationInterface {
         REFERENCES "units"("id")
         ON DELETE RESTRICT
     `);
-
-    // Создаем триггер для автоматического обновления updated_at
-    await queryRunner.query(`
-        CREATE TRIGGER trigger_update_ingredients_updated_at
-            BEFORE UPDATE ON "ingredients"
-            FOR EACH ROW
-            EXECUTE FUNCTION update_updated_at_column()
-    `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    // Удаляем триггер
-    await queryRunner.query(`
-        DROP TRIGGER IF EXISTS trigger_update_ingredients_updated_at ON "ingredients"
-    `);
-
     // Удаляем внешний ключ
     await queryRunner.query(`
         ALTER TABLE "ingredients" DROP CONSTRAINT "FK_ingredients_unit"

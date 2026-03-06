@@ -88,14 +88,6 @@ export class CreateRecipesTable1741032000003 implements MigrationInterface {
         ON DELETE RESTRICT
     `);
 
-    // Создаем триггер для updated_at
-    await queryRunner.query(`
-        CREATE TRIGGER trigger_update_recipes_updated_at
-            BEFORE UPDATE ON "recipes"
-            FOR EACH ROW
-            EXECUTE FUNCTION update_updated_at_column()
-    `);
-
     // Создаем триггер для published_at
     await queryRunner.query(`
         CREATE OR REPLACE FUNCTION update_published_at()

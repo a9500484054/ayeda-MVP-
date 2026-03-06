@@ -27,7 +27,7 @@ export class Ingredient {
   id: string;
 
   @ApiProperty({ example: 'milk', description: 'Уникальный код ингредиента' })
-  @Column({ unique: true, length: 20 })
+  @Column({ unique: true, length: 50 })
   code: string;
 
   @ApiProperty({ example: 'Молоко', description: 'Название ингредиента' })

@@ -13,7 +13,7 @@ export class CreateIngredientDto {
   @ApiProperty({ example: 'milk', description: 'Уникальный код' })
   @IsString()
   @MinLength(2)
-  @MaxLength(20)
+  @MaxLength(50)
   code: string;
 
   @ApiProperty({ example: 'Молоко', description: 'Название' })

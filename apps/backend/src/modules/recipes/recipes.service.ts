@@ -400,7 +400,7 @@ export class RecipesService {
         id: ri.id,
         ingredient: ri.ingredient,
         amount: ri.amount,
-        unit: ri.unit,
+        unit: ri.ingredient.unit,
         notes: ri.notes,
       })) || [];
 

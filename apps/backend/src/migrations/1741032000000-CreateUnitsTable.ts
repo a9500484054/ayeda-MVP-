@@ -31,20 +31,9 @@ export class CreateUnitsTable1741032000000 implements MigrationInterface {
     await queryRunner.query(`
         CREATE INDEX "IDX_units_type" ON "units" ("type")
     `);
-
-    // Триггер для обновления updated_at
-    await queryRunner.query(`
-        CREATE TRIGGER trigger_update_units_updated_at
-            BEFORE UPDATE ON "units"
-            FOR EACH ROW
-            EXECUTE FUNCTION update_updated_at_column()
-    `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `DROP TRIGGER IF EXISTS trigger_update_units_updated_at ON "units"`,
-    );
     await queryRunner.query(`DROP INDEX "IDX_units_type"`);
     await queryRunner.query(`DROP INDEX "IDX_units_code"`);
     await queryRunner.query(`DROP TABLE "units"`);

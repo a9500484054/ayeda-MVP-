@@ -8,7 +8,6 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 import { Recipe } from './recipe.entity';
 import { Ingredient } from '../../ingredients/entities/ingredient.entity';
-import { Unit } from '../../units/entities/unit.entity';
 
 @Entity('recipe_ingredients')
 export class RecipeIngredient {
@@ -34,14 +33,8 @@ export class RecipeIngredient {
   @Column({ type: 'numeric', precision: 10, scale: 2 })
   amount: number;
 
-  @Column({ name: 'unit_id', nullable: true })
-  unitId: string;
-
-  @ManyToOne(() => Unit, { onDelete: 'RESTRICT' })
-  @JoinColumn({ name: 'unit_id' })
-  unit: Unit;
-
   @ApiProperty({ example: 'по вкусу', required: false })
   @Column({ type: 'text', nullable: true })
   notes: string;
+  unit: any;
 }

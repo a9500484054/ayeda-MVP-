@@ -14,7 +14,7 @@ export class Category {
   id: string;
 
   @ApiProperty({ example: 'soups', description: 'Уникальный код категории' })
-  @Column({ unique: true, length: 50 })
+  @Column({ unique: true, length: 20 })
   code: string;
 
   @ApiProperty({ example: 'Супы', description: 'Название категории' })

@@ -27,7 +27,6 @@ export class AuthService {
     private configService: ConfigService,
     @InjectRepository(RefreshToken)
     private refreshTokenRepository: Repository<RefreshToken>,
-    // В конструктор добавить:
     private emailService: EmailService,
   ) {}
 
