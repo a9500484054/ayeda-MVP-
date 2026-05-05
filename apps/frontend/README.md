@@ -1,75 +1,51 @@
-# Nuxt Minimal Starter
+# Ayeda Frontend
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Nuxt 4 frontend for Ayeda: public recipe pages with SSR, cabinet SPA routes, admin routes, menu planner and shopping lists.
 
-## Setup
+## Stack
 
-Make sure to install dependencies:
+- Nuxt 4, Vue 3, strict TypeScript
+- TailwindCSS, Nuxt-ready component structure
+- Pinia stores
+- Vee Validate/Zod-ready form layer
+- REST API integration through `useApi`; generated OpenAPI client is reserved for `packages/shared-api`
+
+## Environment
+
+Copy `.env.example` to `.env` and adjust values:
 
 ```bash
-# npm
-npm install
+NUXT_PUBLIC_API_BASE_URL=http://localhost:3001/api
+NUXT_PUBLIC_APP_URL=http://localhost:3000
+NUXT_PUBLIC_SENTRY_DSN=
+NUXT_PUBLIC_YANDEX_METRICA_ID=
+```
 
-# pnpm
+## Commands
+
+```bash
 pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
+pnpm dev
+pnpm type-check
+pnpm test
+pnpm build
 ```
 
-## Development Server
-
-Start the development server on `http://localhost:3000`:
+Generate API client after backend Swagger is available:
 
 ```bash
-# npm
-npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
+pnpm generate:api
 ```
+
+## Routes
+
+- `/`, `/recipes`, `/recipes/[srcPath]`, `/blog`, `/about`, `/policy`, `/offer`
+- `/cabinet/my-recipes`, `/cabinet/favorites`, `/cabinet/menu-planner`, `/cabinet/shopping-lists`, `/cabinet/profile`
+- `/admin`, `/admin/moderate/recipes`, `/admin/moderate/comments`, `/admin/directories`
 
 ## Production
 
-Build the application for production:
-
 ```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
+docker build -t ayeda-frontend .
+docker run -p 3000:3000 --env-file .env ayeda-frontend
 ```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.

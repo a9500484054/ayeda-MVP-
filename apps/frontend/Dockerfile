@@ -1,18 +1,19 @@
-# apps/frontend/Dockerfile
-FROM node:20-alpine
-
+FROM node:20-alpine AS deps
 WORKDIR /app
+RUN corepack enable
+COPY package.json ./
+RUN pnpm install --frozen-lockfile=false
 
-# Устанавливаем pnpm
-RUN npm install -g pnpm@latest
-
-# Копируем всё сразу
+FROM node:20-alpine AS build
+WORKDIR /app
+RUN corepack enable
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN pnpm build
 
-# Устанавливаем зависимости (включая dev)
-RUN pnpm install
-
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=build /app/.output ./.output
 EXPOSE 3000
-
-# Запускаем в режиме разработки
-CMD ["pnpm", "run", "dev"]
+CMD ["node", ".output/server/index.mjs"]

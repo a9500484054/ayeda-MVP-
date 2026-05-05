@@ -1,5 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  compatibilityDate: "2026-03-06",
   ssr: true,
 
   modules: [
@@ -9,13 +10,8 @@ export default defineNuxtConfig({
     "@vee-validate/nuxt",
   ],
 
-  // Алиасы (по умолчанию уже работают)
-  alias: {
-    "~": "/",
-    "@": "/",
-  },
-
   devtools: { enabled: true },
+  css: ["~/assets/css/main.css"],
 
   pwa: {
     manifest: {
@@ -27,9 +23,32 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
+    apiSecret: process.env.NUXT_API_SECRET || "",
     public: {
-      apiBase:
-        process.env.NUXT_PUBLIC_API_BASE_URL || "http://localhost:3001/api",
+      apiBase: process.env.NUXT_PUBLIC_API_BASE_URL || "http://localhost:3001/api",
+      sentryDsn: process.env.NUXT_PUBLIC_SENTRY_DSN || "",
+      yandexMetricaId: process.env.NUXT_PUBLIC_YANDEX_METRICA_ID || "",
+    },
+  },
+
+  routeRules: {
+    "/": { prerender: true },
+    "/recipes/**": { ssr: true, swr: 3600 },
+    "/blog/**": { ssr: true, swr: 3600 },
+    "/about": { ssr: true },
+    "/policy": { ssr: true },
+    "/offer": { ssr: true },
+    "/cabinet/**": { ssr: false },
+    "/admin/**": { ssr: false },
+  },
+
+  typescript: {
+    strict: true,
+    typeCheck: false,
+    tsConfig: {
+      compilerOptions: {
+        verbatimModuleSyntax: true,
+      },
     },
   },
 });
