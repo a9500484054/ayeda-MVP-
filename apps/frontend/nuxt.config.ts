@@ -4,7 +4,7 @@ export default defineNuxtConfig({
   ssr: true,
 
   modules: [
-    "@nuxtjs/tailwindcss",
+    "@nuxt/ui",
     "@pinia/nuxt",
     "@vite-pwa/nuxt",
     "@vee-validate/nuxt",
@@ -12,6 +12,10 @@ export default defineNuxtConfig({
 
   devtools: { enabled: true },
   css: ["~/assets/css/main.css"],
+
+  ui: {
+    colorMode: false,
+  },
 
   pwa: {
     manifest: {
@@ -25,7 +29,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     apiSecret: process.env.NUXT_API_SECRET || "",
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE_URL || "http://localhost:3001/api",
+      apiBase: process.env.NUXT_PUBLIC_API_BASE_URL || "http://localhost:3001/api/v1",
       sentryDsn: process.env.NUXT_PUBLIC_SENTRY_DSN || "",
       yandexMetricaId: process.env.NUXT_PUBLIC_YANDEX_METRICA_ID || "",
     },
