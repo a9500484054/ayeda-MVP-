@@ -36,5 +36,4 @@ export class RecipeIngredient {
   @ApiProperty({ example: 'по вкусу', required: false })
   @Column({ type: 'text', nullable: true })
   notes: string;
-  unit: any;
 }

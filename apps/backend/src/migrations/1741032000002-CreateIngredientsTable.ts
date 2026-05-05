@@ -4,15 +4,12 @@ export class CreateIngredientsTable1741032000002 implements MigrationInterface {
   name = 'CreateIngredientsTable1741032000002';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // Включаем расширение citext (если еще не включено)
-    await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "citext"`);
-
     // Создаем таблицу ingredients
     await queryRunner.query(`
         CREATE TABLE "ingredients" (
             "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
             "code" character varying(50) NOT NULL UNIQUE,
-            "name" citext NOT NULL,
+            "name" character varying(100) NOT NULL,
             "unit_id" uuid NOT NULL,
             "nutrition_info" jsonb NOT NULL DEFAULT '{}',
             "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),

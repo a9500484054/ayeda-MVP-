@@ -130,7 +130,6 @@ export class RecipesService {
       .leftJoinAndSelect('recipe.author', 'author')
       .leftJoinAndSelect('recipe.ingredients', 'ingredients')
       .leftJoinAndSelect('ingredients.ingredient', 'ingredient')
-      .leftJoinAndSelect('ingredients.unit', 'unit')
       .leftJoinAndSelect('recipe.categories', 'rc')
       .leftJoinAndSelect('rc.category', 'category')
       .where('recipe.id = :id', { id })
@@ -164,7 +163,6 @@ export class RecipesService {
       .leftJoinAndSelect('recipe.author', 'author')
       .leftJoinAndSelect('recipe.ingredients', 'ingredients')
       .leftJoinAndSelect('ingredients.ingredient', 'ingredient')
-      .leftJoinAndSelect('ingredients.unit', 'unit')
       .leftJoinAndSelect('recipe.categories', 'rc')
       .leftJoinAndSelect('rc.category', 'category')
       .where('recipe.deletedAt IS NULL');
@@ -217,7 +215,6 @@ export class RecipesService {
       .leftJoinAndSelect('recipe.author', 'author')
       .leftJoinAndSelect('recipe.ingredients', 'ingredients')
       .leftJoinAndSelect('ingredients.ingredient', 'ingredient')
-      .leftJoinAndSelect('ingredients.unit', 'unit')
       .leftJoinAndSelect('recipe.categories', 'rc')
       .leftJoinAndSelect('rc.category', 'category')
       .where('recipe.srcPath = :srcPath', { srcPath })
@@ -289,7 +286,6 @@ export class RecipesService {
               recipeId: id,
               ingredientId: item.ingredientId,
               amount: item.amount,
-              unitId: item.unitId,
               notes: item.notes,
             });
           });
@@ -400,7 +396,7 @@ export class RecipesService {
         id: ri.id,
         ingredient: ri.ingredient,
         amount: ri.amount,
-        unit: ri.ingredient.unit,
+        unit: ri.ingredient.unit, // Получаем unit из связанного ингредиента
         notes: ri.notes,
       })) || [];
 

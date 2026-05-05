@@ -71,9 +71,12 @@ export class IngredientsService {
     return this.ingredientsRepository
       .createQueryBuilder('ingredient')
       .leftJoinAndSelect('ingredient.unit', 'unit')
-      .where('ingredient.name ILIKE :query OR ingredient.code ILIKE :query', {
-        query: `%${query}%`,
-      })
+      .where(
+        'LOWER(ingredient.name) LIKE LOWER(:query) OR LOWER(ingredient.code) LIKE LOWER(:query)',
+        {
+          query: `%${query}%`,
+        },
+      )
       .orderBy('ingredient.name', 'ASC')
       .take(20)
       .getMany();
@@ -156,7 +159,7 @@ export class IngredientsService {
     const queryBuilder = this.ingredientsRepository
       .createQueryBuilder('ingredient')
       .leftJoinAndSelect('ingredient.unit', 'unit')
-      .where('ingredient.name ILIKE :query OR ingredient.code ILIKE :query', {
+      .where('LOWER(ingredient.name) LIKE LOWER(:query) OR LOWER(ingredient.code) LIKE LOWER(:query)', {
         query: `%${query}%`,
       })
       .orderBy('ingredient.name', 'ASC')

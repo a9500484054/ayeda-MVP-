@@ -31,7 +31,7 @@ export class Ingredient {
   code: string;
 
   @ApiProperty({ example: 'Молоко', description: 'Название ингредиента' })
-  @Column({ type: 'citext' })
+  @Column({ length: 100 })
   name: string;
 
   @ApiProperty({ type: () => Unit, description: 'Единица измерения' })

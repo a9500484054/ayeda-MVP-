@@ -149,6 +149,6 @@ export class Recipe {
   deletedAt: Date;
 
   // Полнотекстовый поиск (генерируется базой)
-  // @Column({ type: 'tsvector', name: 'search_vector', select: false })
-  // searchVector: any;
+  @Column({ type: 'tsvector', name: 'search_vector' })
+  searchVector: any;
 }
