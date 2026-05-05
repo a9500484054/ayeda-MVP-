@@ -1,26 +1,34 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { useAuth } from "~/composables/useAuth";
-
-const email = ref("");
-const password = ref("");
-const pending = ref(false);
-const error = ref("");
-const showPassword = ref(false);
-const { login } = useAuth();
-
 
 definePageMeta({
-  layout: false
+  layout: 'auth'
 })
 
+const email = ref("");
+const pending = ref(false);
+const success = ref(false);
+const error = ref("");
+
 async function submit() {
+  if (!email.value) {
+    error.value = "Введите email";
+    return;
+  }
+
   pending.value = true;
   error.value = "";
+
   try {
-    await login(email.value, password.value);
-  } catch {
-    error.value = "Не удалось войти. Проверьте данные или доступность API.";
+    // Здесь будет запрос на сброс пароля
+    // await $fetch('/api/auth/forgot-password', { method: 'POST', body: { email: email.value } })
+
+    // Имитация запроса
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    success.value = true;
+  } catch (err: any) {
+    error.value = err.message || "Не удалось отправить запрос. Попробуйте позже.";
   } finally {
     pending.value = false;
   }
@@ -47,34 +55,33 @@ async function submit() {
       </div>
 
       <div class="relative z-10 max-w-md">
-        <div class="text-6xl mb-6">🍽️</div>
+        <div class="text-6xl mb-6">🔐</div>
         <h2 class="text-3xl font-bold text-white mb-4">
-          Добро пожаловать обратно
+          Восстановление доступа
         </h2>
         <p class="text-emerald-100 leading-relaxed">
-          Войдите в свой аккаунт, чтобы продолжить планировать питание,
-          создавать списки покупок и экономить время.
+          Не волнуйтесь! Мы отправим инструкции по восстановлению пароля на вашу почту.
         </p>
 
-        <!-- Преимущества -->
+        <!-- Советы -->
         <div class="mt-8 space-y-3">
           <div class="flex items-center gap-3 text-white/80 text-sm">
             <div class="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
-              <UIcon name="i-lucide-check" class="w-3 h-3" />
+              <UIcon name="i-lucide-mail" class="w-3 h-3" />
             </div>
-            <span>Экономьте до 5 часов в неделю</span>
+            <span>Проверьте папку "Спам"</span>
           </div>
           <div class="flex items-center gap-3 text-white/80 text-sm">
             <div class="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
-              <UIcon name="i-lucide-check" class="w-3 h-3" />
+              <UIcon name="i-lucide-clock" class="w-3 h-3" />
             </div>
-            <span>Умные списки покупок</span>
+            <span>Ссылка действительна 24 часа</span>
           </div>
           <div class="flex items-center gap-3 text-white/80 text-sm">
             <div class="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
-              <UIcon name="i-lucide-check" class="w-3 h-3" />
+              <UIcon name="i-lucide-shield" class="w-3 h-3" />
             </div>
-            <span>500+ проверенных рецептов</span>
+            <span>Ваши данные в безопасности</span>
           </div>
         </div>
       </div>
@@ -84,7 +91,7 @@ async function submit() {
       </div>
     </div>
 
-    <!-- Правая часть - Форма входа -->
+    <!-- Правая часть - Форма восстановления -->
     <div class="flex items-center justify-center p-6 lg:p-12 bg-white">
       <div class="w-full max-w-md">
         <!-- Мобильный логотип -->
@@ -99,12 +106,26 @@ async function submit() {
 
         <!-- Заголовок формы -->
         <div class="text-center lg:text-left mb-8">
-          <h1 class="text-3xl lg:text-4xl font-black text-gray-900 mb-2">Вход</h1>
-          <p class="text-gray-500">Введите свои данные для входа в аккаунт</p>
+          <h1 class="text-3xl lg:text-4xl font-black text-gray-900 mb-2">Забыли пароль?</h1>
+          <p class="text-gray-500">Введите email, и мы вышлем инструкции для восстановления</p>
+        </div>
+
+        <!-- Сообщение об успехе -->
+        <div v-if="success" class="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+          <div class="flex items-start gap-3">
+            <UIcon name="i-lucide-check-circle" class="w-5 h-5 text-emerald-600 mt-0.5" />
+            <div>
+              <p class="text-sm text-emerald-700 font-medium">Письмо отправлено!</p>
+              <p class="text-xs text-emerald-600 mt-1">
+                Мы отправили инструкции по восстановлению пароля на {{ email }}.
+                Проверьте почту и следуйте инструкциям.
+              </p>
+            </div>
+          </div>
         </div>
 
         <!-- Форма -->
-        <form @submit.prevent="submit" class="space-y-5">
+        <form v-else @submit.prevent="submit" class="space-y-5">
           <!-- Email -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -113,40 +134,11 @@ async function submit() {
               <input
                 v-model="email"
                 type="email"
-                placeholder="Ваш email"
+                placeholder="your@email.com"
                 class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 outline-none transition"
                 required
               />
             </div>
-          </div>
-
-          <!-- Пароль -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Пароль</label>
-            <div class="relative">
-              <UIcon name="i-lucide-lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                v-model="password"
-                :type="showPassword ? 'text' : 'password'"
-                placeholder="Ваш пароль"
-                class="w-full pl-10 pr-12 py-3 rounded-xl border border-gray-200 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 outline-none transition"
-                required
-              />
-              <button
-                type="button"
-                @click="showPassword = !showPassword"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
-              >
-                <UIcon :name="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'" class="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          <!-- Забыли пароль -->
-          <div class="flex justify-end">
-            <NuxtLink to="/forgot-password" class="text-sm text-emerald-600 hover:text-emerald-700 font-medium">
-              Забыли пароль?
-            </NuxtLink>
           </div>
 
           <!-- Ошибка -->
@@ -154,38 +146,34 @@ async function submit() {
             {{ error }}
           </p>
 
-          <!-- Кнопка входа -->
+          <!-- Кнопка отправки -->
           <button
             type="submit"
             :disabled="pending"
             class="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span v-if="!pending">Войти</span>
+            <span v-if="!pending">Отправить инструкции</span>
             <span v-else class="flex items-center justify-center gap-2">
               <UIcon name="i-lucide-loader-circle" class="w-4 h-4 animate-spin" />
-              Вход...
+              Отправка...
             </span>
           </button>
 
-          <!-- Регистрация -->
+          <!-- Ссылка на вход -->
           <div class="text-center pt-4">
-            <p class="text-sm text-gray-500">
-              Нет аккаунта?
-              <NuxtLink to="/register" class="text-emerald-600 font-semibold hover:text-emerald-700 ml-1">
-                Зарегистрироваться
-              </NuxtLink>
-            </p>
+            <NuxtLink to="/login" class="text-sm text-emerald-600 hover:text-emerald-700 font-medium inline-flex items-center gap-1">
+              <UIcon name="i-lucide-arrow-left" class="w-3 h-3" />
+              Вернуться ко входу
+            </NuxtLink>
           </div>
         </form>
 
-        <!-- Демо-аккаунт (опционально) -->
+        <!-- Помощь -->
         <div class="mt-6 p-4 bg-gray-50 rounded-xl">
-          <p class="text-xs text-gray-500 text-center mb-2">Демо-доступ</p>
-          <div class="flex justify-center gap-4 text-xs text-gray-400">
-            <span>demo@ayeda.ru</span>
-            <span>•</span>
-            <span>demo123</span>
-          </div>
+          <p class="text-xs text-gray-500 text-center">
+            💡 Не приходит письмо? Проверьте папку "Спам" или
+            <NuxtLink to="/support" class="text-emerald-600 hover:underline">свяжитесь с поддержкой</NuxtLink>
+          </p>
         </div>
       </div>
     </div>
@@ -193,7 +181,6 @@ async function submit() {
 </template>
 
 <style scoped>
-/* Анимации */
 @keyframes fadeIn {
   from {
     opacity: 0;

@@ -32,6 +32,6 @@
     "@vee-validate/nuxt": "^4.15.1",
     "@vite-pwa/nuxt": "^1.1.1",
     "vitest": "^4.0.16",
-    "zod": "^4.3.6"
+    "zod": "^3.24.0"
   }
 }
