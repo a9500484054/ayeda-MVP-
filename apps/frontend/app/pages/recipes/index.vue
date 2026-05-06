@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { demoRecipes } from "~/composables/useDemoContent";
 
+definePageMeta({ layout: "cabinet" });
+
 const query = ref("");
 const recipes = computed(() =>
   demoRecipes.filter((recipe) => recipe.title.toLowerCase().includes(query.value.toLowerCase())),

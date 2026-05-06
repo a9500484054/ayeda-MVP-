@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-white">
     <!-- Основной контент -->
-    <main class="pt-32 pb-20">
+    <main class="pt-16 pb-20">
       <div class="max-w-4xl mx-auto px-6 lg:px-8">
         <!-- Заголовок -->
         <div class="mb-12">

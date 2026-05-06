@@ -26,7 +26,7 @@
                 <span class="bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">Перестаньте</span>
                 <br />
             <span class="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-               гадать, что съесть
+              гадать, что съесть
                 </span>
               </h1>
               <p class="text-xl text-gray-600 leading-relaxed max-w-lg">
@@ -102,8 +102,8 @@
             <div class="relative z-10 bg-white/60 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-6 transform rotate-2 hover:rotate-0 transition-all duration-500">
               <!-- AI Badge -->
               <div class="absolute -top-3 -right-3 bg-gradient-to-r from-amber-400 to-orange-400 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-                <!-- 🤖 AI план -->
-                🤖 Твой план
+                🤖 AI план
+                <!-- 🤖 Твой план -->
               </div>
 
               <!-- Демо меню -->
@@ -325,7 +325,7 @@
     <!-- ФИНАЛЬНЫЙ CTA (Ультимативный оффер) -->
     <section class="relative py-24 overflow-hidden" id="faq">
       <div class="absolute inset-0 bg-gradient-to-r from-emerald-900 to-teal-900"></div>
-      <div class="absolute inset-0 bg-[url('/noise.png')] opacity-10"></div>
+      <!-- <div class="absolute inset-0 bg-[url('/noise.png')] opacity-10"></div> -->
 
       <!-- Анимированные круги -->
       <div class="absolute top-0 left-0 w-96 h-96 bg-emerald-500 rounded-full blur-3xl opacity-20 animate-pulse"></div>
@@ -401,200 +401,203 @@
       </div>
     </section>
   </div>
+  <!-- Уведомление о cookie -->
+  <CookieConsent />
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import CookieConsent from '~/components/CookieConsent.vue'
 
-const scrolled = ref(false)
-const progressHeight = ref(0)
-const howSection = ref(null)
-const stepRefs = ref<unknown[]>([])
+  const scrolled = ref(false)
+  const progressHeight = ref(0)
+  const howSection = ref(null)
+  const stepRefs = ref<unknown[]>([])
 
-const navItems = [
-  { label: 'Возможности', href: '#features' },
-  { label: 'Как это работает', href: '#how-it-works' },
-  { label: 'Истории', href: '#stories' },
-  { label: 'FAQ', href: '#faq' }
-]
+  const navItems = [
+    { label: 'Возможности', href: '#features' },
+    { label: 'Как это работает', href: '#how-it-works' },
+    { label: 'Истории', href: '#stories' },
+    { label: 'FAQ', href: '#faq' }
+  ]
 
-const demoWeek = [
-  { name: 'ПН', lunch: 'Киноа с овощами', dinner: 'Лосось на гриле' },
-  { name: 'ВТ', lunch: 'Суп-пюре из тыквы', dinner: 'Паста с морепродуктами' },
-  { name: 'СР', lunch: 'Боул с нутом', dinner: 'Курица с розмарином' },
-  { name: 'ЧТ', lunch: 'Том ям', dinner: 'Рис с овощами' },
-  { name: 'ПТ', lunch: 'Греческий салат', dinner: 'Стейк из индейки' }
-]
+  const demoWeek = [
+    { name: 'ПН', lunch: 'Киноа с овощами', dinner: 'Лосось на гриле' },
+    { name: 'ВТ', lunch: 'Суп-пюре из тыквы', dinner: 'Паста с морепродуктами' },
+    { name: 'СР', lunch: 'Боул с нутом', dinner: 'Курица с розмарином' },
+    { name: 'ЧТ', lunch: 'Том ям', dinner: 'Рис с овощами' },
+    { name: 'ПТ', lunch: 'Греческий салат', dinner: 'Стейк из индейки' }
+  ]
 
-const pains = [
-  { icon: '😫', title: 'Каждый день один и тот же вопрос', text: '"Что приготовить?" отнимает больше времени, чем сама готовка' },
-  { icon: '💸', title: 'Спонтанные траты на доставку', text: 'Отсутствие плана = фастфуд + лишние 5000₽ в месяц' },
-  { icon: '🍕', title: 'Вредные привычки в питании', text: 'Когда нет плана, еда становится хаотичной и нездоровой' }
-]
+  const pains = [
+    { icon: '😫', title: 'Каждый день один и тот же вопрос', text: '"Что приготовить?" отнимает больше времени, чем сама готовка' },
+    { icon: '💸', title: 'Спонтанные траты на доставку', text: 'Отсутствие плана = фастфуд + лишние 5000₽ в месяц' },
+    { icon: '🍕', title: 'Вредные привычки в питании', text: 'Когда нет плана, еда становится хаотичной и нездоровой' }
+  ]
 
-const workflow = [
-  {
-    icon: 'i-lucide-book-open',
-    badge: 'Шаг 1 — 2 минуты',
-    title: 'Добавьте любимые рецепты',
-    description: 'Импортируйте или добавьте свои.',
-    image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=300&fit=crop',
-    alt: 'Кулинарная книга с рецептами'
-  },
-  {
-    icon: 'i-lucide-brain',
-    badge: 'Шаг 2 — 30 секунд',
-    title: 'Составите идеальное меню',
-    description: 'Учитывайте ваши предпочтения, бюджет и время на готовку. Баланс БЖУ под контролем.',
-    image: 'https://images.unsplash.com/photo-1490818387583-1baba5e638af?w=400&h=300&fit=crop',
-    alt: 'Планирование меню'
-  },
-  {
-    icon: 'i-lucide-shopping-cart',
-    badge: 'Шаг 3 — Готово!',
-    title: 'Получите умный список покупок',
-    description: 'Экономия 30% времени в магазине.',
-    image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=300&fit=crop',
-    alt: 'Список покупок'
-  }
-]
+  const workflow = [
+    {
+      icon: 'i-lucide-book-open',
+      badge: 'Шаг 1 — 2 минуты',
+      title: 'Добавьте любимые рецепты',
+      description: 'Импортируйте или добавьте свои.',
+      image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=300&fit=crop',
+      alt: 'Кулинарная книга с рецептами'
+    },
+    {
+      icon: 'i-lucide-brain',
+      badge: 'Шаг 2 — 30 секунд',
+      title: 'Составите идеальное меню',
+      description: 'Учитывайте ваши предпочтения, бюджет и время на готовку. Баланс БЖУ под контролем.',
+      image: 'https://images.unsplash.com/photo-1490818387583-1baba5e638af?w=400&h=300&fit=crop',
+      alt: 'Планирование меню'
+    },
+    {
+      icon: 'i-lucide-shopping-cart',
+      badge: 'Шаг 3 — Готово!',
+      title: 'Получите умный список покупок',
+      description: 'Экономия 30% времени в магазине.',
+      image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=300&fit=crop',
+      alt: 'Список покупок'
+    }
+  ]
 
-const testimonials = [
-  {
-    name: 'Анна Смирнова',
-    role: 'Мама двоих детей',
-    text: 'Раньше я сходила с ума, пытаясь накормить всех. Теперь муж сам ходит в магазин по списку из АуЕда!',
-    savings: '8 500₽'
-  },
-  {
-    name: 'Дмитрий Волков',
-    role: 'IT-предприниматель',
-    text: 'Даже не представлял, что можно так эффективно планировать питание. Трейд-офф времени и качества просто невероятный.',
-    savings: '12 000₽'
-  },
-  {
-    name: 'Елена Морозова',
-    role: 'Фитнес-тренер',
-    text: 'Рекомендую всем клиентам. АуЕда автоматизирует 80% работы по составлению рациона.',
-    savings: '5 000₽'
-  }
-]
+  const testimonials = [
+    {
+      name: 'Анна Смирнова',
+      role: 'Мама двоих детей',
+      text: 'Раньше я сходила с ума, пытаясь накормить всех. Теперь муж сам ходит в магазин по списку из АуЕда!',
+      savings: '8 500₽'
+    },
+    {
+      name: 'Дмитрий Волков',
+      role: 'IT-предприниматель',
+      text: 'Даже не представлял, что можно так эффективно планировать питание. Трейд-офф времени и качества просто невероятный.',
+      savings: '12 000₽'
+    },
+    {
+      name: 'Елена Морозова',
+      role: 'Фитнес-тренер',
+      text: 'Рекомендую всем клиентам. АуЕда автоматизирует 80% работы по составлению рациона.',
+      savings: '5 000₽'
+    }
+  ]
 
 
-const blogList = [
-  { title: '5 ошибок при планировании питания', description: 'И как их избежать', category: 'Советы', date: '15.03.2026', link: '/blog/5-mistakes' },
-  { title: 'Как заморозить продукты на неделю', description: 'Экономьте время на готовке', category: 'Лайфхак', date: '12.03.2026', link: '/blog/freezing-tips' },
-  { title: 'Быстрый завтрак за 5 минут', description: 'Идеи для занятого утра', category: 'Рецепты', date: '10.03.2026', link: '/blog/quick-breakfast' },
-  { title: 'Что такое умный список покупок', description: 'И почему он экономит время', category: 'О сервисе', date: '8.03.2026', link: '/blog/smart-shopping-list' }
-]
-onMounted(() => {
-  // Scroll эффект для хедера
-  window.addEventListener('scroll', () => {
-    scrolled.value = window.scrollY > 50
-  })
-
-  // Анимация прогресса при скролле
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const rect = entry.target.getBoundingClientRect()
-        const scrollPercent = (rect.top * -1) / rect.height
-        progressHeight.value = Math.min(100, Math.max(0, scrollPercent * 100))
-      }
+  const blogList = [
+    { title: '5 ошибок при планировании питания', description: 'И как их избежать', category: 'Советы', date: '15.03.2026', link: '/blog/5-mistakes' },
+    { title: 'Как заморозить продукты на неделю', description: 'Экономьте время на готовке', category: 'Лайфхак', date: '12.03.2026', link: '/blog/freezing-tips' },
+    { title: 'Быстрый завтрак за 5 минут', description: 'Идеи для занятого утра', category: 'Рецепты', date: '10.03.2026', link: '/blog/quick-breakfast' },
+    { title: 'Что такое умный список покупок', description: 'И почему он экономит время', category: 'О сервисе', date: '8.03.2026', link: '/blog/smart-shopping-list' }
+  ]
+  onMounted(() => {
+    // Scroll эффект для хедера
+    window.addEventListener('scroll', () => {
+      scrolled.value = window.scrollY > 50
     })
-  }, { threshold: 0.1 })
 
-  if (howSection.value) {
-    observer.observe(howSection.value)
+    // Анимация прогресса при скролле
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const rect = entry.target.getBoundingClientRect()
+          const scrollPercent = (rect.top * -1) / rect.height
+          progressHeight.value = Math.min(100, Math.max(0, scrollPercent * 100))
+        }
+      })
+    }, { threshold: 0.1 })
+
+    if (howSection.value) {
+      observer.observe(howSection.value)
+    }
+  })
+  const problems = [
+    { text: 'Каждый день думаете "Что приготовить?"' },
+    { text: 'Тратите кучу времени в магазине' },
+    { text: 'Заказываете доставку из-за лени' },
+    { text: 'Продукты портятся в холодильнике' }
+  ]
+
+  const solutions = [
+    { text: 'Готовое меню на неделю за 10 минут' },
+    { text: 'Умный список по отделам магазина' },
+    { text: 'Экономия до 35% бюджета' },
+    { text: 'Никакого стресса и хаоса' }
+  ]
+
+  const timeLostTotal = 8
+  </script>
+
+
+  <style scoped>
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
-})
-const problems = [
-  { text: 'Каждый день думаете "Что приготовить?"' },
-  { text: 'Тратите кучу времени в магазине' },
-  { text: 'Заказываете доставку из-за лени' },
-  { text: 'Продукты портятся в холодильнике' }
-]
 
-const solutions = [
-  { text: 'Готовое меню на неделю за 10 минут' },
-  { text: 'Умный список по отделам магазина' },
-  { text: 'Экономия до 35% бюджета' },
-  { text: 'Никакого стресса и хаоса' }
-]
+  @keyframes fadeInRight {
+    from {
+      opacity: 0;
+      transform: translateX(50px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
 
-const timeLostTotal = 8
-</script>
-
-
-<style scoped>
-@keyframes fadeInUp {
-  from {
+  .animate-fade-in-up {
+    animation: fadeInUp 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards;
     opacity: 0;
-    transform: translateY(30px);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
-@keyframes fadeInRight {
-  from {
+  .animate-fade-in-right {
+    animation: fadeInRight 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1) 0.3s forwards;
     opacity: 0;
-    transform: translateX(50px);
   }
-  to {
-    opacity: 1;
-    transform: translateX(0);
+
+  .animation-delay-100 {
+    animation-delay: 0.1s;
   }
-}
 
-.animate-fade-in-up {
-  animation: fadeInUp 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards;
-  opacity: 0;
-}
+  .animation-delay-200 {
+    animation-delay: 0.2s;
+  }
 
-.animate-fade-in-right {
-  animation: fadeInRight 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1) 0.3s forwards;
-  opacity: 0;
-}
+  .animation-delay-300 {
+    animation-delay: 0.3s;
+  }
 
-.animation-delay-100 {
-  animation-delay: 0.1s;
-}
+  .animation-delay-1000 {
+    animation-delay: 1s;
+  }
 
-.animation-delay-200 {
-  animation-delay: 0.2s;
-}
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
 
-.animation-delay-300 {
-  animation-delay: 0.3s;
-}
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
 
-.animation-delay-1000 {
-  animation-delay: 1s;
-}
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
 
-/* Smooth scrolling */
-html {
-  scroll-behavior: smooth;
-}
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #10b981, #14b8a6);
+    border-radius: 4px;
+  }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #10b981, #14b8a6);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #059669, #0d9488);
-}
-</style>
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #059669, #0d9488);
+  }
+  </style>

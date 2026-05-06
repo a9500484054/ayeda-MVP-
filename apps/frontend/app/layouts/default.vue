@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
+import GlobalLoader from '~/components/GlobalLoader.vue';
 import { publicNavigation } from "~/shared/constants/navigation";
 
 const scrolled = ref(false)
@@ -19,6 +20,9 @@ onUnmounted(() => {
 
 <template>
   <div class="min-h-screen">
+    <!-- Глобальный лоадер -->
+    <!-- <GlobalLoader /> -->
+
     <!-- НОВЫЙ ХЕДЕР с эффектом стекла -->
     <header class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 transition-all duration-300" :class="{ 'shadow-sm': scrolled }">
       <div class="max-w-7xl mx-auto px-6 lg:px-8">
@@ -132,7 +136,7 @@ onUnmounted(() => {
               <li><NuxtLink to="/in-development" class="text-gray-400 hover:text-emerald-400 transition text-sm">Блог</NuxtLink></li>
               <li><NuxtLink to="/recipes" class="text-gray-400 hover:text-emerald-400 transition text-sm">Рецепты</NuxtLink></li>
               <li><NuxtLink to="/in-development" class="text-gray-400 hover:text-emerald-400 transition text-sm">Вопросы и ответы</NuxtLink></li>
-              <li><NuxtLink to="/in-development" class="text-gray-400 hover:text-emerald-400 transition text-sm">Поддержка</NuxtLink></li>
+              <li><NuxtLink to="/support" class="text-gray-400 hover:text-emerald-400 transition text-sm">Поддержка</NuxtLink></li>
             </ul>
           </div>
 

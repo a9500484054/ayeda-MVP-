@@ -14,33 +14,55 @@ export function useAuth() {
   const accessToken = useCookie<string | null>("access_token", { sameSite: "lax" });
   const refreshToken = useCookie<string | null>("refresh_token", { sameSite: "strict" });
 
-  async function login(email: string, password: string) {
-    const response = await api<AuthResponse>("/auth/login", {
-      method: "POST",
-      body: { email, password },
-    });
+  // Реактивные ссылки на данные пользователя
+  const user = computed(() => userStore.user);
+  const isAuthenticated = computed(() => !!userStore.user);
 
-    accessToken.value = response.accessToken;
-    refreshToken.value = response.refreshToken;
-    userStore.setUser(response.user);
-    await navigateTo("/cabinet/my-recipes");
+  async function login(email: string, password: string) {
+    try {
+      const response = await api<AuthResponse>("/auth/login", {
+        method: "POST",
+        body: { email, password },
+      });
+
+      console.log("Login response:", response);
+
+      accessToken.value = response.accessToken;
+      refreshToken.value = response.refreshToken;
+      userStore.setUser(response.user);
+
+      console.log("User saved to store:", userStore.user);
+
+      return response;
+    } catch (error) {
+      console.error("Login error:", error);
+      throw error;
+    }
   }
 
   async function register(email: string, password: string, username: string) {
-    const response = await api<AuthResponse>("/auth/register", {
-      method: "POST",
-      body: { email, password, username },
-    });
+    try {
+      const response = await api<AuthResponse>("/auth/register", {
+        method: "POST",
+        body: { email, password, username },
+      });
 
-    accessToken.value = response.accessToken;
-    refreshToken.value = response.refreshToken;
-    userStore.setUser(response.user);
-    await navigateTo("/cabinet/my-recipes");
+      accessToken.value = response.accessToken;
+      refreshToken.value = response.refreshToken;
+      userStore.setUser(response.user);
+
+      return response;
+    } catch (error) {
+      console.error("Register error:", error);
+      throw error;
+    }
   }
 
   async function logout() {
     try {
       await api("/auth/logout", { method: "POST" });
+    } catch (error) {
+      console.error("Logout error:", error);
     } finally {
       accessToken.value = null;
       refreshToken.value = null;
@@ -54,13 +76,50 @@ export function useAuth() {
       return null;
     }
 
-    const response = await api<Pick<AuthResponse, "accessToken">>("/auth/refresh", {
-      method: "POST",
-      body: { refreshToken: refreshToken.value },
-    });
-    accessToken.value = response.accessToken;
-    return response.accessToken;
+    try {
+      const response = await api<Pick<AuthResponse, "accessToken">>("/auth/refresh", {
+        method: "POST",
+        body: { refreshToken: refreshToken.value },
+      });
+      accessToken.value = response.accessToken;
+      return response.accessToken;
+    } catch (error) {
+      console.error("Refresh error:", error);
+      return null;
+    }
   }
 
-  return { login, register, logout, refresh };
+  // Функция для восстановления сессии при загрузке приложения
+  async function restoreSession() {
+    console.log("Restoring session...");
+    console.log("Access token exists:", !!accessToken.value);
+    console.log("User already in store:", !!userStore.user);
+
+    if (accessToken.value && !userStore.user) {
+      try {
+        console.log("Fetching user data...");
+        const apiForUser = useApi();
+        const user = await apiForUser<UserDto>("/users/me");
+        console.log("User data received:", user);
+        userStore.setUser(user);
+        return user;
+      } catch (error) {
+        console.error("Restore session error:", error);
+        accessToken.value = null;
+        refreshToken.value = null;
+        return null;
+      }
+    }
+    return userStore.user;
+  }
+
+  return {
+    login,
+    register,
+    logout,
+    refresh,
+    restoreSession,
+    user,
+    isAuthenticated
+  };
 }
