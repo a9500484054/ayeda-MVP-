@@ -11,6 +11,8 @@ import {
   UseInterceptors,
   ClassSerializerInterceptor,
   Query,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -22,6 +24,7 @@ import {
   ApiOkResponse,
   ApiNotFoundResponse,
   ApiConflictResponse,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -29,6 +32,7 @@ import { UserResponseDto } from './dto/user-response.dto';
 import { User } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PaginatedResponseDto, PaginationDto } from 'src/common/dto/pagination.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('users')
 @Controller('users')
@@ -88,6 +92,25 @@ export class UsersController {
       page,
       limit,
     );
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard) // Защищаем эндпоинт JWT токеном
+  @ApiBearerAuth() // Добавляем в Swagger документацию
+  @ApiOperation({ summary: 'Получение текущего авторизованного пользователя' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Данные текущего пользователя',
+    type: UserResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Не авторизован',
+  })
+  async getCurrentUser(@Req() req): Promise<UserResponseDto> {
+    const userId = req.user.id;
+    const user = await this.usersService.findOne(userId);
+    return new UserResponseDto(user);
   }
 
   @Get(':id')
