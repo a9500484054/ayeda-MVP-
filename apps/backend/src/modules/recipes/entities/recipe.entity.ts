@@ -151,4 +151,11 @@ export class Recipe {
   // Полнотекстовый поиск (генерируется базой)
   @Column({ type: 'tsvector', name: 'search_vector' })
   searchVector: any;
+
+  @Column({ type: 'jsonb', nullable: true, name: 'seo' })
+  seo: {
+    title?: string;
+    description?: string;
+    keywords?: string[];
+  };
 }

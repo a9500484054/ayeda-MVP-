@@ -14,6 +14,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { RecipeType, Difficulty } from '../enums/recipe.enums';
+import { SeoDto } from './seo.dto';
 
 export class RecipePhotoDto {
   @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174000' })
@@ -21,7 +22,8 @@ export class RecipePhotoDto {
   id: string;
 
   @ApiProperty({ example: 'https://storage.example.com/recipe.jpg' })
-  @IsUrl({}, { message: 'URL фото должен быть корректным адресом' })
+  // @IsUrl({}, { message: 'URL фото должен быть корректным адресом' })
+  @IsString()
   src: string;
 }
 
@@ -147,4 +149,10 @@ export class CreateRecipeDto {
   @IsArray({ message: 'ID категорий должны быть массивом' })
   @IsString({ each: true, message: 'Каждый ID категории должен быть строкой' })
   categoryIds: string[];
+
+  @ApiProperty({ required: false, type: SeoDto, description: 'SEO настройки' })
+  @IsOptional()
+  @ValidateNested({ message: 'Некорректный формат SEO' })
+  @Type(() => SeoDto)
+  seo?: SeoDto;
 }

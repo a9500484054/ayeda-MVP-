@@ -1,12 +1,12 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
-RUN corepack enable
+RUN npm install -g pnpm@8
 COPY package.json ./
-RUN pnpm install --frozen-lockfile=false
+RUN pnpm install --frozen-lockfile=false --ignore-scripts
 
 FROM node:20-alpine AS build
 WORKDIR /app
-RUN corepack enable
+RUN npm install -g pnpm@8
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN pnpm build

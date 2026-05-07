@@ -13,6 +13,18 @@ export class RecipePhotoDto {
   src: string;
 }
 
+// DTO для SEO
+export class RecipeSeoDto {
+  @ApiProperty({ required: false, example: 'Борщ - традиционный русский суп' })
+  title?: string;
+
+  @ApiProperty({ required: false, example: 'Узнайте как приготовить традиционный борщ по классическому рецепту' })
+  description?: string;
+
+  @ApiProperty({ required: false, type: [String], example: ['борщ', 'русская кухня', 'суп'] })
+  keywords?: string[];
+}
+
 // DTO для шага
 export class RecipeStepDto {
   @ApiProperty({ example: 1 })
@@ -120,4 +132,11 @@ export class RecipeResponseDto {
 
   @ApiProperty({ required: false, example: '2024-01-01T00:00:00.000Z' })
   publishedAt?: Date;
+
+  @ApiProperty({
+    required: false,
+    type: RecipeSeoDto,
+    description: 'SEO настройки рецепта'
+  })
+  seo?: RecipeSeoDto;
 }

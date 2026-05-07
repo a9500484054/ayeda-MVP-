@@ -421,6 +421,7 @@ export class RecipesService {
       createdAt: recipe.createdAt,
       updatedAt: recipe.updatedAt,
       publishedAt: recipe.publishedAt,
+      seo: recipe.seo,
     };
   }
 
