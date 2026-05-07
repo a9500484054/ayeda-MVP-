@@ -38,7 +38,8 @@ export class RecipeStepDto {
 
   @ApiProperty({ required: false, example: 'https://example.com/step1.jpg' })
   @IsOptional()
-  @IsUrl({}, { message: 'URL изображения должен быть корректным адресом' })
+  // @IsUrl({}, { message: 'URL изображения должен быть корректным адресом' })
+  @IsString()
   image?: string;
 }
 

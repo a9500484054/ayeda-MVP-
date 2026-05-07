@@ -1,5 +1,6 @@
 // main.ts
 import { NestFactory, Reflector } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express'; // 👈 ДОБАВИТЬ
 import { AppModule } from './app.module';
 import {
   ClassSerializerInterceptor,
@@ -8,14 +9,20 @@ import {
 } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-
+  const app = await NestFactory.create<NestExpressApplication>(AppModule); // 👈 ИЗМЕНИТЬ (добавить <NestExpressApplication>)
   // CORS
   app.enableCors({
     origin: true,
     credentials: true,
+  });
+
+  // 👇 ДОБАВИТЬ СТАТИЧЕСКУЮ РАЗДАЧУ ФАЙЛОВ 👇
+  // Раздача загруженных файлов (аватары, изображения и т.д.)
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+    prefix: '/uploads/',
   });
 
   // Cookies

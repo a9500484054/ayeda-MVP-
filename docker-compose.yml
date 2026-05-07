@@ -56,10 +56,12 @@ services:
       - ./apps/backend/.env
     environment:
       DB_HOST: postgres
-      DOCKER_ENV: true 
+      DOCKER_ENV: true
     depends_on:
       postgres:
         condition: service_healthy
+    volumes:
+      - uploads_data:/app/uploads  # Монтируем всю папку uploads
     networks:
       - dev
 
@@ -72,6 +74,7 @@ services:
     environment:
       DB_HOST: postgres
       REDIS_HOST: redis
+      UPLOAD_PATH: /app/uploads  # Путь к папке загрузок
     ports:
       - "3001:4000"
     depends_on:
@@ -84,6 +87,7 @@ services:
     volumes:
       - ./apps/backend:/app
       - /app/node_modules
+      - uploads_data:/app/uploads  # 👈 Монтируем ВСЮ папку uploads
     command: pnpm run start:dev
 
   frontend:
@@ -124,3 +128,4 @@ volumes:
   postgres_data:
   redis_data:
   pgadmin_data:
+  uploads_data:  # 👈 Volume для всех загруженных файлов

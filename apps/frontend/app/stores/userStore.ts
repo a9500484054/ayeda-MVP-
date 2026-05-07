@@ -1,5 +1,5 @@
+// stores/userStore.ts
 import type { UserDto } from "~/shared/types/domain";
-import { useApi } from "~/composables/useApi";
 
 export const useUserStore = defineStore("user", () => {
   const user = ref<UserDto | null>(null);
@@ -11,14 +11,5 @@ export const useUserStore = defineStore("user", () => {
     user.value = value;
   }
 
-  async function fetchMe() {
-    const api = useApi();
-    try {
-      user.value = await api<UserDto>("/users/me");
-    } catch {
-      user.value = null;
-    }
-  }
-
-  return { user, isAuthenticated, isAdmin, isModerator, setUser, fetchMe };
+  return { user, isAuthenticated, isAdmin, isModerator, setUser };
 });

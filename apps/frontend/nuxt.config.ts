@@ -40,6 +40,7 @@ export default defineNuxtConfig({
     "/recipes/**": { ssr: true, swr: 3600 },
     "/blog/**": { ssr: true, swr: 3600 },
     "/about": { ssr: true },
+    "/support": { ssr: true },
     "/policy": { ssr: true },
     "/offer": { ssr: true },
     "/cabinet/**": { ssr: false },

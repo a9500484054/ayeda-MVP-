@@ -4,8 +4,7 @@ import { useForm } from "vee-validate";
 import * as z from "zod";
 
 definePageMeta({
-  layout: false,
-  ssr: false
+  layout: "cabinet",
 })
 
 const pending = ref(false);
@@ -95,252 +94,231 @@ const faqItems = [
 </script>
 
 <template>
-  <div class="min-h-screen grid lg:grid-cols-2">
-    <!-- Левая часть - Брендинг -->
-    <div class="relative hidden lg:flex flex-col justify-between p-12 bg-gradient-to-br from-emerald-700 to-teal-800 overflow-hidden">
-      <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent"></div>
-      <div class="absolute -top-40 -right-40 w-80 h-80 bg-emerald-400 rounded-full blur-3xl opacity-30"></div>
-      <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-teal-400 rounded-full blur-3xl opacity-30"></div>
+  <div class="max-w-4xl mx-auto">
+    <!-- Заголовок страницы -->
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-gray-900 mb-2">Поддержка</h1>
+      <p class="text-gray-600">Мы всегда готовы помочь вам с любыми вопросами</p>
+    </div>
 
-      <div class="relative z-10">
-        <div class="flex items-center gap-2">
-          <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
-            <UIcon name="i-lucide-utensils" class="w-5 h-5 text-emerald-600" />
+    <!-- Tabs -->
+    <div class="flex gap-2 border-b border-gray-200 mb-8">
+      <button
+        @click="activeTab = 'faq'"
+        class="px-6 py-3 text-sm font-medium transition-all duration-200 relative"
+        :class="activeTab === 'faq'
+          ? 'text-emerald-600 border-b-2 border-emerald-600'
+          : 'text-gray-500 hover:text-gray-700'"
+      >
+        <span class="flex items-center gap-2">
+          <UIcon name="i-lucide-help-circle" class="w-4 h-4" />
+          Частые вопросы
+        </span>
+      </button>
+      <button
+        @click="activeTab = 'contact'"
+        class="px-6 py-3 text-sm font-medium transition-all duration-200 relative"
+        :class="activeTab === 'contact'
+          ? 'text-emerald-600 border-b-2 border-emerald-600'
+          : 'text-gray-500 hover:text-gray-700'"
+      >
+        <span class="flex items-center gap-2">
+          <UIcon name="i-lucide-message-square" class="w-4 h-4" />
+          Написать нам
+        </span>
+      </button>
+    </div>
+
+    <!-- Инфо-карточки (быстрая помощь) -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div class="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+            <UIcon name="i-lucide-clock" class="w-4 h-4 text-emerald-600" />
           </div>
-          <span class="text-2xl font-bold text-white">AyEda</span>
+          <span class="text-sm font-medium text-emerald-700">Быстрый ответ</span>
         </div>
+        <p class="text-xs text-emerald-600">Отвечаем в течение 24 часов</p>
       </div>
 
-      <div class="relative z-10">
-        <div class="mb-6">
-          <div class="text-7xl mb-4">💬</div>
-          <h2 class="text-4xl font-bold text-white mb-3">Мы всегда рядом</h2>
-          <p class="text-emerald-100 text-lg leading-relaxed">
-            Напишите нам, и мы ответим в течение 24 часов. Ваше мнение важно для нас.
-          </p>
-        </div>
-
-        <div class="space-y-3">
-          <div class="flex items-center gap-3 text-white/80 text-sm">
-            <div class="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
-              <UIcon name="i-lucide-clock" class="w-3 h-3" />
-            </div>
-            <span>Ответ в течение 24 часов</span>
+      <div class="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+            <UIcon name="i-lucide-calendar-days" class="w-4 h-4 text-emerald-600" />
           </div>
-          <div class="flex items-center gap-3 text-white/80 text-sm">
-            <div class="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
-              <UIcon name="i-lucide-message-circle" class="w-3 h-3" />
-            </div>
-            <span>Поддержка 7 дней в неделю</span>
-          </div>
-          <div class="flex items-center gap-3 text-white/80 text-sm">
-            <div class="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
-              <UIcon name="i-lucide-mail" class="w-3 h-3" />
-            </div>
-            <span>Свяжитесь с нами любым удобным способом</span>
-          </div>
+          <span class="text-sm font-medium text-emerald-700">Работаем ежедневно</span>
         </div>
-
-        <div class="mt-8 p-5 bg-white/10 backdrop-blur rounded-2xl border border-white/20">
-          <p class="text-white/90 text-sm italic">
-            "Поддержка ответила за 15 минут и решила мою проблему!"
-          </p>
-          <p class="text-emerald-200 text-xs mt-2">— Екатерина, пользователь AyEda</p>
-        </div>
+        <p class="text-xs text-emerald-600">Поддержка 7 дней в неделю</p>
       </div>
 
-      <div class="relative z-10 text-white/40 text-sm">
-        © 2026 AyEda
+      <div class="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+            <UIcon name="i-lucide-users" class="w-4 h-4 text-emerald-600" />
+          </div>
+          <span class="text-sm font-medium text-emerald-700">Команда экспертов</span>
+        </div>
+        <p class="text-xs text-emerald-600">Поможем решить любой вопрос</p>
       </div>
     </div>
 
-    <!-- Правая часть - Контент -->
-    <div class="flex flex-col p-8 bg-white overflow-y-auto">
-      <div class="max-w-2xl mx-auto w-full">
-        <!-- Мобильный логотип -->
-        <div class="flex justify-center mb-8 lg:hidden">
-          <div class="flex items-center gap-2">
-            <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
-              <UIcon name="i-lucide-utensils" class="w-5 h-5 text-white" />
+    <!-- FAQ секция -->
+    <div v-if="activeTab === 'faq'" class="space-y-4">
+      <div
+        v-for="(item, idx) in faqItems"
+        :key="idx"
+        class="border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition bg-white"
+      >
+        <details class="group">
+          <summary class="flex items-center justify-between p-4 cursor-pointer list-none">
+            <span class="font-medium text-gray-800">{{ item.question }}</span>
+            <UIcon name="i-lucide-chevron-down" class="w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform" />
+          </summary>
+          <div class="p-4 pt-0 text-gray-600 text-sm border-t border-gray-100">
+            {{ item.answer }}
+          </div>
+        </details>
+      </div>
+
+      <!-- Дополнительная помощь -->
+      <div class="mt-8 p-6 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl text-center">
+        <UIcon name="i-lucide-message-circle" class="w-10 h-10 text-emerald-600 mx-auto mb-3" />
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">Не нашли ответ?</h3>
+        <p class="text-gray-600 text-sm mb-4">Свяжитесь с нами напрямую, и мы поможем вам</p>
+        <button
+          @click="activeTab = 'contact'"
+          class="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
+        >
+          Написать в поддержку
+        </button>
+      </div>
+    </div>
+
+    <!-- Контактная форма -->
+    <div v-else class="bg-white rounded-xl border border-gray-200 p-6">
+      <!-- Сообщение об успехе -->
+      <Transition name="slide">
+        <div v-if="success" class="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+          <div class="flex items-start gap-3">
+            <UIcon name="i-lucide-check-circle" class="w-5 h-5 text-emerald-600 mt-0.5" />
+            <div>
+              <p class="text-sm text-emerald-700 font-medium">Сообщение отправлено!</p>
+              <p class="text-xs text-emerald-600 mt-1">
+                Мы ответим вам в ближайшее время на указанный email.
+              </p>
             </div>
-            <span class="text-2xl font-bold text-gray-900">AyEda</span>
           </div>
         </div>
+      </Transition>
 
-        <!-- Tabs -->
-        <div class="flex gap-2 border-b border-gray-200 mb-8">
-          <button
-            @click="activeTab = 'faq'"
-            class="px-6 py-3 text-sm font-medium transition-all duration-200 relative"
-            :class="activeTab === 'faq'
-              ? 'text-emerald-600 border-b-2 border-emerald-600'
-              : 'text-gray-500 hover:text-gray-700'"
-          >
-            <span class="flex items-center gap-2">
-              <UIcon name="i-lucide-help-circle" class="w-4 h-4" />
-              Частые вопросы
-            </span>
-          </button>
-          <button
-            @click="activeTab = 'contact'"
-            class="px-6 py-3 text-sm font-medium transition-all duration-200 relative"
-            :class="activeTab === 'contact'
-              ? 'text-emerald-600 border-b-2 border-emerald-600'
-              : 'text-gray-500 hover:text-gray-700'"
-          >
-            <span class="flex items-center gap-2">
-              <UIcon name="i-lucide-message-square" class="w-4 h-4" />
-              Написать нам
-            </span>
-          </button>
+      <form @submit="onSubmit" class="space-y-5">
+        <!-- Имя -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Имя</label>
+          <div class="relative">
+            <UIcon name="i-lucide-user" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              v-bind="nameAttrs"
+              v-model="name"
+              type="text"
+              placeholder="Как вас зовут?"
+              class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none transition"
+              :class="{ 'border-red-300': errors.name }"
+            />
+          </div>
+          <p v-if="errors.name" class="text-xs text-red-500 mt-1">{{ errors.name }}</p>
         </div>
 
-        <!-- FAQ секция -->
-        <div v-if="activeTab === 'faq'" class="space-y-4">
-          <div
-            v-for="(item, idx) in faqItems"
-            :key="idx"
-            class="border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition"
-          >
-            <details class="group">
-              <summary class="flex items-center justify-between p-4 cursor-pointer list-none">
-                <span class="font-medium text-gray-800">{{ item.question }}</span>
-                <UIcon name="i-lucide-chevron-down" class="w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform" />
-              </summary>
-              <div class="p-4 pt-0 text-gray-600 text-sm border-t border-gray-100">
-                {{ item.answer }}
-              </div>
-            </details>
+        <!-- Email -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+          <div class="relative">
+            <UIcon name="i-lucide-mail" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              v-bind="emailAttrs"
+              v-model="email"
+              type="email"
+              placeholder="your@email.com"
+              class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none transition"
+              :class="{ 'border-red-300': errors.email }"
+            />
           </div>
+          <p v-if="errors.email" class="text-xs text-red-500 mt-1">{{ errors.email }}</p>
         </div>
 
-        <!-- Контактная форма -->
-        <div v-else class="space-y-6">
-          <!-- Сообщение об успехе -->
-          <Transition name="slide">
-            <div v-if="success" class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
-              <div class="flex items-start gap-3">
-                <UIcon name="i-lucide-check-circle" class="w-5 h-5 text-emerald-600 mt-0.5" />
-                <div>
-                  <p class="text-sm text-emerald-700 font-medium">Сообщение отправлено!</p>
-                  <p class="text-xs text-emerald-600 mt-1">
-                    Мы ответим вам в ближайшее время.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </Transition>
+        <!-- Тема -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Тема</label>
+          <div class="relative">
+            <UIcon name="i-lucide-tag" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              v-bind="subjectAttrs"
+              v-model="subject"
+              type="text"
+              placeholder="О чем ваше обращение?"
+              class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none transition"
+              :class="{ 'border-red-300': errors.subject }"
+            />
+          </div>
+          <p v-if="errors.subject" class="text-xs text-red-500 mt-1">{{ errors.subject }}</p>
+        </div>
 
-          <form @submit="onSubmit" class="space-y-5">
-            <!-- Имя -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1.5">Имя</label>
-              <div class="relative">
-                <UIcon name="i-lucide-user" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  v-bind="nameAttrs"
-                  v-model="name"
-                  type="text"
-                  placeholder="Как вас зовут?"
-                  class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none transition"
-                  :class="{ 'border-red-300': errors.name }"
-                />
-              </div>
-              <p v-if="errors.name" class="text-xs text-red-500 mt-1">{{ errors.name }}</p>
-            </div>
+        <!-- Сообщение -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Сообщение</label>
+          <div class="relative">
+            <UIcon name="i-lucide-message-square" class="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+            <textarea
+              v-bind="messageAttrs"
+              v-model="message"
+              rows="5"
+              placeholder="Опишите ваш вопрос подробнее..."
+              class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none transition resize-none"
+              :class="{ 'border-red-300': errors.message }"
+            ></textarea>
+          </div>
+          <p v-if="errors.message" class="text-xs text-red-500 mt-1">{{ errors.message }}</p>
+        </div>
 
-            <!-- Email -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
-              <div class="relative">
-                <UIcon name="i-lucide-mail" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  v-bind="emailAttrs"
-                  v-model="email"
-                  type="email"
-                  placeholder="your@email.com"
-                  class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none transition"
-                  :class="{ 'border-red-300': errors.email }"
-                />
-              </div>
-              <p v-if="errors.email" class="text-xs text-red-500 mt-1">{{ errors.email }}</p>
-            </div>
-
-            <!-- Тема -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1.5">Тема</label>
-              <div class="relative">
-                <UIcon name="i-lucide-tag" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  v-bind="subjectAttrs"
-                  v-model="subject"
-                  type="text"
-                  placeholder="О чем ваше обращение?"
-                  class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none transition"
-                  :class="{ 'border-red-300': errors.subject }"
-                />
-              </div>
-              <p v-if="errors.subject" class="text-xs text-red-500 mt-1">{{ errors.subject }}</p>
-            </div>
-
-            <!-- Сообщение -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1.5">Сообщение</label>
-              <div class="relative">
-                <UIcon name="i-lucide-message-square" class="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                <textarea
-                  v-bind="messageAttrs"
-                  v-model="message"
-                  rows="5"
-                  placeholder="Опишите ваш вопрос подробнее..."
-                  class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none transition resize-none"
-                  :class="{ 'border-red-300': errors.message }"
-                ></textarea>
-              </div>
-              <p v-if="errors.message" class="text-xs text-red-500 mt-1">{{ errors.message }}</p>
-            </div>
-
-            <!-- Server error -->
-            <Transition name="slide">
-              <div v-if="serverError" class="p-3 bg-red-50 rounded-xl border border-red-200">
-                <div class="flex items-center gap-2">
-                  <UIcon name="i-lucide-alert-circle" class="w-4 h-4 text-red-500" />
-                  <p class="text-sm text-red-600">{{ serverError }}</p>
-                </div>
-              </div>
-            </Transition>
-
-            <!-- Submit button -->
-            <button
-              type="submit"
-              :disabled="pending"
-              class="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <span v-if="!pending" class="flex items-center justify-center gap-2">
-                Отправить сообщение
-                <UIcon name="i-lucide-send" class="w-4 h-4" />
-              </span>
-              <span v-else class="flex items-center justify-center gap-2">
-                <UIcon name="i-lucide-loader-circle" class="w-4 h-4 animate-spin" />
-                Отправка...
-              </span>
-            </button>
-          </form>
-
-          <!-- Контактная информация -->
-          <div class="mt-8 pt-6 border-t border-gray-100">
-            <h3 class="text-sm font-medium text-gray-700 mb-3">Или свяжитесь с нами напрямую:</h3>
-            <div class="space-y-2 text-sm">
-              <div class="flex items-center gap-2 text-gray-600">
-                <UIcon name="i-lucide-mail" class="w-4 h-4 text-emerald-500" />
-                <a href="mailto:support@ayeda.ru" class="hover:text-emerald-600 transition">support@ayeda.ru</a>
-              </div>
-              <div class="flex items-center gap-2 text-gray-600">
-                <UIcon name="i-lucide-telegram" class="w-4 h-4 text-emerald-500" />
-                <a href="#" class="hover:text-emerald-600 transition">@ayeda_support</a>
-              </div>
+        <!-- Server error -->
+        <Transition name="slide">
+          <div v-if="serverError" class="p-3 bg-red-50 rounded-xl border border-red-200">
+            <div class="flex items-center gap-2">
+              <UIcon name="i-lucide-alert-circle" class="w-4 h-4 text-red-500" />
+              <p class="text-sm text-red-600">{{ serverError }}</p>
             </div>
           </div>
+        </Transition>
+
+        <!-- Submit button -->
+        <button
+          type="submit"
+          :disabled="pending"
+          class="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span v-if="!pending" class="flex items-center justify-center gap-2">
+            Отправить сообщение
+            <UIcon name="i-lucide-send" class="w-4 h-4" />
+          </span>
+          <span v-else class="flex items-center justify-center gap-2">
+            <UIcon name="i-lucide-loader-circle" class="w-4 h-4 animate-spin" />
+            Отправка...
+          </span>
+        </button>
+      </form>
+
+      <!-- Альтернативные контакты -->
+      <div class="mt-6 pt-6 border-t border-gray-100">
+        <h3 class="text-sm font-medium text-gray-700 mb-3">Или свяжитесь с нами напрямую:</h3>
+        <div class="flex flex-wrap gap-4 text-sm">
+          <a href="mailto:support@ayeda.ru" class="flex items-center gap-2 text-gray-600 hover:text-emerald-600 transition">
+            <UIcon name="i-lucide-mail" class="w-4 h-4" />
+            support@ayeda.ru
+          </a>
+          <a href="#" class="flex items-center gap-2 text-gray-600 hover:text-emerald-600 transition">
+            <UIcon name="i-lucide-telegram" class="w-4 h-4" />
+            @ayeda_support
+          </a>
         </div>
       </div>
     </div>
@@ -348,21 +326,6 @@ const faqItems = [
 </template>
 
 <style scoped>
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-form {
-  animation: fadeIn 0.5s ease-out;
-}
-
 /* Стили для details/summary */
 details summary::-webkit-details-marker {
   display: none;
@@ -379,4 +342,3 @@ details summary::-webkit-details-marker {
   transform: translateY(-5px);
 }
 </style>
-
