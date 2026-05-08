@@ -70,6 +70,17 @@ export function useCategoriesApi() {
       await api(`/categories/${id}`, {
         method: 'DELETE'
       });
+    },
+
+    // Поиск категорий
+    async searchCategories(search: string, params?: { limit?: number }): Promise<CategoriesResponse> {
+      return await api('/categories/search', {
+        method: 'GET',
+        params: {
+          q: search,
+          limit: params?.limit || 20
+        }
+      });
     }
   };
 }
