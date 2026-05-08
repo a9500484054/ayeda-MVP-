@@ -102,4 +102,24 @@ export class CategoriesService {
 
     return [categories, total];
   }
+  async searchWithPagination(
+    searchTerm: string,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<[Category[], number]> {
+    const skip = (page - 1) * limit;
+
+    const queryBuilder = this.categoriesRepository
+      .createQueryBuilder('category')
+      .where('category.name ILIKE :search', { search: `%${searchTerm}%` })
+      .orWhere('category.code ILIKE :search', { search: `%${searchTerm}%` });
+
+    const [categories, total] = await queryBuilder
+      .skip(skip)
+      .take(limit)
+      .orderBy('category.name', 'ASC')
+      .getManyAndCount();
+
+    return [categories, total];
+  }
 }

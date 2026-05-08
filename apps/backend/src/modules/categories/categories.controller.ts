@@ -17,6 +17,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiParam,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
@@ -77,6 +78,28 @@ export class CategoriesController {
       await this.categoriesService.findAllWithPagination(page, limit);
 
     return new PaginatedResponseDto(categories, total, page, limit);
+  }
+
+  @Get('search')
+  @ApiOperation({ summary: 'Поиск категорий (с пагинацией)' })
+  @ApiQuery({ name: 'q', description: 'Поисковый запрос', required: true })
+  @ApiQuery({ name: 'page', description: 'Номер страницы', required: false, type: Number })
+  @ApiQuery({ name: 'limit', description: 'Количество элементов', required: false, type: Number })
+  async search(
+    @Query('q') query: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ): Promise<PaginatedResponseDto<CategoryResponseDto>> {
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 10;
+
+    const [categories, total] = await this.categoriesService.searchWithPagination(
+      query,
+      pageNum,
+      limitNum,
+    );
+
+    return new PaginatedResponseDto(categories, total, pageNum, limitNum);
   }
 
   @Get(':id')
