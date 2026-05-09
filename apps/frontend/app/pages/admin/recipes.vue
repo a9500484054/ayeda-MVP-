@@ -193,21 +193,6 @@ onMounted(() => {
     />
 
     <!-- Create/Edit Modal -->
-    <!-- <RecipeFormModal
-      v-model="isFormModalOpen"
-      :mode="formModalMode"
-      :recipe="selectedRecipe"
-      :categories="[]"
-      :units="[]"
-      :ingredient-search-results="[]"
-      :categories-loading="false"
-      :ingredients-loading="false"
-      :is-loading="isLoading"
-      @submit="handleFormSubmit"
-      @search-ingredients="() => {}"
-    /> -->
-
-    <!-- Create/Edit Modal -->
     <RecipeFormModal
       v-model="isFormModalOpen"
       :mode="formModalMode"

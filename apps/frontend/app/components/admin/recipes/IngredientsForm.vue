@@ -2,60 +2,105 @@
   <UFormField label="Ингредиенты" required>
     <div class="space-y-3">
       <div
-        v-for="(ingredient, index) in ingredients"
-        :key="index"
-        class="flex flex-col gap-2 p-3 border rounded-lg"
+        v-for="(ingredient, index) in localIngredients"
+        :key="`${index}-${ingredient.ingredientId}`"
+        class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-3"
       >
-        <div class="flex gap-2">
-          <!-- Поиск ингредиентов с автодополнением -->
-          <div class="flex-1 relative">
+        <div class="flex flex-col gap-3 md:flex-row md:items-start">
+          <!-- Search -->
+          <div class="relative flex-1">
             <UInput
-              :model-value="getIngredientName(ingredient.ingredientId)"
-              @update:model-value="(val) => onSearchInput(val, index)"
-              placeholder="Поиск ингредиента..."
+              v-model="searchQueries[index]"
+              placeholder="Ингредиент..."
+              autocomplete="off"
               class="w-full"
-              :loading="ingredientsLoading && searchIndex === index"
+              @focus="openDropdown(index)"
+              @input="handleSearch(index)"
             />
 
-            <!-- Выпадающий список подсказок -->
-            <div
-              v-if="searchResults[index]?.length && activeSearchIndex === index"
-              class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto"
-            >
-              <button
-                v-for="item in searchResults[index]"
-                :key="item.id"
-                type="button"
-                class="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-between"
-                @click="selectIngredient(item, index)"
+            <!-- Dropdown -->
+            <Transition name="fade">
+              <div
+                v-if="activeIndex === index && showDropdown"
+                class="absolute z-50 mt-2 w-full overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-xl"
               >
-                <div class="flex flex-col">
-                  <span>{{ item.name }}</span>
-                  <span v-if="item.unit" class="text-xs text-gray-400">
-                    Ед. изм.: {{ item.unit.short || item.unit.name }}
-                  </span>
+                <div class="max-h-64 overflow-y-auto py-1">
+                  <!-- Loading -->
+                  <div
+                    v-if="ingredientsLoading"
+                    class="flex items-center gap-2 px-3 py-3 text-sm text-gray-400"
+                  >
+                    <UIcon
+                      name="i-lucide-loader-circle"
+                      class="h-4 w-4 animate-spin"
+                    />
+                    Загрузка...
+                  </div>
+
+                  <!-- Results -->
+                  <button
+                    v-for="item in availableSuggestions(index)"
+                    v-else
+                    :key="item.id"
+                    type="button"
+                    class="flex w-full items-center justify-between px-3 py-2 text-left text-sm transition hover:bg-gray-100 dark:hover:bg-gray-800"
+                    @mousedown.prevent="selectIngredient(item, index)"
+                  >
+                    <div class="flex flex-col">
+                      <span class="text-gray-900 dark:text-gray-100">
+                        {{ item.name }}
+                      </span>
+
+                      <span
+                        v-if="item.unit"
+                        class="text-xs text-gray-400"
+                      >
+
+                        {{ getUnitLabel(item.unit) }}
+                      </span>
+                    </div>
+
+                    <UIcon
+                      name="i-lucide-plus"
+                      class="h-4 w-4 text-gray-400"
+                    />
+                  </button>
+
+                  <!-- Empty -->
+                  <div
+                    v-if="
+                      !ingredientsLoading &&
+                      availableSuggestions(index).length === 0
+                    "
+                    class="px-3 py-3 text-sm text-gray-400"
+                  >
+                    Ничего не найдено
+                  </div>
                 </div>
-                <UIcon name="i-lucide-plus" class="w-4 h-4 text-gray-400" />
-              </button>
-            </div>
+              </div>
+            </Transition>
           </div>
 
+          <!-- Amount -->
           <UInput
             v-model.number="ingredient.amount"
             type="number"
-            placeholder="Кол-во"
-            class="w-32"
             min="0"
-            step="0.5"
+            step="0.1"
+            placeholder="0"
+            class="w-full md:w-28"
+            @update:model-value="emitUpdate"
           />
 
-          <USelect
-            v-model="ingredient.unitId"
-            :items="unitItems"
-            placeholder="Ед. изм."
-            class="w-40"
-          />
+          <!-- Unit -->
+          <div
+            class="flex h-10 min-w-[90px] items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 text-sm text-gray-600 dark:text-gray-300"
+          >
+            {{ ingredient }}
+            {{ ingredient.unitName || '—' }}
+          </div>
 
+          <!-- Delete -->
           <UButton
             color="error"
             variant="ghost"
@@ -63,15 +108,15 @@
             @click="removeIngredient(index)"
           />
         </div>
-
-        <!-- <UInput
-          v-model="ingredient.notes"
-          placeholder="Примечание (по вкусу, опционально)"
-          class="text-sm"
-        /> -->
       </div>
 
-      <UButton @click="addIngredient" color="primary" variant="outline" size="sm">
+      <!-- Add -->
+      <UButton
+        variant="soft"
+        color="neutral"
+        icon="i-lucide-plus"
+        @click="addIngredient"
+      >
         Добавить ингредиент
       </UButton>
     </div>
@@ -79,111 +124,180 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
+
+interface Ingredient {
+  ingredientId: string
+  amount: number
+  unitId: string
+  unitName: string
+  notes?: string
+}
 
 interface Props {
-  ingredients: any[]
+  ingredients: Ingredient[]
   units: any[]
   ingredientsLoading?: boolean
   ingredientSearchResults?: any[]
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  ingredientsLoading: false,
+  ingredientSearchResults: () => []
+})
+
 const emit = defineEmits<{
-  'update:ingredients': [value: any[]]
-  'search-ingredients': [query: string]
+  'update:ingredients': [Ingredient[]]
+  'search-ingredients': [string]
 }>()
 
-// Состояние для поиска
-const searchQuery = ref<Record<number, string>>({})
-const searchResults = ref<Record<number, any[]>>({})
-const activeSearchIndex = ref<number | null>(null)
-const searchIndex = ref<number | null>(null)
+const localIngredients = ref<Ingredient[]>([])
+const searchQueries = ref<Record<number, string>>({})
+
+const activeIndex = ref<number | null>(null)
+const showDropdown = ref(false)
+
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
+let blurTimeout: ReturnType<typeof setTimeout> | null = null
 
-const ingredientItems = computed(() =>
-  (props.ingredientSearchResults || []).map(i => ({ label: i.name, value: i.id }))
-)
+// Sync ingredients
+watch(
+  () => props.ingredients,
+  (val) => {
+    localIngredients.value = [...val]
 
-const unitItems = computed(() =>
-  props.units.map(u => ({ label: u.short || u.code || u.name, value: u.id }))
-)
-
-// Получить название ингредиента по ID
-const getIngredientName = (ingredientId: string) => {
-  if (!ingredientId) return ''
-  const ingredient = props.ingredientSearchResults?.find(i => i.id === ingredientId)
-  return ingredient?.name || ''
-}
-
-// Обработка ввода поиска
-const onSearchInput = (value: string, index: number) => {
-  searchQuery.value[index] = value
-
-  if (searchTimeout) clearTimeout(searchTimeout)
-
-  if (value.length >= 2) {
-    searchIndex.value = index
-    activeSearchIndex.value = index
-
-    searchTimeout = setTimeout(() => {
-      emit('search-ingredients', value)
-    }, 500)
-  } else {
-    searchResults.value[index] = []
-    searchIndex.value = null
-    activeSearchIndex.value = null
+    val.forEach((item, index) => {
+      if (!searchQueries.value[index]) {
+        searchQueries.value[index] = item.unitName || ''
+      }
+    })
+  },
+  {
+    immediate: true,
+    deep: true
   }
+)
+
+const emitUpdate = () => {
+  emit('update:ingredients', [...localIngredients.value])
 }
 
-// Выбор ингредиента
+const getUnitLabel = (unit: any) => {
+  return unit?.short || unit?.code || unit?.name || ''
+}
+
+const handleSearch = (index: number) => {
+  activeIndex.value = index
+  showDropdown.value = true
+
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
+
+  searchTimeout = setTimeout(() => {
+    emit(
+      'search-ingredients',
+      searchQueries.value[index] || ''
+    )
+  }, 300)
+}
+
+const openDropdown = (index: number) => {
+  if (blurTimeout) {
+    clearTimeout(blurTimeout)
+  }
+
+  activeIndex.value = index
+  showDropdown.value = true
+
+  emit(
+    'search-ingredients',
+    searchQueries.value[index] || ''
+  )
+}
+
+const availableSuggestions = (index: number) => {
+  return props.ingredientSearchResults.filter((item: any) => {
+    const alreadySelected = localIngredients.value.some(
+      (ing, i) =>
+        i !== index && ing.ingredientId === item.id
+    )
+
+    return !alreadySelected
+  })
+}
+
 const selectIngredient = (item: any, index: number) => {
-  const newIngredients = [...props.ingredients]
-  newIngredients[index] = {
-    ...newIngredients[index],
+  const unitId = item.unit?.id || ''
+  const unitName = getUnitLabel(item.unit)
+
+  localIngredients.value[index] = {
+    ...localIngredients.value[index],
     ingredientId: item.id,
-    unitId: item.unit?.id || '',
-    unitName: item.unit?.short || item.unit?.code || '',
-    notes: newIngredients[index].notes || ''
+    amount: localIngredients.value[index].amount || 0,
+    unitId,
+    unitName
   }
-  emit('update:ingredients', newIngredients)
 
-  // Очищаем поиск
-  searchQuery.value[index] = ''
-  searchResults.value[index] = []
-  activeSearchIndex.value = null
-  searchIndex.value = null
+  searchQueries.value[index] = item.name
+
+  emitUpdate()
+
+  showDropdown.value = false
 }
-
-// Обновление результатов поиска из родителя
-const updateSearchResults = () => {
-  if (searchIndex.value !== null && props.ingredientSearchResults) {
-    searchResults.value[searchIndex.value] = [...props.ingredientSearchResults]
-  }
-}
-
-// Следим за результатами поиска
-watch(() => props.ingredientSearchResults, () => {
-  updateSearchResults()
-}, { deep: true })
 
 const addIngredient = () => {
-  const newIngredients = [...props.ingredients, {
+  localIngredients.value.push({
     ingredientId: '',
     amount: 0,
     unitId: '',
     unitName: '',
     notes: ''
-  }]
-  emit('update:ingredients', newIngredients)
+  })
+
+  emitUpdate()
 }
 
 const removeIngredient = (index: number) => {
-  const newIngredients = [...props.ingredients]
-  newIngredients.splice(index, 1)
-  emit('update:ingredients', newIngredients)
-  // Очищаем поиск по этому индексу
-  delete searchQuery.value[index]
-  delete searchResults.value[index]
+  localIngredients.value.splice(index, 1)
+
+  delete searchQueries.value[index]
+
+  emitUpdate()
 }
+
+const closeDropdown = () => {
+  blurTimeout = setTimeout(() => {
+    showDropdown.value = false
+  }, 150)
+}
+
+onMounted(() => {
+  window.addEventListener('click', closeDropdown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('click', closeDropdown)
+
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
+
+  if (blurTimeout) {
+    clearTimeout(blurTimeout)
+  }
+})
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.15s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+</style>

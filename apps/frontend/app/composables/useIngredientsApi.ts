@@ -56,7 +56,7 @@ export function useIngredientsApi() {
   const api = useApi();
 
   return {
-    // Получить список ингредиентов
+    // Получить список ингредиентов с пагинацией
     async getIngredients(page: number = 1, limit: number = 10): Promise<IngredientsResponse> {
       return await api('/ingredients', {
         method: 'GET',
@@ -64,7 +64,7 @@ export function useIngredientsApi() {
       });
     },
 
-    // Поиск ингредиентов
+    // Поиск ингредиентов - используем правильный эндпоинт с параметром q
     async searchIngredients(query: string, page: number = 1, limit: number = 10): Promise<IngredientsResponse> {
       return await api('/ingredients/search', {
         method: 'GET',

@@ -12,6 +12,7 @@ import {
   IsUrl,
   Matches,
   MinLength,
+  IsNumber,
 } from 'class-validator';
 import { RecipeType, Difficulty } from '../enums/recipe.enums';
 import { SeoDto } from './seo.dto';
@@ -51,7 +52,7 @@ export class RecipeIngredientDto {
   ingredientId: string;
 
   @ApiProperty({ example: 200 })
-  @IsInt({ message: 'Количество должно быть целым числом' })
+  @IsNumber({}, { message: 'Количество должно быть числом' })
   @Min(1, { message: 'Количество должно быть больше 0' })
   amount: number;
 

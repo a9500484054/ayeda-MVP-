@@ -92,18 +92,24 @@ export class IngredientsController {
 
   @Get('search')
   @ApiOperation({ summary: 'Поиск ингредиентов (с пагинацией)' })
-  @ApiQuery({ name: 'q', description: 'Поисковый запрос' })
+  @ApiQuery({ name: 'q', description: 'Поисковый запрос', required: true })
+  @ApiQuery({ name: 'page', description: 'Номер страницы', required: false, type: Number })
+  @ApiQuery({ name: 'limit', description: 'Количество элементов', required: false, type: Number })
   async search(
     @Query('q') query: string,
-    @Query() paginationDto: PaginationDto,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
   ): Promise<PaginatedResponseDto<IngredientResponseDto>> {
-    const page = Number(paginationDto.page) || 1;
-    const limit = Number(paginationDto.limit) || 10;
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 10;
 
-    const [ingredients, total] =
-      await this.ingredientsService.searchWithPagination(query, page, limit);
+    const [ingredients, total] = await this.ingredientsService.searchWithPagination(
+      query,
+      pageNum,
+      limitNum,
+    );
 
-    return new PaginatedResponseDto(ingredients, total, page, limit);
+    return new PaginatedResponseDto(ingredients, total, pageNum, limitNum);
   }
 
   @Get(':id')

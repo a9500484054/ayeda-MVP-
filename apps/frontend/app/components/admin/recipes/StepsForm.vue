@@ -111,7 +111,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
 const API_BASE_URL = 'http://localhost:3001'
 
@@ -128,6 +128,27 @@ const emit = defineEmits<{
 
 const stepFileInputs = ref<(HTMLInputElement | null)[]>([])
 const draggingIndex = ref<number | null>(null)
+
+// Следим за изменениями steps и обновляем sort
+watch(
+  () => props.steps,
+  (newSteps) => {
+    // Обновляем sort для каждого шага на основе его индекса
+    let needsUpdate = false
+    const updatedSteps = newSteps.map((step, index) => {
+      if (step.sort !== index + 1) {
+        needsUpdate = true
+        return { ...step, sort: index + 1 }
+      }
+      return step
+    })
+
+    if (needsUpdate) {
+      emit('update:steps', updatedSteps)
+    }
+  },
+  { deep: true, immediate: true }
+)
 
 const setFileInputRef = (el: any, index: number) => {
   if (el) {
@@ -165,19 +186,26 @@ const onDrop = (event: DragEvent, targetIndex: number) => {
   const [movedStep] = newSteps.splice(sourceIndex, 1)
   newSteps.splice(targetIndex, 0, movedStep)
 
+  // Обновляем sort для всех шагов
+  const stepsWithSort = newSteps.map((step, idx) => ({
+    ...step,
+    sort: idx + 1
+  }))
+
   // Обновляем массив file inputs
   const newFileInputs = [...stepFileInputs.value]
   const [movedInput] = newFileInputs.splice(sourceIndex, 1)
   newFileInputs.splice(targetIndex, 0, movedInput)
   stepFileInputs.value = newFileInputs
 
-  emit('update:steps', newSteps)
+  emit('update:steps', stepsWithSort)
   draggingIndex.value = null
 }
 
 const addStep = () => {
   const newSteps = [...props.steps, {
-    id: Date.now(), // уникальный ID для key
+    id: Date.now(),
+    sort: props.steps.length + 1,
     text: '',
     image: ''
   }]
@@ -188,7 +216,14 @@ const addStep = () => {
 const removeStep = (index: number) => {
   const newSteps = [...props.steps]
   newSteps.splice(index, 1)
-  emit('update:steps', newSteps)
+
+  // Обновляем sort для оставшихся шагов
+  const stepsWithSort = newSteps.map((step, idx) => ({
+    ...step,
+    sort: idx + 1
+  }))
+
+  emit('update:steps', stepsWithSort)
   stepFileInputs.value.splice(index, 1)
 }
 
