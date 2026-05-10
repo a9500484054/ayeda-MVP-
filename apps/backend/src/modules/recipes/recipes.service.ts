@@ -56,10 +56,11 @@ export class RecipesService {
       const recipe = manager.create(Recipe, {
         ...createRecipeDto,
         authorId: userId,
-        status:
-          createRecipeDto.type === RecipeType.COMMUNITY
-            ? RecipeStatus.PENDING
-            : RecipeStatus.PRIVATE,
+       status: createRecipeDto.status
+                ? createRecipeDto.status
+                : (createRecipeDto.type === RecipeType.COMMUNITY
+                    ? RecipeStatus.PENDING
+                    : RecipeStatus.PRIVATE),
       });
       const saved = await manager.save(recipe);
 
@@ -266,6 +267,12 @@ export class RecipesService {
           recipeToUpdate[key] = value;
         }
       });
+
+      // Если статус меняется на PUBLIC - устанавливаем дату публикации
+      if (updateRecipeDto.status === RecipeStatus.PUBLIC && recipeToUpdate.status !== RecipeStatus.PUBLIC) {
+        recipeToUpdate.publishedAt = new Date();
+      }
+
       recipeToUpdate.updatedAt = new Date();
       await manager.save(recipeToUpdate); // Используем save вместо update
 

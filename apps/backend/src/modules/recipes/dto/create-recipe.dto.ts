@@ -14,7 +14,7 @@ import {
   MinLength,
   IsNumber,
 } from 'class-validator';
-import { RecipeType, Difficulty } from '../enums/recipe.enums';
+import { RecipeType, Difficulty, RecipeStatus } from '../enums/recipe.enums';
 import { SeoDto } from './seo.dto';
 
 export class RecipePhotoDto {
@@ -105,6 +105,13 @@ export class CreateRecipeDto {
     message: 'Уровень сложности должен быть easy, medium или hard',
   })
   difficulty: Difficulty;
+
+  @ApiProperty({ enum: RecipeStatus, required: false, example: RecipeStatus.PRIVATE })
+  @IsOptional()
+  @IsEnum(RecipeStatus, {
+    message: 'Статус должен быть draft, private, pending, public или rejected',
+  })
+  status?: RecipeStatus;
 
   @ApiProperty({ enum: RecipeType, example: RecipeType.PERSONAL })
   @IsEnum(RecipeType, {

@@ -194,6 +194,18 @@
                       class="w-full"
                     />
                   </UFormField>
+
+                  <UFormField
+                    label="Статус"
+                    required
+                    :error="errors.status"
+                  >
+                    <USelect
+                      v-model="formData.status"
+                      :items="statusItems"
+                      class="w-full"
+                    />
+                  </UFormField>
                 </div>
                 <div class="rounded-2xl border p-5 mt-5">
                   <h3 class="text-lg font-medium mb-5">
@@ -348,6 +360,7 @@ const recipeSchema = z.object({
   calories: z.number().int('Калории должны быть целым числом').min(0, 'Калории не могут быть отрицательными').max(10000, 'Калории не должны превышать 10000').optional(),
   difficulty: z.enum(['easy', 'medium', 'hard'], { required_error: 'Выберите сложность' }),
   type: z.enum(['personal', 'community']).optional(),
+  status: z.enum(['draft', 'private', 'pending', 'public', 'rejected'], { required_error: 'Выберите статус' }),
   photo: z.object({
     id: z.string(),
     src: z.string()
@@ -395,6 +408,7 @@ const formData = ref({
   steps: [] as any[],
   difficulty: 'medium' as 'easy' | 'medium' | 'hard',
   type: 'personal' as 'personal' | 'community',
+  status: 'private' as 'draft' | 'private' | 'pending' | 'public' | 'rejected',
   srcPath: '',
   seo: {
     title: '',
@@ -492,6 +506,14 @@ const difficultyItems = [
 const typeItems = [
   { label: 'Личный', value: 'personal' },
   { label: 'Сообщества', value: 'community' }
+]
+
+const statusItems = [
+  { label: 'Черновик', value: 'draft' },
+  { label: 'Приватный', value: 'private' },
+  { label: 'На модерации', value: 'pending' },
+  { label: 'Опубликован', value: 'public' },
+  { label: 'Отклонен', value: 'rejected' }
 ]
 
 // Загрузка категорий
@@ -599,6 +621,7 @@ const loadRecipeToForm = () => {
     })) || [],
     difficulty: props.recipe.difficulty || 'medium',
     type: props.recipe.type === 'community' ? 'community' : 'personal',
+    status: props.recipe.status || 'private',
     srcPath: props.recipe.srcPath || '',
     seo: props.recipe.seo || {
       title: '',
@@ -630,6 +653,7 @@ const resetForm = () => {
     steps: [],
     difficulty: 'medium',
     type: 'personal',
+    status: 'private',
     srcPath: '',
     seo: {
       title: '',
@@ -756,6 +780,7 @@ const handleSubmit = () => {
     calories: formData.value.calories,
     difficulty: formData.value.difficulty,
     type: formData.value.type,
+    status: formData.value.status,
     photo: formData.value.photo.src ? formData.value.photo : undefined,
     video: formData.value.video || undefined,
     steps: formData.value.steps.map(step => ({
