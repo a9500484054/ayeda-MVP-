@@ -19,6 +19,44 @@
           @submit.prevent="handleSubmit"
         >
           <div class="p-6">
+            <!-- Медиа -->
+            <div class="rounded-2xl border p-5 mb-5 space-y-4">
+              <h3 class="text-lg font-medium">
+                Обложка рецепта
+              </h3>
+
+              <UFormField label="Фото">
+                <div class="space-y-3">
+                  <UButton
+                    block
+                    @click="mainFileInput?.click()"
+                    color="primary"
+                    variant="outline"
+                    :loading="isFileUploading"
+                  >
+                    Загрузить фото
+                  </UButton>
+
+                  <input
+                    ref="mainFileInput"
+                    type="file"
+                    accept="image/*"
+                    class="hidden"
+                    @change="handleMainPhotoUpload"
+                  />
+
+                  <div
+                    v-if="formData.photo?.src"
+                    class="rounded-xl overflow-hidden border max-h-md max-w-md mx-auto"
+                  >
+                    <img
+                      :src="`${API_BASE_URL}${formData.photo.src}`"
+                      class="w-full h-auto object-cover"
+                    />
+                  </div>
+                </div>
+              </UFormField>
+            </div>
             <!-- Основная сетка: левая колонка 2/3, правая 1/3 -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <!-- ЛЕВАЯ КОЛОНКА (2/3 ширины) -->
@@ -95,45 +133,6 @@
 
               <!-- ПРАВАЯ КОЛОНКА (1/3 ширины) -->
               <div class="space-y-6">
-                <!-- Медиа -->
-                <div class="rounded-2xl border p-5 space-y-4">
-                  <h3 class="text-lg font-medium">
-                    Медиа
-                  </h3>
-
-                  <UFormField label="Фото">
-                    <div class="space-y-3">
-                      <UButton
-                        block
-                        @click="mainFileInput?.click()"
-                        color="primary"
-                        variant="outline"
-                        :loading="isFileUploading"
-                      >
-                        Загрузить фото
-                      </UButton>
-
-                      <input
-                        ref="mainFileInput"
-                        type="file"
-                        accept="image/*"
-                        class="hidden"
-                        @change="handleMainPhotoUpload"
-                      />
-
-                      <div
-                        v-if="formData.photo?.src"
-                        class="rounded-xl overflow-hidden border"
-                      >
-                        <img
-                          :src="`${API_BASE_URL}${formData.photo.src}`"
-                          class="w-full h-auto object-cover"
-                        />
-                      </div>
-                    </div>
-                  </UFormField>
-                </div>
-
                 <!-- Параметры -->
                 <div class="rounded-2xl border p-5 space-y-4">
                   <h3 class="text-lg font-medium">
@@ -196,18 +195,22 @@
                     />
                   </UFormField>
                 </div>
+                <div class="rounded-2xl border p-5 mt-5">
+                  <h3 class="text-lg font-medium mb-5">
+                    Медиа
+                  </h3>
+                  <UFormField label="Видео">
+                    <UInput
+                      v-model="formData.video"
+                      class="w-full"
+                      placeholder="https://youtube.com/..."
+                    />
+                  </UFormField>
+                </div>
               </div>
             </div>
 
-            <div class="rounded-2xl border p-5 mt-5">
-              <UFormField label="Видео">
-                <UInput
-                  v-model="formData.video"
-                  class="w-full"
-                  placeholder="https://youtube.com/..."
-                />
-              </UFormField>
-            </div>
+
 
             <!-- Ингредиенты -->
             <div class="rounded-2xl border p-5 mt-5">
