@@ -30,6 +30,7 @@ export default defineNuxtConfig({
     apiSecret: process.env.NUXT_API_SECRET || "",
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE_URL || "http://localhost:3001/api/v1",
+      apiUrl: process.env.NUXT_PUBLIC_API_URL || "http://localhost:3001", // Добавьте эту строку
       sentryDsn: process.env.NUXT_PUBLIC_SENTRY_DSN || "",
       yandexMetricaId: process.env.NUXT_PUBLIC_YANDEX_METRICA_ID || "",
     },
@@ -37,8 +38,8 @@ export default defineNuxtConfig({
 
   routeRules: {
     "/": { prerender: true },
-    "/recipes/**": { ssr: true, swr: 3600 },
-    "/blog/**": { ssr: true, swr: 3600 },
+    "/recipes/**": { ssr: true, },
+    "/blog/**": { ssr: true, },
     "/about": { ssr: true },
     "/support": { ssr: true },
     "/policy": { ssr: true },

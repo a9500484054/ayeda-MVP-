@@ -85,7 +85,7 @@ const mainLinks = [
 
 // Общие ссылки (видны всем)
 const exploreLinks = [
-  { to: '/recipes', label: 'Идеи рецептов', icon: 'i-lucide-lightbulb' },
+  { to: '/recipes', label: 'База рецептов', icon: 'i-lucide-lightbulb' },
   { to: '/blog', label: 'Блог', icon: 'i-lucide-newspaper' },
 ];
 
@@ -105,11 +105,11 @@ const avatarPreview = computed(() => {
   // Если avatar содержит путь
   const API_BASE_URL = 'http://localhost:3001';
   return `${API_BASE_URL}${avatar}`;
-}); 
+});
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50">
+  <div class="flex flex-1">
     <!-- Мобильная кнопка меню -->
     <button
       @click="isMobileMenuOpen = !isMobileMenuOpen"
@@ -260,8 +260,8 @@ const avatarPreview = computed(() => {
     </aside>
 
     <!-- Основной контент -->
-    <main class="lg:ml-64 p-6">
-      <div class="max-w-5xl mx-auto">
+    <main class="flex-1 flex flex-col min-h-screen">
+      <div class="mx-auto">
         <slot />
       </div>
     </main>
@@ -319,7 +319,7 @@ aside ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.5);
 }
 
-main {
+/* main {
   position: relative;
   top: -100vh;
 }
@@ -329,7 +329,7 @@ main {
     position: static;
     top: 0;
   }
-}
+} */
 
 /* Стили для красной иконки в выпадающем меню */
 :deep(.text-red-600) {

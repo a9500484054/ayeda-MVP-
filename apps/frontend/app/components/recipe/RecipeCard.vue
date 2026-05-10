@@ -1,27 +1,305 @@
-<script setup lang="ts">
-import type { RecipeDto } from "~/shared/types/domain";
-
-const props = defineProps<{
-  recipe: RecipeDto;
-}>();
-</script>
-
 <template>
-  <article class="panel overflow-hidden">
-    <img :src="props.recipe.imageUrl" :alt="props.recipe.title" class="h-48 w-full object-cover" loading="lazy">
-    <div class="grid gap-3 p-4">
-      <div class="flex items-center justify-between gap-3 text-sm text-gray-600">
-        <span>{{ props.recipe.category.name }}</span>
-        <span>{{ props.recipe.cookingTime }} мин</span>
+  <article
+    :class="[
+      'group relative overflow-hidden rounded-xl border border-zinc-200/80 bg-white transition-all duration-500 hover:shadow-lg hover:shadow-zinc-200/50',
+      viewMode === 'list'
+        ? 'flex flex-col md:flex-row hover:-translate-y-0'
+        : 'flex flex-col cursor-pointer hover:-translate-y-1',
+    ]"
+    @click="openRecipe"
+  >
+    <!-- IMAGE -->
+    <div
+      :class="[
+        'relative overflow-hidden bg-zinc-100',
+        viewMode === 'list'
+          ? 'md:w-[200px] md:flex-shrink-0'
+          : 'w-full',
+      ]"
+    >
+      <div
+        :class="[
+          viewMode === 'list'
+            ? 'aspect-[3/2] h-full'
+            : 'aspect-[3/2]',
+        ]"
+      >
+        <img
+          :src="recipeImage"
+          :alt="recipe.title"
+          loading="lazy"
+          class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+        />
       </div>
-      <h3 class="text-xl font-bold">
-        <NuxtLink :to="`/recipes/${props.recipe.srcPath}`">{{ props.recipe.title }}</NuxtLink>
+
+      <!-- Difficulty badge -->
+      <div
+        v-if="recipe.difficulty"
+        class="absolute left-2 top-2 rounded-md bg-black/60 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-white backdrop-blur-sm"
+      >
+        {{ difficultyText }}
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div
+      class="transition-all duration-500"
+      :class="[
+        viewMode === 'list'
+          ? 'flex-1 p-3 md:p-4 bg-white'
+          : 'absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-3',
+      ]"
+    >
+      <!-- Title -->
+      <h3
+        class="line-clamp-2 text-sm font-semibold leading-tight transition-colors duration-300"
+        :class="[
+          viewMode === 'list'
+            ? 'text-black'
+            : 'text-white',
+        ]"
+      >
+        {{ recipe.title }}
       </h3>
-      <p class="text-gray-700">{{ props.recipe.description }}</p>
-      <div class="flex items-center justify-between text-sm text-gray-600">
-        <span>{{ props.recipe.servings }} порции</span>
-        <span>{{ props.recipe.likesCount }} лайков</span>
+
+      <!-- Hover content (only for grid mode) -->
+      <div
+        v-if="viewMode === 'grid'"
+        :class="[
+          'overflow-hidden transition-all duration-500',
+          'max-h-0 opacity-0 mt-0 group-hover:max-h-[400px] group-hover:opacity-100 group-hover:mt-2',
+        ]"
+      >
+        <!-- Categories -->
+        <div
+          v-if="recipe.categories?.length"
+          class="mb-2 flex flex-wrap gap-1"
+        >
+          <span
+            v-for="category in recipe.categories.slice(0, 2)"
+            :key="category.id"
+            class="rounded bg-white/20 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-white backdrop-blur-sm"
+          >
+            {{ category.name }}
+          </span>
+        </div>
+
+        <!-- Meta & Stats in one row -->
+        <div class="flex items-center justify-between gap-2">
+          <!-- Meta info (time, servings, calories) -->
+          <div class="flex flex-wrap items-center gap-1.5 text-[10px] text-white/90">
+            <div class="flex items-center gap-0.5">
+              <UIcon
+                name="i-lucide-clock-3"
+                class="h-2.5 w-2.5"
+              />
+              <span>{{ recipe.cookingTime }} мин</span>
+            </div>
+
+            <div class="flex items-center gap-0.5">
+              <UIcon
+                name="i-lucide-users"
+                class="h-2.5 w-2.5"
+              />
+              <span>{{ recipe.servings }} порц</span>
+            </div>
+
+            <div
+              v-if="recipe.calories"
+              class="flex items-center gap-0.5"
+            >
+              <UIcon
+                name="i-lucide-flame"
+                class="h-2.5 w-2.5"
+              />
+              <span>{{ recipe.calories }} ккал</span>
+            </div>
+          </div>
+
+          <!-- Stats (views, likes, favorites) -->
+          <div class="flex items-center gap-2 text-[10px] text-white/80">
+            <div class="flex items-center gap-0.5">
+              <UIcon
+                name="i-lucide-eye"
+                class="h-2.5 w-2.5"
+              />
+              <span>{{ formatNumber(recipe.views || 0) }}</span>
+            </div>
+
+            <button
+              @click.stop="toggleFavorite"
+              class="flex items-center gap-0.5 transition-colors hover:text-red-300"
+              :class="isFavorited ? 'text-red-400' : ''"
+            >
+              <UIcon
+                name="i-lucide-heart"
+                class="h-2.5 w-2.5"
+                :class="isFavorited ? 'fill-current' : ''"
+              />
+              <span>{{ formatNumber(recipe.favorites || 0) }}</span>
+            </button>
+
+            <button
+              @click.stop="toggleLike"
+              class="flex items-center gap-0.5 transition-colors hover:text-blue-300"
+              :class="isLiked ? 'text-blue-400' : ''"
+            >
+              <UIcon
+                name="i-lucide-thumbs-up"
+                class="h-2.5 w-2.5"
+              />
+              <span>{{ formatNumber(recipe.likes || 0) }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- List mode content (always visible) -->
+      <div
+        v-if="viewMode === 'list'"
+        class="mt-2"
+      >
+        <!-- Categories -->
+        <div
+          v-if="recipe.categories?.length"
+          class="mb-2 flex flex-wrap gap-1"
+        >
+          <span
+            v-for="category in recipe.categories.slice(0, 2)"
+            :key="category.id"
+            class="rounded bg-zinc-100 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-zinc-600"
+          >
+            {{ category.name }}
+          </span>
+        </div>
+
+        <!-- Meta & Stats in one row with border top -->
+        <div class="flex items-center justify-between gap-2 border-t border-zinc-100 pt-2">
+          <!-- Meta info (time, servings, calories) -->
+          <div class="flex flex-wrap items-center gap-1.5 text-[10px] text-zinc-500">
+            <div class="flex items-center gap-0.5">
+              <UIcon
+                name="i-lucide-clock-3"
+                class="h-2.5 w-2.5"
+              />
+              <span>{{ recipe.cookingTime }} мин</span>
+            </div>
+
+            <div class="flex items-center gap-0.5">
+              <UIcon
+                name="i-lucide-users"
+                class="h-2.5 w-2.5"
+              />
+              <span>{{ recipe.servings }} порц</span>
+            </div>
+
+            <div
+              v-if="recipe.calories"
+              class="flex items-center gap-0.5"
+            >
+              <UIcon
+                name="i-lucide-flame"
+                class="h-2.5 w-2.5"
+              />
+              <span>{{ recipe.calories }} ккал</span>
+            </div>
+          </div>
+
+          <!-- Stats (views, likes, favorites) -->
+          <div class="flex items-center gap-2 text-[10px] text-zinc-500">
+            <div class="flex items-center gap-0.5">
+              <UIcon
+                name="i-lucide-eye"
+                class="h-2.5 w-2.5"
+              />
+              <span>{{ formatNumber(recipe.views || 0) }}</span>
+            </div>
+
+            <button
+              @click.stop="toggleFavorite"
+              class="flex items-center gap-0.5 transition-colors hover:text-red-500"
+              :class="isFavorited ? 'text-red-500' : ''"
+            >
+              <UIcon
+                name="i-lucide-heart"
+                class="h-2.5 w-2.5"
+                :class="isFavorited ? 'fill-current' : ''"
+              />
+              <span>{{ formatNumber(recipe.favorites || 0) }}</span>
+            </button>
+
+            <button
+              @click.stop="toggleLike"
+              class="flex items-center gap-0.5 transition-colors hover:text-blue-500"
+              :class="isLiked ? 'text-blue-500' : ''"
+            >
+              <UIcon
+                name="i-lucide-thumbs-up"
+                class="h-2.5 w-2.5"
+              />
+              <span>{{ formatNumber(recipe.likes || 0) }}</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </article>
 </template>
+
+<script setup lang="ts">
+import { computed, ref } from 'vue'
+import type { RecipeResponse } from '~/composables/api/useRecipesApi'
+
+const props = defineProps<{
+  recipe: RecipeResponse
+  viewMode: 'grid' | 'list'
+}>()
+
+const emit = defineEmits<{
+  (e: 'open', recipe: RecipeResponse): void
+  (e: 'favorite', recipe: RecipeResponse, state: boolean): void
+  (e: 'like', recipe: RecipeResponse, state: boolean): void
+}>()
+
+const config = useRuntimeConfig()
+
+const isFavorited = ref(props.recipe.isFavorited || false)
+const isLiked = ref(props.recipe.isLiked || false)
+
+const recipeImage = computed(() => {
+  if (props.recipe.photo?.src) {
+    return config.public.apiUrl + props.recipe.photo.src
+  }
+  return '/images/placeholder-recipe.jpg'
+})
+
+const difficultyText = computed(() => {
+  const difficulties: Record<string, string> = {
+    easy: 'Easy',
+    medium: 'Medium',
+    hard: 'Hard',
+  }
+  return difficulties[props.recipe.difficulty] || props.recipe.difficulty
+})
+
+const formatNumber = (num: number) => {
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1) + 'k'
+  }
+  return num.toString()
+}
+
+const openRecipe = () => {
+  emit('open', props.recipe)
+}
+
+const toggleFavorite = () => {
+  isFavorited.value = !isFavorited.value
+  emit('favorite', props.recipe, isFavorited.value)
+}
+
+const toggleLike = () => {
+  isLiked.value = !isLiked.value
+  emit('like', props.recipe, isLiked.value)
+}
+</script>
