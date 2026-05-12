@@ -111,3 +111,72 @@ export interface ShoppingListDto {
   archived: boolean;
   items: ShoppingListItemDto[];
 }
+
+
+// Добавьте эти типы в ваш существующий файл
+
+export interface LikeDto {
+  id: string;
+  recipeId: string;
+  userId: string;
+  createdAt: string;
+}
+
+export interface LikeStatusResponse {
+  liked: boolean;
+  likesCount: number;
+}
+
+export interface FavoriteStatusResponse {
+  isFavorite: boolean;
+}
+
+export interface FavoriteRecipe {
+  id: string;
+  title: string;
+  // ... другие поля рецепта
+}
+
+export interface CommentAuthor {
+  id: string;
+  email: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  bio: string;
+  avatar: string;
+  isEmailVerified: boolean;
+  role: string;
+  createdAt: string;
+  updatedAt: string;
+  lastLoginAt: string | null;
+}
+
+export interface CommentDto {
+  id: string;
+  text: string;
+  recipeId: string;
+  author: CommentAuthor;
+  isHidden: boolean;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+}
+
+export interface CommentsResponse {
+  total: number;
+  page: number;
+  limit: number;
+  pages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+  items?: CommentDto[];
+}
+
+export interface CreateCommentDto {
+  text: string;
+}
+
+export interface UpdateCommentDto {
+  text: string;
+}

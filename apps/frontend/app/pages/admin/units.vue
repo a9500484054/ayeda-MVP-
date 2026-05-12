@@ -39,7 +39,7 @@ const formData = ref({
   code: '',
   name: '',
   short: '',
-  type: 'other' as 'mass' | 'volume' | 'count' | 'other'
+  type: 'other' as 'mass' | 'volume' | 'piece' | 'other'
 })
 
 // Загрузка единиц измерения
@@ -98,14 +98,14 @@ const columns: TableColumn<any>[] = [
       const colorMap: Record<string, string> = {
         mass: 'primary',
         volume: 'info',
-        count: 'success',
+        piece: 'success',
         other: 'neutral'
       }
 
       const labelMap: Record<string, string> = {
         mass: 'Масса',
         volume: 'Объем',
-        count: 'Количество',
+        piece: 'Количество',
         other: 'Другое'
       }
 
@@ -477,7 +477,7 @@ onMounted(() => {
                 :items="[
                   { label: 'Масса', value: 'mass' },
                   { label: 'Объем', value: 'volume' },
-                  { label: 'Количество', value: 'count' },
+                  { label: 'Количество', value: 'piece' },
                   { label: 'Другое', value: 'other' }
                 ]"
               />
@@ -556,7 +556,7 @@ onMounted(() => {
                 :items="[
                   { label: 'Масса', value: 'mass' },
                   { label: 'Объем', value: 'volume' },
-                  { label: 'Количество', value: 'count' },
+                  { label: 'Количество', value: 'piece' },
                   { label: 'Другое', value: 'other' }
                 ]"
               />

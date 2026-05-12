@@ -111,6 +111,22 @@ export function useRecipesApi() {
       return await api(`/recipes/${id}`);
     },
 
+    // Получить рецепт по srcPath (slug)
+    async getRecipeBySrcPath(srcPath: string): Promise<RecipeResponse> {
+      return await api(`/recipes/by-path/${srcPath}`);
+    },
+
+    // Поиск рецептов
+    async searchRecipes(q: string, params?: {
+      page?: number;
+      limit?: number;
+    }): Promise<RecipesResponse> {
+      return await api('/recipes/search', {
+        method: 'GET',
+        params: { q, page: 1, limit: 10, ...params }
+      });
+    },
+
     // Создать рецепт
     async createRecipe(data: CreateRecipeDto): Promise<RecipeResponse> {
       return await api('/recipes', {
@@ -131,6 +147,28 @@ export function useRecipesApi() {
     async deleteRecipe(id: string): Promise<void> {
       await api(`/recipes/${id}`, {
         method: 'DELETE'
+      });
+    },
+
+    // Отправить рецепт на модерацию
+    async submitForModeration(id: string): Promise<RecipeResponse> {
+      return await api(`/recipes/${id}/submit`, {
+        method: 'POST'
+      });
+    },
+
+    // Опубликовать рецепт (для модераторов)
+    async publishRecipe(id: string): Promise<RecipeResponse> {
+      return await api(`/recipes/${id}/publish`, {
+        method: 'POST'
+      });
+    },
+
+    // Отклонить рецепт (для модераторов)
+    async rejectRecipe(id: string, reason?: string): Promise<RecipeResponse> {
+      return await api(`/recipes/${id}/reject`, {
+        method: 'POST',
+        body: { reason }
       });
     }
   };
