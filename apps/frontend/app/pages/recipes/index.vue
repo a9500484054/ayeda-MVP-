@@ -48,56 +48,58 @@
         </div>
 
         <!-- View Switch -->
-        <div
-          class="flex h-11 items-center rounded-2xl border border-zinc-200 bg-white p-1"
-        >
-          <button
-            class="flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-200"
-            :class="
-              currentView === 'grid-small'
-                ? 'bg-zinc-900 text-white shadow-sm'
-                : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900'
-            "
-            title="Компактная сетка"
-            @click="setView('grid-small')"
+        <div class="hidden sm:block ml-auto">
+          <div
+            class="flex h-11 items-center rounded-2xl border border-zinc-200 bg-white p-1"
           >
-            <UIcon
-              name="i-lucide-grid-3x3"
-              class="h-4 w-4"
-            />
-          </button>
+            <button
+              class="flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-200"
+              :class="
+                currentView === 'grid-small'
+                  ? 'bg-green-600 text-white shadow-sm'
+                  : 'text-zinc-500 hover:bg-green-50 hover:text-green-600'
+              "
+              title="Компактная сетка"
+              @click="setView('grid-small')"
+            >
+              <UIcon
+                name="i-lucide-grid-3x3"
+                class="h-4 w-4"
+              />
+            </button>
 
-          <button
-            class="flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-200"
-            :class="
-              currentView === 'grid-large'
-                ? 'bg-zinc-900 text-white shadow-sm'
-                : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900'
-            "
-            title="Большая сетка"
-            @click="setView('grid-large')"
-          >
-            <UIcon
-              name="i-lucide-grid-2x2"
-              class="h-4 w-4"
-            />
-          </button>
+            <button
+              class="flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-200"
+              :class="
+                currentView === 'grid-large'
+                  ? 'bg-green-600 text-white shadow-sm'
+                  : 'text-zinc-500 hover:bg-green-50 hover:text-green-600'
+              "
+              title="Большая сетка"
+              @click="setView('grid-large')"
+            >
+              <UIcon
+                name="i-lucide-grid-2x2"
+                class="h-4 w-4"
+              />
+            </button>
 
-          <button
-            class="flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-200"
-            :class="
-              currentView === 'list'
-                ? 'bg-zinc-900 text-white shadow-sm'
-                : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900'
-            "
-            title="Список"
-            @click="setView('list')"
-          >
-            <UIcon
-              name="i-lucide-list"
-              class="h-4 w-4"
-            />
-          </button>
+            <button
+              class="flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-200"
+              :class="
+                currentView === 'list'
+                  ? 'bg-green-600 text-white shadow-sm'
+                  : 'text-zinc-500 hover:bg-green-50 hover:text-green-600'
+              "
+              title="Список"
+              @click="setView('list')"
+            >
+              <UIcon
+                name="i-lucide-list"
+                class="h-4 w-4"
+              />
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -272,10 +274,10 @@ const containerClass = computed(() => {
   }
 
   if (currentView.value === 'grid-small') {
-    return 'grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4'
+    return 'grid grid-cols-1 gap-5 sm:grid-cols-3 xl:grid-cols-4'
   }
 
-  return 'grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3'
+  return 'grid grid-cols-1 md:grid-cols-2 gap-6 lg:grid-cols-2 xl:grid-cols-3'
 })
 
 // Methods
