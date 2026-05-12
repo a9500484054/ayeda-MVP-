@@ -1,3 +1,4 @@
+// apps\frontend\app\shared\types\domain.ts
 export type UserRole = "user" | "moderator" | "admin";
 export type RecipeStatus = "draft" | "pending" | "published" | "rejected";
 export type Difficulty = "easy" | "medium" | "hard";

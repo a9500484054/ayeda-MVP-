@@ -1,3 +1,4 @@
+// apps\frontend\app\composables\useAuth.ts
 import type { UserDto } from "~/shared/types/domain";
 import { useUserStore } from "~/stores/userStore";
 import { useApi } from "./useApi";
