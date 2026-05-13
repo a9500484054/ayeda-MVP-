@@ -460,4 +460,32 @@ export class RecipesService {
 
     return this.recipesRepository.save(recipe);
   }
+
+  async makePrivate(id: string, userId: string): Promise<Recipe> {
+    const recipe = await this.findOneWithRelations(id);
+
+    // Проверяем, что пользователь - автор рецепта
+    if (recipe.authorId !== userId) {
+      throw new ForbiddenException('Вы можете сделать приватным только свой рецепт');
+    }
+
+    // Нельзя сделать приватным опубликованный рецепт
+    if (recipe.status === RecipeStatus.PUBLIC) {
+      throw new BadRequestException('Опубликованный рецепт нельзя сделать приватным');
+    }
+
+    // Проверяем, не является ли уже рецепт приватным
+    if (recipe.status === RecipeStatus.PRIVATE) {
+      throw new BadRequestException('Рецепт уже является приватным');
+    }
+
+    // Меняем статус на PRIVATE
+    recipe.status = RecipeStatus.PRIVATE;
+    recipe.updatedAt = new Date();
+
+    // Если рецепт был на модерации - снимаем с модерации
+    // Это логично, так как автор решил сделать его приватным
+
+    return this.recipesRepository.save(recipe);
+  }
 }

@@ -211,4 +211,20 @@ export class RecipesController {
     );
     return this.recipesService.toResponseDto(recipe);
   }
+
+  @Post(':id/make-private')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Сделать рецепт приватным (только для автора)' })
+  @ApiParam({ name: 'id', description: 'UUID рецепта' })
+  @ApiResponse({ status: HttpStatus.OK, type: RecipeResponseDto })
+  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Нет прав' })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Нельзя сделать приватным опубликованный рецепт' })
+  async makePrivate(
+    @Req() req: RequestWithUser,
+    @Param('id') id: string,
+  ): Promise<RecipeResponseDto> {
+    const recipe = await this.recipesService.makePrivate(id, req.user.id);
+    return this.recipesService.toResponseDto(recipe);
+  }
 }
