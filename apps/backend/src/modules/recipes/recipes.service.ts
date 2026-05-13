@@ -131,6 +131,7 @@ export class RecipesService {
       .leftJoinAndSelect('recipe.author', 'author')
       .leftJoinAndSelect('recipe.ingredients', 'ingredients')
       .leftJoinAndSelect('ingredients.ingredient', 'ingredient')
+      .leftJoinAndSelect('ingredients.unit', 'unit') // ← Добавляем загрузку unit
       .leftJoinAndSelect('recipe.categories', 'rc')
       .leftJoinAndSelect('rc.category', 'category')
       .where('recipe.id = :id', { id })
@@ -164,6 +165,7 @@ export class RecipesService {
       .leftJoinAndSelect('recipe.author', 'author')
       .leftJoinAndSelect('recipe.ingredients', 'ingredients')
       .leftJoinAndSelect('ingredients.ingredient', 'ingredient')
+      .leftJoinAndSelect('ingredients.unit', 'unit') // ← Добавляем загрузку unit
       .leftJoinAndSelect('recipe.categories', 'rc')
       .leftJoinAndSelect('rc.category', 'category')
       .where('recipe.deletedAt IS NULL');
@@ -403,7 +405,7 @@ export class RecipesService {
         id: ri.id,
         ingredient: ri.ingredient,
         amount: ri.amount,
-        unit: ri.ingredient.unit, // Получаем unit из связанного ингредиента
+        unit: ri.unit || null, // Получаем unit из связанного ингредиента
         notes: ri.notes,
       })) || [];
 

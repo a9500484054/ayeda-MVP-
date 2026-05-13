@@ -51,7 +51,7 @@ export class RecipeIngredientResponseDto {
   amount: number;
 
   @ApiProperty({ type: () => UnitResponseDto, required: false })
-  unit?: UnitResponseDto;
+  unit?: UnitResponseDto | null;
 
   @ApiProperty({ required: false })
   notes?: string;
