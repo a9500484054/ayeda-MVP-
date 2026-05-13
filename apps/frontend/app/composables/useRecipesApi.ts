@@ -171,6 +171,12 @@ export function useRecipesApi() {
         method: 'POST',
         body: { reason }
       });
-    }
+    },
+    // 🔒 Сделать рецепт приватным (для автора)
+    async makePrivate(id: string): Promise<RecipeResponse> {
+      return await api(`/recipes/${id}/make-private`, {
+        method: 'POST'
+      });
+    },
   };
 }
