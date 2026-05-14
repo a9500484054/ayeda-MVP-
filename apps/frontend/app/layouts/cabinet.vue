@@ -261,7 +261,7 @@ const avatarPreview = computed(() => {
 
     <!-- Основной контент -->
     <main class="flex-1 flex flex-col min-h-screen">
-      <div class="mx-auto">
+      <div>
         <slot />
       </div>
     </main>

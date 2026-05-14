@@ -36,18 +36,21 @@
 
       <!-- Actions -->
       <div class="absolute right-3 top-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
-        <button
+        <Button
           @click.stop="emitEdit"
-          class="rounded-xl bg-white/95 p-2 text-zinc-700 shadow-sm hover:bg-white hover:text-zinc-900"
-        >
-          <UIcon name="i-lucide-edit-2" class="h-4 w-4" />
-        </button>
-        <button
+          variant="solid"
+          color="info"
+          size="sm"
+          icon="i-lucide-edit-2"
+        />
+
+        <Button
           @click.stop="emitDelete"
-          class="rounded-xl bg-white/95 p-2 text-red-500 shadow-sm hover:bg-red-50 hover:text-red-600"
-        >
-          <UIcon name="i-lucide-trash-2" class="h-4 w-4" />
-        </button>
+          variant="solid"
+          color="danger"
+          size="sm"
+          icon="i-lucide-trash-2"
+        />
       </div>
     </div>
 
@@ -95,6 +98,19 @@
       </div>
 
       <div class="mt-4 flex items-center justify-between">
+        <!-- Categories - теперь слева -->
+        <div class="flex flex-wrap gap-1">
+          <span
+            v-for="cat in recipe.categories?.slice(0, 2)"
+            :key="cat.id"
+            class="rounded-md px-2 py-0.5 text-[10px] font-medium"
+            :class="isListView ? 'bg-zinc-100 text-zinc-600' : 'bg-white/20 text-white/90 backdrop-blur-sm'"
+          >
+            {{ cat.name }}
+          </span>
+        </div>
+
+        <!-- Likes & Comments - теперь справа -->
         <div class="flex items-center gap-4 text-sm" :class="isListView ? 'text-zinc-500' : 'text-white/75'">
           <div class="flex items-center gap-1">
             <UIcon name="i-lucide-heart" class="h-4 w-4" />
@@ -105,18 +121,6 @@
             <span>{{ recipe.commentsCount || 0 }}</span>
           </div>
         </div>
-
-        <!-- Categories -->
-        <div v-if="recipe.categories?.length" class="flex flex-wrap gap-1">
-          <span
-            v-for="cat in recipe.categories.slice(0, 2)"
-            :key="cat.id"
-            class="rounded-md px-2 py-0.5 text-[10px] font-medium"
-            :class="isListView ? 'bg-zinc-100 text-zinc-600' : 'bg-white/20 text-white/90 backdrop-blur-sm'"
-          >
-            {{ cat.name }}
-          </span>
-        </div>
       </div>
 
       <!-- Bottom bar for list view -->
@@ -126,60 +130,70 @@
       >
         <span class="text-zinc-500">{{ formatDate(recipe.createdAt) }}</span>
 
-        <div class="flex gap-2">
-          <button
-            v-if="recipe.status === 'private' && showModerationButton"
-            @click.stop="emitSubmitModeration"
-            class="rounded-lg bg-green-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-green-700 transition"
+        <!-- Кнопки с ховером для list view -->
+        <div class="relative">
+          <!-- Кнопки появляются при ховере на контейнер -->
+          <div
+            v-if="showModerationButton && (recipe.status === 'private' || recipe.status === 'rejected')"
+            class="flex gap-2"
+            :class="isListView ? 'opacity-0 group-hover:opacity-100 transition-all duration-300' : ''"
           >
-            Отправить на модерацию
-          </button>
+            <Button v-if="recipe.status === 'private'" color="success" size="xs" @click.stop="emitSubmitModeration">
+              <span>Отправить на модерацию</span>
+            </Button>
 
-          <template v-if="recipe.status === 'rejected' && showModerationButton">
-            <button
-              @click.stop="emitSubmitModeration"
-              class="rounded-lg bg-green-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-green-700 transition"
-            >
-              Отправить на модерацию
-            </button>
-            <button
-              @click.stop="emitMakePrivate"
-              class="rounded-lg bg-amber-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-amber-700 transition"
-            >
-              Сделать приватным
-            </button>
-          </template>
+            <template v-if="recipe.status === 'rejected'">
+              <Button
+                @click.stop="emitSubmitModeration"
+                color="success"
+                size="xs"
+              >
+                Отправить на модерацию
+              </Button>
+              <Button
+                @click.stop="emitMakePrivate"
+                color="warning"
+                size="xs"
+              >
+                Сделать приватным
+              </Button>
+            </template>
+          </div>
+          <!-- Заглушка чтобы не прыгал контент -->
+          <div v-else class="h-9"></div>
         </div>
       </div>
 
-      <!-- Кнопки для grid view -->
+      <!-- Кнопки для grid view - с ховером -->
       <div
         v-if="!isListView && showModerationButton && (recipe.status === 'private' || recipe.status === 'rejected')"
-        class="mt-4 flex gap-2"
-        @click.stop
+        class="relative"
       >
-        <button
-          v-if="recipe.status === 'private'"
-          @click="emitSubmitModeration"
-          class="flex-1 rounded-lg bg-green-600 px-3 py-2 text-xs font-medium text-white hover:bg-green-700 transition"
-        >
-          Отправить на модерацию
-        </button>
+        <!-- Кнопки появляются при ховере на карточку -->
+        <div class="absolute bottom-0 left-0 right-0 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+          <Button v-if="recipe.status === 'private'" color="success" size="xs" @click.stop="emitSubmitModeration" block>
+            <span>Отправить на модерацию</span>
+          </Button>
 
-        <template v-if="recipe.status === 'rejected'">
-          <button
-            @click="emitSubmitModeration"
-            class="flex-1 rounded-lg bg-green-600 px-3 py-2 text-xs font-medium text-white hover:bg-green-700 transition"
-          >
-            На модерацию
-          </button>
-          <button
-            @click="emitMakePrivate"
-            class="flex-1 rounded-lg bg-amber-600 px-3 py-2 text-xs font-medium text-white hover:bg-amber-700 transition"
-          >
-            Сделать приватным
-          </button>
-        </template>
+          <template v-if="recipe.status === 'rejected'">
+            <Button
+              @click.stop="emitSubmitModeration"
+              color="success"
+              size="xs"
+              block
+            >
+              На модерацию
+            </Button>
+            <Button
+              @click.stop="emitMakePrivate"
+              color="warning"
+              block
+              size="xs"
+            >
+              Сделать приватным
+            </Button>
+          </template>
+        </div>
       </div>
     </div>
   </article>
@@ -188,6 +202,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { RecipeResponse } from '~/composables/useRecipesApi'
+import Button from '~/shared/ui/button/Button.vue';
 
 const props = defineProps<{
   recipe: RecipeResponse

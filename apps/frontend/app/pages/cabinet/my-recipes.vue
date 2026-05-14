@@ -21,23 +21,43 @@
       />
     </div>
 
-    <!-- Tabs -->
-    <div class="mb-6 border-b border-zinc-200">
-      <div class="flex gap-1">
+    <!-- Tabs - Упрощенная версия с плавной анимацией -->
+    <div class="mb-6">
+      <div class="relative inline-flex bg-zinc-100/80 rounded-xl p-1">
+        <!-- Анимированный фон -->
+        <div
+          class="absolute top-1 bottom-1 bg-white rounded-lg shadow-sm transition-all duration-300 ease-out"
+          :style="{
+            width: `${activeTabWidth}px`,
+            transform: `translateX(${activeTabLeft}px)`
+          }"
+        />
+
         <button
           v-for="tab in tabs"
           :key="tab.value"
-          class="px-4 py-2 text-sm font-medium transition-all rounded-t-lg"
+          ref="tabButtons"
+          class="relative z-10 px-5 py-2 text-sm font-medium transition-all duration-200 rounded-lg cursor-pointer"
           :class="activeTab === tab.value
-            ? 'bg-green-50 text-green-700 border-b-2 border-green-600'
-            : 'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-50'"
+            ? 'text-green-700'
+            : 'text-zinc-500 hover:text-zinc-700'"
           @click="switchTab(tab.value)"
         >
           <div class="flex items-center gap-2">
-            <UIcon :name="tab.icon" class="h-4 w-4" />
-            {{ tab.label }}
-            <span v-if="tab.count !== undefined" class="text-xs text-zinc-400">
-              ({{ tab.count }})
+            <UIcon
+              :name="tab.icon"
+              class="h-4 w-4 transition-all duration-200"
+              :class="activeTab === tab.value ? 'text-green-600' : ''"
+            />
+            <span class="whitespace-nowrap">{{ tab.label }}</span>
+            <span
+              v-if="tab.count !== undefined"
+              class="text-xs rounded-full min-w-[20px] h-5 px-1.5 flex items-center justify-center"
+              :class="activeTab === tab.value
+                ? 'bg-green-100 text-green-700'
+                : 'bg-white/60 text-zinc-500'"
+            >
+              {{ tab.count }}
             </span>
           </div>
         </button>
@@ -167,10 +187,13 @@ import RecipeFormSlideover from '~/components/my-recipe/RecipeFormSlideover.vue'
 import DeleteConfirmationModal from '~/components/my-recipe/DeleteConfirmationModal.vue'
 import SubmitModerationModal from '~/components/my-recipe/SubmitModerationModal.vue'
 import MakePrivateModal from '~/components/my-recipe/MakePrivateModal.vue'
+import Button from '~/shared/ui/button/Button.vue'
 
 definePageMeta({ layout: 'cabinet' })
 
 const { isAuthenticated, user } = useAuth()
+
+const toast = useToast()
 
 const recipesApi = useRecipesApi()
 const favoritesApi = useRecipesFavorites()
@@ -404,6 +427,21 @@ const handleModalClose = (open: boolean) => {
   if (!open) isModalOpen.value = false
 }
 
+// const handleSaveRecipe = async (data: any, modeType: string, id?: string) => {
+//   try {
+//     if (modeType === 'edit' && id) {
+//       await recipesApi.updateRecipe(id, data as UpdateRecipeDto)
+//     } else {
+//       await recipesApi.createRecipe(data as CreateRecipeDto)
+//     }
+//     await fetchRecipes(true)
+//     await loadFavoriteIds()
+//   } catch (error: any) {
+//     console.error('Error saving recipe:', error)
+//     throw error
+//   }
+// }
+
 const handleSaveRecipe = async (data: any, modeType: string, id?: string) => {
   try {
     if (modeType === 'edit' && id) {
@@ -411,10 +449,44 @@ const handleSaveRecipe = async (data: any, modeType: string, id?: string) => {
     } else {
       await recipesApi.createRecipe(data as CreateRecipeDto)
     }
+
+    // Обновляем списки только после успешного сохранения
     await fetchRecipes(true)
     await loadFavoriteIds()
+
+    // Показываем только один тостер успеха
+    toast.add({
+      title: 'Успех',
+      description: modeType === 'edit' ? 'Рецепт успешно обновлен' : 'Рецепт успешно создан',
+      color: 'success'
+    })
+
+    // Возвращаем успех
+    return { success: true }
   } catch (error: any) {
     console.error('Error saving recipe:', error)
+
+    // Извлекаем сообщение об ошибке
+    let errorMessage = 'Ошибка при сохранении рецепта'
+
+    if (error.data?.message) {
+      if (Array.isArray(error.data.message)) {
+        errorMessage = error.data.message.join(', ')
+      } else if (typeof error.data.message === 'string') {
+        errorMessage = error.data.message
+      }
+    } else if (error.message) {
+      errorMessage = error.message
+    }
+
+    // Показываем тостер ошибки
+    toast.add({
+      title: 'Ошибка',
+      description: errorMessage,
+      color: 'error'
+    })
+
+    // Пробрасываем ошибку дальше, чтобы форма знала, что произошла ошибка
     throw error
   }
 }
@@ -510,20 +582,7 @@ const handleMakePrivate = async () => {
   }
 }
 
-const loadInitialData = async () => {
-  try {
-    const catsResponse = await categoriesApi.getCategories(1, 100)
-    categories.value = catsResponse.data || catsResponse.categories || []
-  } catch (e) {
-    console.error('Error loading categories:', e)
-  }
 
-  try {
-    units.value = await unitsApi.getUnits()
-  } catch (e) {
-    console.error('Error loading units:', e)
-  }
-}
 
 // ==================== Watchers ====================
 watch(activeTab, (newTab) => {
@@ -541,9 +600,44 @@ onMounted(async () => {
     currentView.value = savedView
   }
 
-  await loadInitialData()
   await loadFavoriteIds()
   await fetchRecipes(true)
+})
+// ==================== Tab Animation Refs ====================
+const tabButtons = ref<HTMLButtonElement[]>([])
+const activeTabWidth = ref(0)
+const activeTabLeft = ref(0)
+
+// Обновление позиции индикатора
+const updateIndicatorPosition = () => {
+  if (!tabButtons.value.length) return
+
+  const activeIndex = tabs.value.findIndex(tab => tab.value === activeTab.value)
+  const activeButton = tabButtons.value[activeIndex]
+
+  if (activeButton) {
+    activeTabWidth.value = activeButton.offsetWidth
+    activeTabLeft.value = activeButton.offsetLeft
+  }
+}
+
+// Обновляем при изменении activeTab и после рендера
+watch(activeTab, () => {
+  nextTick(() => {
+    updateIndicatorPosition()
+  })
+})
+
+// Обновляем при ресайзе окна
+onMounted(() => {
+  nextTick(() => {
+    updateIndicatorPosition()
+  })
+  window.addEventListener('resize', updateIndicatorPosition)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updateIndicatorPosition)
 })
 </script>
 

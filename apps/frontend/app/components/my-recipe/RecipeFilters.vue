@@ -26,8 +26,8 @@
         <button
           v-for="view in views"
           :key="view.value"
-          class="flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-200"
-          :class="currentView === view.value ? 'bg-green-600 text-white shadow-sm' : 'text-zinc-500 hover:bg-green-50 hover:text-green-600'"
+          class="flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-200 cursor-pointer"
+          :class="currentView === view.value ? 'bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-500 active:bg-emerald-800' : 'text-zinc-500 hover:bg-emerald-50 hover:text-emerald-600'"
           :title="view.title"
           @click="$emit('update:currentView', view.value)"
         >
@@ -37,17 +37,16 @@
     </div>
 
     <!-- Create Button -->
-    <button
-      class="flex h-11 items-center gap-2 rounded-2xl bg-green-600 px-5 text-sm font-medium text-white transition-all hover:bg-green-700"
-      @click="$emit('create')"
-    >
+    <Button color="success" size="sm" @click="$emit('create')">
       <UIcon name="i-lucide-plus" class="h-4 w-4" />
       <span>Создать рецепт</span>
-    </button>
+    </Button>
   </div>
 </template>
 
 <script setup lang="ts">
+import Button from '~/shared/ui/button/Button.vue';
+
 const props = defineProps<{
   searchQuery: string
   currentView: 'grid' | 'list'
