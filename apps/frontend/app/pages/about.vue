@@ -131,9 +131,9 @@ import { ref, onMounted, onUnmounted } from 'vue'
 const scrolled = ref(false)
 
 const team = [
-  { name: 'Алексей Иванов', role: 'Основатель' },
-  { name: 'Мария Петрова', role: 'Product Manager' },
-  { name: 'Дмитрий Сидоров', role: 'Lead Developer' }
+  { name: 'Алексей Савинов', role: 'Основатель' },
+  { name: 'Ульяна Савинова', role: 'Идейный вдохновитель' },
+  { name: 'Белла Снегова ', role: 'Главный редактор' }
 ]
 
 const handleScroll = () => {

@@ -18,6 +18,7 @@ import { CategoriesService } from '../categories/categories.service';
 import { UnitsService } from '../units/units.service';
 import { RecipeStatus, RecipeType } from './enums/recipe.enums';
 import { RecipeResponseDto } from './dto/recipe-response.dto';
+import { UserRole } from '../users/entities/user.entity';
 
 @Injectable()
 export class RecipesService {
@@ -238,7 +239,14 @@ export class RecipesService {
   ): Promise<Recipe> {
     const recipe = await this.findOneWithRelations(id);
 
-    if (recipe.authorId !== userId) {
+    // Получаем информацию о пользователе (его роль)
+    const user = await this.usersService.findOne(userId);
+
+    // Проверка прав: владелец ИЛИ админ/модератор
+    const isOwner = recipe.authorId === userId;
+    const isAdminOrModerator = user.role === UserRole.ADMIN || user.role === UserRole.MODERATOR;
+
+    if (!isOwner && !isAdminOrModerator) {
       throw new ForbiddenException('Вы не можете редактировать этот рецепт');
     }
 
@@ -276,7 +284,7 @@ export class RecipesService {
       }
 
       recipeToUpdate.updatedAt = new Date();
-      await manager.save(recipeToUpdate); // Используем save вместо update
+      await manager.save(recipeToUpdate);
 
       // 3. Обновляем ингредиенты (если они переданы)
       if (updateRecipeDto.ingredients) {
@@ -329,7 +337,10 @@ export class RecipesService {
     const recipe = await this.findOneWithRelations(id);
 
     const user = await this.usersService.findOne(userId);
-    if (recipe.authorId !== userId && user.role !== 'admin') {
+    const isOwner = recipe.authorId === userId;
+    const isAdminOrModerator = user.role === UserRole.ADMIN || user.role === UserRole.MODERATOR;
+
+    if (!isOwner && !isAdminOrModerator) {
       throw new ForbiddenException('Вы не можете удалить этот рецепт');
     }
 

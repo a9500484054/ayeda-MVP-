@@ -137,6 +137,7 @@ export class RecipesController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR) // Разрешаем админу и модератору
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Обновить рецепт' })
   @ApiParam({ name: 'id', description: 'UUID рецепта' })
