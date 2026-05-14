@@ -114,6 +114,7 @@
         @delete="confirmDelete"
         @submit-moderation="openSubmitModerationModal"
         @make-private="openMakePrivateModal"
+        @remove-from-favorites="removeFromFavorites"
       />
     </div>
 
@@ -246,7 +247,7 @@ const totalRecipes = computed(() =>
 )
 
 const containerClass = computed(() => {
-  if (currentView.value === 'list') return 'grid grid-cols-1 gap-4 md:grid-cols-2'
+  if (currentView.value === 'list') return 'grid grid-cols-1 gap-4 xl:grid-cols-2'
   return 'grid grid-cols-1 md:grid-cols-2 gap-6 lg:grid-cols-2 xl:grid-cols-3'
 })
 
@@ -618,6 +619,35 @@ const updateIndicatorPosition = () => {
   if (activeButton) {
     activeTabWidth.value = activeButton.offsetWidth
     activeTabLeft.value = activeButton.offsetLeft
+  }
+}
+
+// Добавить в script секцию
+const removeFromFavorites = async (recipe: RecipeResponse) => {
+  if (!isAuthenticated.value || !user.value?.id) return
+
+  try {
+    await favoritesApi.toggleFavorite(recipe.id)
+
+    // Показываем уведомление об успехе
+    toast.add({
+      title: 'Успех',
+      description: 'Рецепт удален из избранного',
+      color: 'success'
+    })
+
+    // Обновляем список избранного
+    await fetchFavorites()
+
+    // Также обновляем favoriteIds для корректного отображения в других местах
+    await loadFavoriteIds()
+  } catch (error: any) {
+    console.error('Error removing from favorites:', error)
+    toast.add({
+      title: 'Ошибка',
+      description: error.message || 'Не удалось удалить рецепт из избранного',
+      color: 'error'
+    })
   }
 }
 

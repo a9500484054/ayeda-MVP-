@@ -8,16 +8,18 @@
     <template #content>
       <div class="flex flex-col max-h-[100vh]">
         <!-- Header -->
-        <div class="px-6 py-4 border-b flex items-center justify-between">
+        <div class="px-6 py-4 border-b flex items-center justify-between bg-emerald-600 text-white">
           <h2 class="text-2xl font-semibold">
             {{ modalTitle }}
           </h2>
-          <button
-            class="rounded-lg p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 transition"
+          <Button
             @click="handleClose"
+            variant="ghost"
+            color="neutral"
+            size="xs"
           >
             <UIcon name="i-lucide-x" class="h-5 w-5" />
-          </button>
+          </Button>
         </div>
 
         <!-- Body -->
@@ -188,6 +190,7 @@ import AutoCompleteTags from './AutoCompleteTags.vue'
 import { useCategoriesApi } from '~/composables/useCategoriesApi'
 import IngredientsForm from './IngredientsForm.vue'
 import StepsForm from './StepsForm.vue'
+import Button from '~/shared/ui/button/Button.vue'
 
 const props = defineProps<{
   open: boolean

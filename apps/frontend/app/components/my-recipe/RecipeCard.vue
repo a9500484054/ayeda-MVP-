@@ -1,4 +1,3 @@
-<!-- components/recipe/RecipeCard.vue -->
 <template>
   <article
     :class="[
@@ -24,8 +23,8 @@
         />
       </div>
 
-      <!-- Status Badge -->
-      <div class="absolute left-3 top-3">
+      <!-- Status Badge (только для "Мои рецепты") -->
+      <div v-if="isMyRecipesTab" class="absolute left-3 top-3">
         <span
           class="inline-flex items-center rounded-lg px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-md"
           :class="statusBadgeClass"
@@ -34,8 +33,8 @@
         </span>
       </div>
 
-      <!-- Actions -->
-      <div class="absolute right-3 top-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
+      <!-- Actions (Edit/Delete) - только для "Мои рецепты" -->
+      <div v-if="isMyRecipesTab" class="absolute right-3 top-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
         <Button
           @click.stop="emitEdit"
           variant="solid"
@@ -51,6 +50,19 @@
           size="sm"
           icon="i-lucide-trash-2"
         />
+      </div>
+
+      <!-- Remove from favorites button - только для "Избранное" -->
+      <div v-if="isFavoritesTab" class="absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-all duration-300">
+        <Button
+          @click.stop="emitRemoveFromFavorites"
+          variant="solid"
+          color="warning"
+          size="sm"
+          icon="i-lucide-star-off"
+        >
+          <span class="ml-1 text-xs">Убрать из избранного</span>
+        </Button>
       </div>
     </div>
 
@@ -123,9 +135,9 @@
         </div>
       </div>
 
-      <!-- Bottom bar for list view -->
+      <!-- Bottom bar for list view (только для "Мои рецепты") -->
       <div
-        v-if="isListView"
+        v-if="isListView && isMyRecipesTab"
         class="mt-5 flex items-center justify-between border-t border-zinc-100 pt-4 text-sm"
       >
         <span class="text-zinc-500">{{ formatDate(recipe.createdAt) }}</span>
@@ -164,9 +176,9 @@
         </div>
       </div>
 
-      <!-- Кнопки для grid view - с ховером -->
+      <!-- Кнопки для grid view - с ховером (только для "Мои рецепты") -->
       <div
-        v-if="!isListView && showModerationButton && (recipe.status === 'private' || recipe.status === 'rejected')"
+        v-if="!isListView && isMyRecipesTab && showModerationButton && (recipe.status === 'private' || recipe.status === 'rejected')"
         class="relative"
       >
         <!-- Кнопки появляются при ховере на карточку -->
@@ -216,12 +228,16 @@ const emit = defineEmits<{
   delete: [recipe: RecipeResponse]
   'submit-moderation': [recipe: RecipeResponse]
   'make-private': [recipe: RecipeResponse]
+  'remove-from-favorites': [recipe: RecipeResponse]
 }>()
 
 const isListView = computed(() => {
   const mode = props.viewMode
   return mode === 'list'
 })
+
+const isMyRecipesTab = computed(() => props.activeTab === 'my')
+const isFavoritesTab = computed(() => props.activeTab === 'favorites')
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
@@ -276,4 +292,5 @@ const emitEdit = () => emit('edit', props.recipe)
 const emitDelete = () => emit('delete', props.recipe)
 const emitSubmitModeration = () => emit('submit-moderation', props.recipe)
 const emitMakePrivate = () => emit('make-private', props.recipe)
+const emitRemoveFromFavorites = () => emit('remove-from-favorites', props.recipe)
 </script>
