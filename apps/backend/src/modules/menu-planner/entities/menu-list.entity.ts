@@ -12,6 +12,7 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../users/entities/user.entity';
 import { MenuSlot } from './menu-slot.entity';
+import { DisplayType } from '../enums/display-type.enum';
 
 @Entity('menu_lists')
 export class MenuList {
@@ -58,4 +59,14 @@ export class MenuList {
 
   @OneToMany(() => MenuSlot, (slot) => slot.menuList)
   slots: MenuSlot[];
+
+  // Добавить в класс MenuList
+  @ApiProperty({ enum: DisplayType, default: DisplayType.DAYS })
+  @Column({
+    name: 'display_type',
+    type: 'enum',
+    enum: DisplayType,
+    default: DisplayType.DAYS,
+  })
+  displayType: DisplayType;
 }

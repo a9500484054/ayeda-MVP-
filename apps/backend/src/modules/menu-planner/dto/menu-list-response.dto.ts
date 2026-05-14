@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { MenuSlotResponseDto } from './menu-slot-response.dto';
+import { DisplayType } from '../enums/display-type.enum';
 
 export class MenuListResponseDto {
   @ApiProperty()
@@ -31,4 +32,7 @@ export class MenuListResponseDto {
 
   @ApiProperty({ type: [MenuSlotResponseDto], required: false })
   slots?: MenuSlotResponseDto[];
+
+  @ApiProperty({ enum: DisplayType })
+  displayType: DisplayType;
 }

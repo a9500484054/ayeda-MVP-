@@ -19,6 +19,7 @@ import { RecipesService } from '../recipes/recipes.service';
 import { MenuListResponseDto } from './dto/menu-list-response.dto';
 import { MenuSlotResponseDto } from './dto/menu-slot-response.dto';
 import { MenuSlotItemResponseDto } from './dto/menu-slot-item-response.dto';
+import { DisplayType } from './enums/display-type.enum';
 
 @Injectable()
 export class MenuPlannerService {
@@ -118,6 +119,7 @@ export class MenuPlannerService {
       description: dto.description,
       icon: dto.icon,
       isActive: dto.isActive ?? true,
+      displayType: dto.displayType ?? DisplayType.DAYS,  // ← добавить
     });
 
     return this.toMenuListResponseDto(

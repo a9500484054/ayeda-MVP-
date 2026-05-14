@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional, IsBoolean, MaxLength, MinLength } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, MaxLength, MinLength, IsEnum } from 'class-validator';
+import { DisplayType } from '../enums/display-type.enum';
 
 export class CreateMenuListDto {
   @ApiProperty({ example: 'Семейное меню', description: 'Название списка меню' })
@@ -23,4 +24,9 @@ export class CreateMenuListDto {
   @IsOptional()
   @IsBoolean({ message: 'isActive должен быть булевым значением' })
   isActive?: boolean;
+
+  @ApiProperty({ enum: DisplayType, default: DisplayType.DAYS, required: false })
+  @IsOptional()
+  @IsEnum(DisplayType, { message: 'displayType должен быть days или calendar' })
+  displayType?: DisplayType;
 }
