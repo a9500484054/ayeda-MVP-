@@ -20,6 +20,32 @@
       <p class="mt-3 text-sm text-zinc-500 md:mt-4">Загрузка рецепта...</p>
     </div>
 
+    <!-- Доступ запрещен -->
+    <div v-else-if="recipe && !canViewRecipe" class="flex flex-col items-center justify-center rounded-2xl bg-white py-16 text-center md:rounded-3xl md:py-24">
+      <div class="flex h-16 w-16 items-center justify-center rounded-full bg-red-100 md:h-20 md:w-20">
+        <UIcon name="i-lucide-lock" class="h-8 w-8 text-red-500 md:h-10 md:w-10" />
+      </div>
+      <h3 class="mt-4 text-lg font-semibold text-zinc-900 md:mt-5 md:text-xl">Доступ запрещен</h3>
+      <p class="mt-2 px-4 text-sm text-zinc-500 max-w-md">
+        {{ accessDeniedMessage }}
+      </p>
+      <div class="mt-5 flex flex-col gap-3 sm:flex-row md:mt-6">
+        <button
+          class="cursor-pointer rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 md:rounded-2xl md:px-5 md:py-2.5"
+          @click="goBack"
+        >
+          Назад к рецептам
+        </button>
+        <button
+          v-if="!isAuthenticated"
+          class="cursor-pointer rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition hover:border-zinc-300 md:rounded-2xl md:px-5 md:py-2.5"
+          @click="navigateToLogin"
+        >
+          Войти
+        </button>
+      </div>
+    </div>
+
     <!-- Ошибка -->
     <div v-else-if="fetchError || !recipe" class="flex flex-col items-center justify-center rounded-2xl bg-white py-16 text-center md:rounded-3xl md:py-24">
       <div class="flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100 md:h-20 md:w-20">
@@ -38,7 +64,7 @@
     </div>
 
     <!-- Контент рецепта -->
-    <article v-else-if="recipe">
+    <article v-else-if="recipe && canViewRecipe">
       <!-- Hero секция с изображением -->
       <div class="relative mb-6 overflow-hidden rounded-2xl md:mb-8 md:rounded-3xl lg:mb-10">
         <div class="relative aspect-[4/3] w-full sm:aspect-[16/9] lg:aspect-[21/9]">
@@ -250,7 +276,7 @@
     </article>
 
     <!-- Блок комментариев -->
-    <div v-if="recipe" class="mt-8 rounded-xl border border-zinc-200 bg-white p-4 md:mt-10 md:rounded-2xl md:p-6">
+    <div v-if="recipe && canViewRecipe" class="mt-8 rounded-xl border border-zinc-200 bg-white p-4 md:mt-10 md:rounded-2xl md:p-6">
       <h3 class="mb-4 text-lg font-semibold text-zinc-900 md:mb-5 md:text-xl">Комментарии ({{ commentsTotal }})</h3>
 
       <div v-if="isAuthenticated" class="mb-6 md:mb-8">
@@ -827,6 +853,44 @@ onMounted(async () => {
     }
     await loadComments(1)
   }
+})
+
+// Добавьте computed для проверки доступа
+const canViewRecipe = computed(() => {
+  if (!recipe.value) return false
+
+  const status = recipe.value.status
+
+  // PUBLIC доступен всем
+  if (status === 'public') return true
+
+  // Для остальных статусов проверяем авторизацию и права
+  if (!isAuthenticated.value) return false
+
+  const isOwner = user.value?.id === recipe.value.author?.id
+  const isAdminOrModerator = user.value?.role === 'admin' || user.value?.role === 'moderator'
+
+  return isOwner || isAdminOrModerator
+})
+
+// Сообщение о причине отказа в доступе
+const accessDeniedMessage = computed(() => {
+  if (!recipe.value) return ''
+
+  const statusMap = {
+    'draft': 'черновик',
+    'private': 'приватный',
+    'pending': 'на модерации',
+    'rejected': 'отклонен'
+  }
+
+  const statusText = statusMap[recipe.value.status] || recipe.value.status
+
+  if (!isAuthenticated.value) {
+    return `Этот рецепт находится в статусе "${statusText}" и доступен только автору. Пожалуйста, войдите в аккаунт.`
+  }
+
+  return `Этот рецепт находится в статусе "${statusText}" и доступен только автору, модераторам и администраторам.`
 })
 
 // Следим за авторизацией на клиенте
