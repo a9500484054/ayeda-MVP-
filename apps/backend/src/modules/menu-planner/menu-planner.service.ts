@@ -104,6 +104,7 @@ export class MenuPlannerService {
       updatedAt: menuList.updatedAt,
       deletedAt: menuList.deletedAt,
       slots: menuList.slots?.map((slot) => this.toMenuSlotResponseDto(slot)),
+      displayType: menuList.displayType,
     };
   }
 
