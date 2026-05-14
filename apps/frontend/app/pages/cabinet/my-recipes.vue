@@ -84,21 +84,27 @@
         {{ emptyStateDescription }}
       </p>
 
-      <button
+      <Button
         v-if="activeTab === 'my' && searchQuery"
-        class="mt-6 rounded-2xl bg-zinc-900 px-5 py-3 text-sm font-medium text-white transition hover:opacity-90"
+        size="md"
+        variant="solid"
+        color="primary"
+        class="mt-6"
         @click="clearSearch"
       >
         Очистить поиск
-      </button>
+      </Button>
 
-      <button
+      <Button
         v-if="activeTab === 'my' && !searchQuery"
-        class="mt-6 rounded-2xl bg-green-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-green-700"
+        size="md"
+        variant="solid"
+        color="primary"
+        class="mt-6"
         @click="openCreateModal"
       >
         Создать первый рецепт
-      </button>
+      </Button>
     </div>
 
     <!-- Recipes Grid/List -->
@@ -303,6 +309,7 @@ const fetchRecipes = async (reset = false) => {
     const response = await recipesApi.getRecipes({
       page: page.value,
       limit: 12,
+      authorId: user.value?.id,
       search: searchQuery.value || undefined,
     })
 

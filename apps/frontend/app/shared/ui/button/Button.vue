@@ -38,7 +38,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-type ButtonColor = 'primary' | 'secondary' | 'danger' | 'success' | 'warning' | 'info' | 'neutral'
+type ButtonColor = 'primary' | 'secondary' | 'danger' | 'success' | 'warning' | 'info' | 'neutral' | 'white'
 type ButtonSize = 'xs' | 'sm' | 'md' | 'lg'
 type IconPosition = 'left' | 'right'
 
@@ -141,6 +141,11 @@ const colorClasses: Record<ButtonColor, Record<'solid' | 'outline' | 'ghost', st
     solid: 'bg-zinc-100 text-zinc-900 hover:bg-zinc-200 focus:ring-zinc-500 active:bg-zinc-300',
     outline: 'border-2 border-zinc-300 text-zinc-700 hover:bg-zinc-50 focus:ring-zinc-500',
     ghost: 'text-zinc-700 hover:bg-zinc-50 focus:ring-zinc-500'
+  },
+  white: {
+    solid: 'bg-white text-zinc-900 hover:bg-zinc-50 focus:ring-zinc-400 active:bg-zinc-100 border border-zinc-200',
+    outline: 'border-2 border-white text-white hover:bg-white/10 focus:ring-white/50',
+    ghost: 'text-white hover:bg-white/10 focus:ring-white/50'
   }
 }
 

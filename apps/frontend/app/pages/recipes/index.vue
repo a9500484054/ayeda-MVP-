@@ -50,55 +50,16 @@
 
         <!-- View Switch -->
         <div class="hidden sm:block ml-auto">
-          <div
-            class="flex h-11 items-center rounded-2xl border border-zinc-200 bg-white p-1"
-          >
+          <div class="flex h-11 items-center rounded-2xl border border-zinc-200 bg-white p-1">
             <button
-              class="flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-200"
-              :class="
-                currentView === 'grid-small'
-                  ? 'bg-green-600 text-white shadow-sm'
-                  : 'text-zinc-500 hover:bg-green-50 hover:text-green-600'
-              "
-              title="Компактная сетка"
-              @click="setView('grid-small')"
+              v-for="view in views"
+              :key="view.value"
+              class="flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-200 cursor-pointer"
+              :class="currentView === view.value ? 'bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 focus:ring-emerald-500 active:bg-emerald-800' : 'text-zinc-500 hover:bg-emerald-50 hover:text-emerald-600'"
+              :title="view.title"
+              @click="setView(view.value)"
             >
-              <UIcon
-                name="i-lucide-grid-3x3"
-                class="h-4 w-4"
-              />
-            </button>
-
-            <button
-              class="flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-200"
-              :class="
-                currentView === 'grid-large'
-                  ? 'bg-green-600 text-white shadow-sm'
-                  : 'text-zinc-500 hover:bg-green-50 hover:text-green-600'
-              "
-              title="Большая сетка"
-              @click="setView('grid-large')"
-            >
-              <UIcon
-                name="i-lucide-grid-2x2"
-                class="h-4 w-4"
-              />
-            </button>
-
-            <button
-              class="flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-200"
-              :class="
-                currentView === 'list'
-                  ? 'bg-green-600 text-white shadow-sm'
-                  : 'text-zinc-500 hover:bg-green-50 hover:text-green-600'
-              "
-              title="Список"
-              @click="setView('list')"
-            >
-              <UIcon
-                name="i-lucide-list"
-                class="h-4 w-4"
-              />
+              <UIcon :name="view.icon" class="h-4 w-4" />
             </button>
           </div>
         </div>
@@ -228,6 +189,13 @@ const getInitialView = (): 'grid-large' | 'grid-small' | 'list' => {
   return 'grid-large'
 }
 
+
+const views = [
+  { value: 'grid-small', title: 'Компактная сетка', icon: 'i-lucide-grid-3x3' },
+  { value: 'grid-large', title: 'Большая сетка', icon: 'i-lucide-grid-2x2' },
+  { value: 'list', title: 'Список', icon: 'i-lucide-list' }
+]
+
 // State
 const recipes = ref<RecipeResponse[]>([])
 const loadingMore = ref(false)
@@ -247,6 +215,7 @@ const { data, pending } = await useAsyncData(
   'recipes',
   async () => {
     const response = await recipesApi.getRecipes({
+      status: "public",
       page: 1,
       limit: 12,
     })

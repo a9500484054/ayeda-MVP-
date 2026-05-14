@@ -1,25 +1,48 @@
 <template>
   <div class="flex flex-1">
-    <!-- Мобильная кнопка меню -->
-    <button
-      @click="isMobileMenuOpen = !isMobileMenuOpen"
-      class="fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-md lg:hidden"
+    <!-- Хедер для мобильных устройств (всегда виден) -->
+    <header
+      class="fixed top-0 left-0 right-0 z-30 bg-gradient-to-br from-emerald-700 to-teal-800 shadow-md lg:hidden"
     >
-      <UIcon :name="isMobileMenuOpen ? 'i-lucide-x' : 'i-lucide-menu'" class="w-5 h-5 text-emerald-600" />
-    </button>
+      <div class="flex items-center justify-between px-4 py-3">
+        <!-- Логотип -->
+        <NuxtLink to="/" class="block">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-lg">
+              <UIcon name="i-lucide-utensils" class="w-4 h-4 text-emerald-600" />
+            </div>
+            <div>
+              <div class="text-lg font-semibold text-white">АуЕда</div>
+              <div class="text-[10px] text-emerald-200 tracking-wide">Кулинарное пространство</div>
+            </div>
+          </div>
+        </NuxtLink>
+
+        <!-- Кнопка меню -->
+        <Button
+          @click="isMobileMenuOpen = !isMobileMenuOpen"
+          color="white"
+          size="md"
+          variant="ghost"
+          class="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
+        >
+          <UIcon :name="isMobileMenuOpen ? 'i-lucide-x' : 'i-lucide-menu'" class="w-5 h-5 text-white" />
+        </Button>
+      </div>
+    </header>
 
     <!-- Затемнение для мобильного меню -->
     <div
       v-if="isMobileMenuOpen"
-      class="fixed inset-0 bg-black/20 z-40 lg:hidden"
+      class="fixed inset-0 bg-black/50 z-40 lg:hidden"
       @click="isMobileMenuOpen = false"
     ></div>
 
-    <!-- Сайдбар с градиентом как на странице логина -->
+    <!-- Сайдбар -->
     <aside
       :class="[
-        'fixed lg:sticky top-0 left-0 z-40 h-screen transition-transform duration-300 overflow-hidden',
-        'lg:translate-x-0 w-64',
+        'fixed top-0 left-0 z-50 h-screen transition-transform duration-300 overflow-hidden',
+        'lg:sticky lg:translate-x-0 w-64',
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
       ]"
     >
@@ -32,7 +55,7 @@
 
       <div class="relative z-10 flex flex-col h-full text-white">
         <div class="flex flex-col h-full p-5">
-          <!-- Логотип -->
+          <!-- Логотип (скрыт на мобильных, так как есть в хедере) -->
           <div class="mb-8">
             <NuxtLink to="/" class="block">
               <div class="flex items-center gap-2.5">
@@ -48,7 +71,7 @@
           </div>
 
           <!-- Навигация -->
-          <nav class="flex-1 -mx-2">
+          <nav class="flex-1 -mx-2 overflow-y-auto">
             <!-- Основные ссылки -->
             <div v-if="isAuth" class="space-y-1">
               <NuxtLink
@@ -57,6 +80,7 @@
                 :to="link.to"
                 class="flex items-center gap-3 px-3 py-2 text-sm text-emerald-100 rounded-lg hover:bg-white/10 hover:text-white transition-colors"
                 active-class="!bg-white/20 !text-white"
+                @click="isMobileMenuOpen = false"
               >
                 <UIcon :name="link.icon" class="w-4 h-4" />
                 <span>{{ link.label }}</span>
@@ -74,6 +98,7 @@
                 :to="link.to"
                 class="flex items-center gap-3 px-3 py-2 text-sm text-emerald-100 rounded-lg hover:bg-white/10 hover:text-white transition-colors"
                 active-class="!bg-white/20 !text-white"
+                @click="isMobileMenuOpen = false"
               >
                 <UIcon :name="link.icon" class="w-4 h-4" />
                 <span>{{ link.label }}</span>
@@ -81,7 +106,7 @@
             </div>
 
             <!-- Поддержка внизу -->
-            <div class="">
+            <div class="mt-auto">
               <div class="space-y-1">
                 <NuxtLink
                   v-for="link in supportLinks"
@@ -89,6 +114,7 @@
                   :to="link.to"
                   class="flex items-center gap-3 px-3 py-2 text-sm text-emerald-100 rounded-lg hover:bg-white/10 hover:text-white transition-colors"
                   active-class="!bg-white/20 !text-white"
+                  @click="isMobileMenuOpen = false"
                 >
                   <UIcon :name="link.icon" class="w-4 h-4" />
                   <span>{{ link.label }}</span>
@@ -105,7 +131,7 @@
                 :ui="{
                   content: 'w-48 bg-white cursor-pointer',
                   item: {
-                    icon: 'w-4 h-4', // Базовый класс для иконок
+                    icon: 'w-4 h-4',
                   }
                 }"
               >
@@ -138,20 +164,14 @@
               Войти
             </button>
           </div>
-
-          <!-- Футер -->
-          <!-- <footer class="mt-6 pt-4 border-t border-white/20">
-            <div class="text-center">
-              <small class="text-[10px] text-emerald-200">© 2026 АуЕда</small>
-            </div>
-          </footer> -->
         </div>
       </div>
     </aside>
 
     <!-- Основной контент -->
     <main class="flex-1 flex flex-col min-h-screen">
-      <div>
+      <!-- Отступ для мобильного хедера -->
+      <div class="lg:mt-0 mt-16">
         <slot />
       </div>
     </main>
@@ -193,23 +213,22 @@
 import type { DropdownMenuItem } from '@nuxt/ui'
 import { useUserStore } from "~/stores/userStore";
 import { useAuth } from "~/composables/useAuth";
+import Button from '~/shared/ui/button/Button.vue';
 
 const userStore = useUserStore();
 const { logout } = useAuth();
 const router = useRouter();
 const isMobileMenuOpen = ref(false);
-const showLogoutModal = ref(false); // Добавляем состояние для модального окна
+const showLogoutModal = ref(false);
 
 const isAuth = computed(() => !!userStore.user);
 
 const toast = useToast();
 
-// Изменяем handleLogout - теперь он только открывает модальное окно
 const handleLogoutClick = () => {
   showLogoutModal.value = true;
 };
 
-// Подтверждение выхода
 const confirmLogout = async () => {
   showLogoutModal.value = false;
   try {
@@ -233,7 +252,6 @@ const confirmLogout = async () => {
   }
 };
 
-// Отмена выхода
 const cancelLogout = () => {
   showLogoutModal.value = false;
 };
@@ -242,7 +260,6 @@ const handleLogin = () => {
   router.push('/login');
 };
 
-// Элементы выпадающего меню
 const dropdownItems = computed<DropdownMenuItem[][]>(() => [
   [
     {
@@ -255,45 +272,32 @@ const dropdownItems = computed<DropdownMenuItem[][]>(() => [
     {
       label: 'Выйти',
       icon: 'i-lucide-log-out text-red-600',
-      onSelect: handleLogoutClick, // Изменено на handleLogoutClick
+      onSelect: handleLogoutClick,
       class: 'text-red-600',
       iconClass: 'text-red-600'
     }
   ]
 ]);
 
-// Основные ссылки (видны только авторизованным)
 const mainLinks = [
   { to: '/cabinet/my-recipes', label: 'Мои рецепты', icon: 'i-lucide-book-open' },
   { to: '/in-development', label: 'Планировщик меню', icon: 'i-lucide-calendar-days' },
   { to: '/in-development', label: 'Список покупок', icon: 'i-lucide-shopping-cart' },
 ];
-// const mainLinks = [
-//   { to: '/cabinet/my-recipes', label: 'Мои рецепты', icon: 'i-lucide-book-open' },
-//   { to: '/cabinet/planner', label: 'Планировщик меню', icon: 'i-lucide-calendar-days' },
-//   { to: '/cabinet/shopping', label: 'Список покупок', icon: 'i-lucide-shopping-cart' },
-// ];
 
-// Общие ссылки (видны всем)
 const exploreLinks = [
   { to: '/recipes', label: 'База рецептов', icon: 'i-lucide-lightbulb' },
   { to: '/blog', label: 'Блог', icon: 'i-lucide-newspaper' },
 ];
 
-// Ссылки поддержки (видны всем)
 const supportLinks = [
   { to: '/support', label: 'Помощь', icon: 'i-lucide-help-circle' },
 ];
 
-// Добавьте после useUserStore и других импортов
 const avatarPreview = computed(() => {
   const avatar = userStore.user?.avatar;
   if (!avatar) return null;
-
-  // Если avatar уже содержит URL
   if (avatar.startsWith('http')) return avatar;
-
-  // Если avatar содержит путь
   const API_BASE_URL = 'http://localhost:3001';
   return `${API_BASE_URL}${avatar}`;
 });
@@ -318,18 +322,6 @@ aside ::-webkit-scrollbar-thumb {
 aside ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.5);
 }
-
-/* main {
-  position: relative;
-  top: -100vh;
-}
-
-@media (max-width: 1024px) {
-  main {
-    position: static;
-    top: 0;
-  }
-} */
 
 /* Стили для красной иконки в выпадающем меню */
 :deep(.text-red-600) {

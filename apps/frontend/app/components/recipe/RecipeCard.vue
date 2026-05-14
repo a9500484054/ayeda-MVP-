@@ -33,12 +33,12 @@
       </div>
 
       <!-- Difficulty badge -->
-      <div
+      <!-- <div
         v-if="recipe.difficulty"
         class="absolute left-2 top-2 rounded-md bg-black/60 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-white backdrop-blur-sm"
       >
         {{ difficultyText }}
-      </div>
+      </div> -->
     </div>
 
     <!-- CONTENT -->
@@ -61,6 +61,18 @@
       >
         {{ recipe.title }}
       </h3>
+
+      <!-- Description -->
+      <p
+        class="mt-1 text-xs leading-relaxed transition-colors duration-300"
+        :class="[
+          viewMode === 'list'
+            ? 'text-gray-600 line-clamp-2'
+            : 'text-gray-300 line-clamp-2',
+        ]"
+      >
+        {{ recipe.description }}
+      </p>
 
       <!-- Hover content (only for grid mode) -->
       <div
@@ -248,7 +260,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type { RecipeResponse } from '~/composables/api/useRecipesApi'
+import type { RecipeResponse } from '~/composables/useRecipesApi';
 
 const props = defineProps<{
   recipe: RecipeResponse
