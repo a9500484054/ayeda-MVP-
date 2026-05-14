@@ -1,113 +1,3 @@
-<script setup lang="ts">
-import type { DropdownMenuItem } from '@nuxt/ui'
-import { useUserStore } from "~/stores/userStore";
-import { useAuth } from "~/composables/useAuth";
-
-const userStore = useUserStore();
-const { logout } = useAuth();
-const router = useRouter();
-const isMobileMenuOpen = ref(false);
-const showLogoutModal = ref(false); // Добавляем состояние для модального окна
-
-const isAuth = computed(() => !!userStore.user);
-
-const toast = useToast();
-
-// Изменяем handleLogout - теперь он только открывает модальное окно
-const handleLogoutClick = () => {
-  showLogoutModal.value = true;
-};
-
-// Подтверждение выхода
-const confirmLogout = async () => {
-  showLogoutModal.value = false;
-  try {
-    await logout();
-    toast.add({
-      title: 'Выход выполнен',
-      description: 'Вы успешно вышли из аккаунта',
-      color: 'success',
-      icon: 'i-lucide-check-circle',
-      timeout: 3000
-    });
-    router.push('/');
-  } catch (error) {
-    toast.add({
-      title: 'Ошибка',
-      description: 'Не удалось выполнить выход',
-      color: 'error',
-      icon: 'i-lucide-alert-circle',
-      timeout: 3000
-    });
-  }
-};
-
-// Отмена выхода
-const cancelLogout = () => {
-  showLogoutModal.value = false;
-};
-
-const handleLogin = () => {
-  router.push('/login');
-};
-
-// Элементы выпадающего меню
-const dropdownItems = computed<DropdownMenuItem[][]>(() => [
-  [
-    {
-      label: 'Настройки',
-      icon: 'i-lucide-settings',
-      to: '/cabinet/settings'
-    }
-  ],
-  [
-    {
-      label: 'Выйти',
-      icon: 'i-lucide-log-out text-red-600',
-      onSelect: handleLogoutClick, // Изменено на handleLogoutClick
-      class: 'text-red-600',
-      iconClass: 'text-red-600'
-    }
-  ]
-]);
-
-// Основные ссылки (видны только авторизованным)
-const mainLinks = [
-  { to: '/cabinet/my-recipes', label: 'Мои рецепты', icon: 'i-lucide-book-open' },
-  { to: '/in-development', label: 'Планировщик меню', icon: 'i-lucide-calendar-days' },
-  { to: '/in-development', label: 'Список покупок', icon: 'i-lucide-shopping-cart' },
-];
-// const mainLinks = [
-//   { to: '/cabinet/my-recipes', label: 'Мои рецепты', icon: 'i-lucide-book-open' },
-//   { to: '/cabinet/planner', label: 'Планировщик меню', icon: 'i-lucide-calendar-days' },
-//   { to: '/cabinet/shopping', label: 'Список покупок', icon: 'i-lucide-shopping-cart' },
-// ];
-
-// Общие ссылки (видны всем)
-const exploreLinks = [
-  { to: '/recipes', label: 'База рецептов', icon: 'i-lucide-lightbulb' },
-  { to: '/blog', label: 'Блог', icon: 'i-lucide-newspaper' },
-];
-
-// Ссылки поддержки (видны всем)
-const supportLinks = [
-  { to: '/support', label: 'Помощь', icon: 'i-lucide-help-circle' },
-];
-
-// Добавьте после useUserStore и других импортов
-const avatarPreview = computed(() => {
-  const avatar = userStore.user?.avatar;
-  if (!avatar) return null;
-
-  // Если avatar уже содержит URL
-  if (avatar.startsWith('http')) return avatar;
-
-  // Если avatar содержит путь
-  const API_BASE_URL = 'http://localhost:3001';
-  return `${API_BASE_URL}${avatar}`;
-});
-</script>
-
 <template>
   <div class="flex flex-1">
     <!-- Мобильная кнопка меню -->
@@ -298,6 +188,116 @@ const avatarPreview = computed(() => {
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import type { DropdownMenuItem } from '@nuxt/ui'
+import { useUserStore } from "~/stores/userStore";
+import { useAuth } from "~/composables/useAuth";
+
+const userStore = useUserStore();
+const { logout } = useAuth();
+const router = useRouter();
+const isMobileMenuOpen = ref(false);
+const showLogoutModal = ref(false); // Добавляем состояние для модального окна
+
+const isAuth = computed(() => !!userStore.user);
+
+const toast = useToast();
+
+// Изменяем handleLogout - теперь он только открывает модальное окно
+const handleLogoutClick = () => {
+  showLogoutModal.value = true;
+};
+
+// Подтверждение выхода
+const confirmLogout = async () => {
+  showLogoutModal.value = false;
+  try {
+    await logout();
+    toast.add({
+      title: 'Выход выполнен',
+      description: 'Вы успешно вышли из аккаунта',
+      color: 'success',
+      icon: 'i-lucide-check-circle',
+      timeout: 3000
+    });
+    router.push('/');
+  } catch (error) {
+    toast.add({
+      title: 'Ошибка',
+      description: 'Не удалось выполнить выход',
+      color: 'error',
+      icon: 'i-lucide-alert-circle',
+      timeout: 3000
+    });
+  }
+};
+
+// Отмена выхода
+const cancelLogout = () => {
+  showLogoutModal.value = false;
+};
+
+const handleLogin = () => {
+  router.push('/login');
+};
+
+// Элементы выпадающего меню
+const dropdownItems = computed<DropdownMenuItem[][]>(() => [
+  [
+    {
+      label: 'Настройки',
+      icon: 'i-lucide-settings',
+      to: '/cabinet/settings'
+    }
+  ],
+  [
+    {
+      label: 'Выйти',
+      icon: 'i-lucide-log-out text-red-600',
+      onSelect: handleLogoutClick, // Изменено на handleLogoutClick
+      class: 'text-red-600',
+      iconClass: 'text-red-600'
+    }
+  ]
+]);
+
+// Основные ссылки (видны только авторизованным)
+const mainLinks = [
+  { to: '/cabinet/my-recipes', label: 'Мои рецепты', icon: 'i-lucide-book-open' },
+  { to: '/in-development', label: 'Планировщик меню', icon: 'i-lucide-calendar-days' },
+  { to: '/in-development', label: 'Список покупок', icon: 'i-lucide-shopping-cart' },
+];
+// const mainLinks = [
+//   { to: '/cabinet/my-recipes', label: 'Мои рецепты', icon: 'i-lucide-book-open' },
+//   { to: '/cabinet/planner', label: 'Планировщик меню', icon: 'i-lucide-calendar-days' },
+//   { to: '/cabinet/shopping', label: 'Список покупок', icon: 'i-lucide-shopping-cart' },
+// ];
+
+// Общие ссылки (видны всем)
+const exploreLinks = [
+  { to: '/recipes', label: 'База рецептов', icon: 'i-lucide-lightbulb' },
+  { to: '/blog', label: 'Блог', icon: 'i-lucide-newspaper' },
+];
+
+// Ссылки поддержки (видны всем)
+const supportLinks = [
+  { to: '/support', label: 'Помощь', icon: 'i-lucide-help-circle' },
+];
+
+// Добавьте после useUserStore и других импортов
+const avatarPreview = computed(() => {
+  const avatar = userStore.user?.avatar;
+  if (!avatar) return null;
+
+  // Если avatar уже содержит URL
+  if (avatar.startsWith('http')) return avatar;
+
+  // Если avatar содержит путь
+  const API_BASE_URL = 'http://localhost:3001';
+  return `${API_BASE_URL}${avatar}`;
+});
+</script>
 
 <style scoped>
 /* Минималистичный скроллбар */

@@ -3,175 +3,210 @@
   <USlideover
     :open="open"
     @update:open="handleClose"
-    :ui="{ content: 'max-w-4xl w-full overflow-y-auto' }"
+    :ui="{
+      content: 'max-w-2xl w-full overflow-y-auto',
+      overlay: 'bg-black/80 backdrop-blur-sm',
+      base: 'relative',
+      container: 'relative'
+    }"
   >
     <template #content>
-      <div class="flex flex-col max-h-[100vh]">
+      <div class="flex flex-col max-h-[100vh] bg-gray-50">
         <!-- Header -->
-        <div class="px-6 py-4 border-b flex items-center justify-between bg-emerald-600 text-white">
-          <h2 class="text-2xl font-semibold">
-            {{ modalTitle }}
-          </h2>
-          <Button
-            @click="handleClose"
-            variant="ghost"
-            color="neutral"
-            size="xs"
-          >
-            <UIcon name="i-lucide-x" class="h-5 w-5" />
-          </Button>
+        <div class="px-6 py-4 sticky top-0 z-20 bg-gradient-to-br from-emerald-700 to-teal-800">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-semibold text-white">
+              {{ modalTitle }}
+            </h2>
+            <Button
+              @click="handleClose"
+              variant="ghost"
+              color="neutral"
+              size="sm"
+              icon="i-lucide-x"
+              icon-only
+              class="bg-white hover:bg-white/20"
+            />
+          </div>
         </div>
 
         <!-- Body -->
         <form class="flex-1 overflow-y-auto" @submit.prevent="handleSubmit">
-          <div class="p-6">
+          <div class="p-2 space-y-6">
             <!-- Media -->
-            <div class="rounded-2xl border p-5 space-y-4 mb-5">
-              <h3 class="text-lg font-medium">Обложка рецепта</h3>
+            <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+              <h3 class="text-sm font-medium text-gray-900">Обложка рецепта</h3>
 
-              <UFormField label="Фото">
-                <div class="space-y-3">
-                  <UButton
-                    block
-                    @click="mainFileInput?.click()"
-                    color="neutral"
-                    variant="outline"
-                    :loading="isFileUploading"
-                  >
-                    Загрузить фото
-                  </UButton>
+              <div class="space-y-3">
+                <Button
+                  block
+                  @click="mainFileInput?.click()"
+                  color="neutral"
+                  variant="outline"
+                  size="sm"
+                  :loading="isFileUploading"
+                  :disabled="isFileUploading"
+                >
+                  {{ isFileUploading ? 'Загрузка...' : 'Загрузить фото' }}
+                </Button>
 
-                  <input
-                    ref="mainFileInput"
-                    type="file"
-                    accept="image/*"
-                    class="hidden"
-                    @change="handleMainPhotoUpload"
-                  />
+                <input
+                  ref="mainFileInput"
+                  type="file"
+                  accept="image/*"
+                  class="hidden"
+                  @change="handleMainPhotoUpload"
+                />
 
-                  <div v-if="formData.photo?.src" class="rounded-xl overflow-hidden border max-h-48 max-w-sm mx-auto">
-                    <img :src="getImageUrl(formData.photo.src)" class="w-full h-auto object-cover" />
-                  </div>
+                <div v-if="formData.photo?.src" class="rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+                  <img :src="getImageUrl(formData.photo.src)" class="w-full h-40 object-cover" />
                 </div>
-              </UFormField>
+              </div>
             </div>
 
-            <div class="lg:col-span-2 space-y-6 mb-5">
-              <!-- Basic Info -->
-              <div class="rounded-2xl border p-5 space-y-4">
-                <h3 class="text-lg font-medium">Основная информация</h3>
+            <!-- Basic Info -->
+            <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+              <h3 class="text-sm font-medium text-gray-900">Основная информация</h3>
 
-                <UFormField label="Название" required :error="errors.title">
+              <div class="space-y-3">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Название <span class="text-red-500">*</span>
+                  </label>
                   <UInput
                     v-model="formData.title"
-                    placeholder="Введите название рецепта"
+                    placeholder="Например: Паста Карбонара"
+                    size="sm"
                     class="w-full"
-                    @input="onTitleChange"
+                    :class="{ 'border-red-500': touched.title && errors.title }"
+                    @blur="touched.title = true"
+                    @input="touched.title = true"
                   />
-                </UFormField>
+                  <p v-if="touched.title && errors.title" class="text-xs text-red-500 mt-1">{{ errors.title }}</p>
+                </div>
 
-                <UFormField label="Описание" :error="errors.description">
-                  <UTextarea v-model="formData.description" :rows="5" placeholder="Введите описание рецепта" class="w-full"/>
-                </UFormField>
-              </div>
-
-              <!-- Categories -->
-              <div class="rounded-2xl border p-5">
-                <UFormField
-                  label="Категории"
-                  required
-                  :error="errors.categoryIds"
-                >
-                  <AutoCompleteTags
-                    v-model="formData.categoryIds"
-                    :suggestions="categoryItems"
-                    :loading="categoriesLoading"
-                    :max="5"
-                    placeholder="Введите название категории..."
-                    :min-query-length="2"
-                    @search="handleCategorySearch"
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Описание
+                  </label>
+                  <UTextarea
+                    v-model="formData.description"
+                    :rows="3"
+                    placeholder="Расскажите о рецепте..."
+                    class="w-full"
                   />
-                  <div class="text-xs text-muted-foreground mt-1">
-                    Можно выбрать до 5 категорий
-                  </div>
-                </UFormField>
+                </div>
               </div>
             </div>
 
-            <!-- Right Column (1/3) -->
-            <div class="space-y-6">
-              <!-- Parameters -->
-              <div class="rounded-2xl border p-5 space-y-4">
-                <h3 class="text-lg font-medium">Параметры</h3>
+            <!-- Categories -->
+            <div class="bg-white rounded-xl border border-gray-200 p-5">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Категории <span class="text-red-500">*</span>
+              </label>
+              <AutoCompleteTags
+                v-model="formData.categoryIds"
+                :suggestions="categoryItems"
+                :loading="categoriesLoading"
+                :max="5"
+                placeholder="Введите название категории..."
+                :min-query-length="2"
+                @search="handleCategorySearch"
+                @update:model-value="touched.categoryIds = true"
+              />
+              <p v-if="touched.categoryIds && errors.categoryIds" class="text-xs text-red-500 mt-1">{{ errors.categoryIds }}</p>
+              <p class="text-xs text-gray-500 mt-2">Можно выбрать до 5 категорий</p>
+            </div>
 
-                <div class="grid grid-cols-3 gap-4">
-                  <UFormField label="Время (мин)" :error="errors.cookingTime">
-                    <UInput v-model.number="formData.cookingTime" type="number" min="1" />
-                  </UFormField>
+            <!-- Parameters -->
+            <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+              <h3 class="text-sm font-medium text-gray-900">Параметры</h3>
 
-                  <UFormField label="Порции" :error="errors.servings">
-                    <UInput v-model.number="formData.servings" type="number" min="1" />
-                  </UFormField>
+              <div class="grid grid-cols-3 gap-3">
+                <div>
+                  <label class="block text-xs font-medium text-gray-700 mb-1">
+                    Время (мин)
+                  </label>
+                  <UInput v-model.number="formData.cookingTime" type="number" min="1" size="sm" />
+                </div>
 
-                  <UFormField label="Калории (ккал)" :error="errors.calories">
-                    <UInput v-model.number="formData.calories" type="number" min="0" />
-                  </UFormField>
+                <div>
+                  <label class="block text-xs font-medium text-gray-700 mb-1">
+                    Порции
+                  </label>
+                  <UInput v-model.number="formData.servings" type="number" min="1" size="sm" />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-medium text-gray-700 mb-1">
+                    Калории (ккал)
+                  </label>
+                  <UInput v-model.number="formData.calories" type="number" min="0" size="sm" />
                 </div>
               </div>
+            </div>
 
-              <!-- Media Extra -->
-              <div class="rounded-2xl border p-5">
-                <h3 class="text-lg font-medium mb-5">Медиа</h3>
-                <UFormField label="Видео">
-                  <UInput
-                    v-model="formData.video"
-                    placeholder="https://youtube.com/..."
-                    class="w-full"
-                  />
-                </UFormField>
-              </div>
+            <!-- Video -->
+            <div class="bg-white rounded-xl border border-gray-200 p-5">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Видео (YouTube)
+              </label>
+              <UInput
+                v-model="formData.video"
+                placeholder="https://youtube.com/..."
+                class="w-full"
+                size="sm"
+              />
             </div>
 
             <!-- Ingredients -->
-            <div class="rounded-2xl border p-5 mt-6">
-              <UFormField
-                required
-                :error="errors.ingredients"
-              >
-                <IngredientsForm
-                  :ingredients="formData.ingredients"
-                  :units="units"
-                  :ingredients-loading="ingredientsLoading"
-                  :ingredient-search-results="searchIngredients"
-                  @update:ingredients="formData.ingredients = $event"
-                  @search-ingredients="handleIngredientSearch"
-                />
-              </UFormField>
+            <div class="bg-white rounded-xl border border-gray-200 p-5">
+              <IngredientsForm
+                :ingredients="formData.ingredients"
+                :units="units"
+                :ingredients-loading="ingredientsLoading"
+                :ingredient-search-results="searchIngredients"
+                :error="touched.ingredients && errors.ingredients"
+                @update:ingredients="handleIngredientsUpdate"
+                @search-ingredients="handleIngredientSearch"
+              />
+              <p v-if="touched.ingredients && errors.ingredients" class="text-xs text-red-500 mt-2">{{ errors.ingredients }}</p>
             </div>
 
             <!-- Steps -->
-            <div class="rounded-2xl border p-5 mt-6">
-              <UFormField
-                required
-                :error="errors.steps"
-              >
-                <StepsForm
-                  :steps="formData.steps"
-                  :is-file-uploading="isFileUploading"
-                  @update:steps="formData.steps = $event"
-                  @upload-step-photo="handleStepPhotoUpload"
-                />
-              </UFormField>
+            <div class="bg-white rounded-xl border border-gray-200 p-5">
+              <StepsForm
+                :steps="formData.steps"
+                :is-file-uploading="isFileUploading"
+                :error="touched.steps && errors.steps"
+                @update:steps="handleStepsUpdate"
+                @upload-step-photo="handleStepPhotoUpload"
+              />
+              <p v-if="touched.steps && errors.steps" class="text-xs text-red-500 mt-2">{{ errors.steps }}</p>
             </div>
           </div>
 
           <!-- Sticky Footer -->
-          <div class="sticky bottom-0 z-10 border-t bg-white/95 backdrop-blur px-6 py-4">
-            <div class="flex justify-end gap-3">
-              <UButton color="neutral" variant="ghost" @click="handleClose">Отмена</UButton>
-              <UButton type="submit" color="primary" :loading="isSubmitting" :disabled="!isFormValid">
+          <div class="sticky bottom-0 z-10 border-t bg-white px-6 py-4">
+            <div class="max-w-xl mx-auto flex justify-end gap-3">
+              <Button
+                @click="handleClose"
+                color="neutral"
+                variant="ghost"
+                size="sm"
+                :disabled="isSubmitting"
+              >
+                Отмена
+              </Button>
+              <Button
+                type="submit"
+                color="primary"
+                size="sm"
+                :loading="isSubmitting"
+                :disabled="!isFormValid || isSubmitting"
+              >
                 {{ mode === 'edit' ? 'Сохранить изменения' : 'Создать рецепт' }}
-              </UButton>
+              </Button>
             </div>
           </div>
         </form>
@@ -182,7 +217,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import type { RecipeResponse, CreateRecipeDto, UpdateRecipeDto } from '~/composables/useRecipesApi'
+import type { RecipeResponse } from '~/composables/useRecipesApi'
 import { useFileUpload } from '~/composables/useFileUpload'
 import { useIngredientsApi } from '~/composables/useIngredientsApi'
 import transliterateRussian from '~/shared/utils/transliterateRussian'
@@ -229,6 +264,14 @@ const formData = ref({
   status: 'private' as 'draft' | 'private' | 'pending' | 'public' | 'rejected'
 })
 
+// Состояние "тронутости" полей
+const touched = ref({
+  title: false,
+  categoryIds: false,
+  ingredients: false,
+  steps: false
+})
+
 const categoriesLoading = ref(false)
 const searchCategories = ref<any[]>([])
 
@@ -252,7 +295,7 @@ const mainFileInput = ref<HTMLInputElement>()
 const modalTitle = computed(() => props.mode === 'edit' ? 'Редактировать рецепт' : 'Создать рецепт')
 
 const isFormValid = computed(() => {
-  return !!(formData.value.title &&
+  return !!(formData.value.title?.trim() &&
     formData.value.categoryIds.length > 0 &&
     formData.value.ingredients.length > 0 &&
     formData.value.steps.length > 0)
@@ -262,44 +305,12 @@ const categoryItems = computed(() => {
   return searchCategories.value.map(cat => ({ label: cat.name, value: cat.id }))
 })
 
-const ingredientItems = computed(() => {
-  if (!allIngredients.value || !Array.isArray(allIngredients.value)) return []
-  return allIngredients.value.map(i => ({ label: i.name, value: i.id }))
-})
-
-const unitItems = computed(() => {
-  if (!props.units || !Array.isArray(props.units)) {
-    console.warn('units is not an array:', props.units)
-    return []
-  }
-  return props.units.map(u => ({
-    label: u.shortName || u.name,
-    value: u.id
-  }))
-})
-
-const difficultyItems = [
-  { label: 'Легко', value: 'easy' },
-  { label: 'Средне', value: 'medium' },
-  { label: 'Сложно', value: 'hard' }
-]
-
 // Methods
 const getImageUrl = (path: string) => {
   if (!path) return ''
   if (path.startsWith('http')) return path
   if (path.startsWith('/')) return `${API_BASE_URL}${path}`
   return `${API_BASE_URL}/${path}`
-}
-
-const getCategoryName = (id: string) => {
-  if (!props.categories || !Array.isArray(props.categories)) return id
-  const cat = props.categories.find(c => c.id === id)
-  return cat?.name || id
-}
-
-const setStepFileInputRef = (el: any, idx: number) => {
-  if (el) stepFileInputs.value[idx] = el
 }
 
 const resetForm = () => {
@@ -318,6 +329,12 @@ const resetForm = () => {
     status: 'private'
   }
   errors.value = {}
+  touched.value = {
+    title: false,
+    categoryIds: false,
+    ingredients: false,
+    steps: false
+  }
   selectedCategory.value = null
   stepUploading.value = []
   stepFileInputs.value = []
@@ -349,6 +366,13 @@ const loadRecipeToForm = (recipe: RecipeResponse) => {
     difficulty: recipe.difficulty || 'medium',
     status: recipe.status || 'private'
   }
+  // Сбрасываем touched при загрузке рецепта
+  touched.value = {
+    title: false,
+    categoryIds: false,
+    ingredients: false,
+    steps: false
+  }
 }
 
 // Watchers
@@ -362,45 +386,29 @@ watch(() => props.open, (isOpen) => {
   }
 })
 
-// Form actions
-const onTitleChange = () => {
-  if (!formData.value.title) return
-  // Just for SEO title generation if needed elsewhere, but we're not showing it
-}
-
-// Categories
-const addCategory = () => {
-  if (selectedCategory.value && !formData.value.categoryIds.includes(selectedCategory.value) && formData.value.categoryIds.length < 5) {
-    formData.value.categoryIds.push(selectedCategory.value)
-    selectedCategory.value = null
+// Обработчики обновления
+const handleIngredientsUpdate = (newIngredients: any[]) => {
+  formData.value.ingredients = newIngredients
+  // Автоматически помечаем как touched при изменении
+  if (!touched.value.ingredients && newIngredients.length > 0) {
+    touched.value.ingredients = true
   }
 }
 
-const removeCategory = (id: string) => {
-  formData.value.categoryIds = formData.value.categoryIds.filter(c => c !== id)
-}
-
-// Ingredients
-const addIngredient = () => {
-  formData.value.ingredients.push({
-    ingredientId: '',
-    amount: 1,
-    unitId: '',
-    notes: ''
-  })
-}
-
-const removeIngredient = (index: number) => {
-  formData.value.ingredients.splice(index, 1)
+const handleStepsUpdate = (newSteps: any[]) => {
+  formData.value.steps = newSteps
+  // Автоматически помечаем как touched при изменении
+  if (!touched.value.steps && newSteps.length > 0) {
+    touched.value.steps = true
+  }
 }
 
 // Обработчик поиска ингредиентов
 const handleIngredientSearch = (query: string) => {
-  console.log('Searching ingredients with query:', query)
   loadIngredients(query)
 }
 
-const loadIngredients = async (searchQuery: string) => {
+const loadIngredients = async (searchQuery: string = '') => {
   ingredientsLoading.value = true
 
   try {
@@ -421,24 +429,6 @@ const loadIngredients = async (searchQuery: string) => {
   } finally {
     ingredientsLoading.value = false
   }
-}
-
-// Steps
-const addStep = () => {
-  stepUploading.value.push(false)
-  stepFileInputs.value.push(null)
-  formData.value.steps.push({
-    sort: formData.value.steps.length + 1,
-    text: '',
-    image: ''
-  })
-}
-
-const removeStep = (index: number) => {
-  formData.value.steps.splice(index, 1)
-  stepUploading.value.splice(index, 1)
-  stepFileInputs.value.splice(index, 1)
-  formData.value.steps.forEach((step, idx) => { step.sort = idx + 1 })
 }
 
 // File uploads
@@ -526,7 +516,7 @@ const handleStepPhotoUpload = async (event: Event, index: number) => {
 const validateForm = () => {
   const newErrors: Record<string, string> = {}
 
-  if (!formData.value.title) newErrors.title = 'Название обязательно'
+  if (!formData.value.title?.trim()) newErrors.title = 'Название обязательно'
   if (formData.value.categoryIds.length === 0) newErrors.categoryIds = 'Выберите хотя бы одну категорию'
   if (formData.value.ingredients.length === 0) newErrors.ingredients = 'Добавьте хотя бы один ингредиент'
 
@@ -545,7 +535,7 @@ const validateForm = () => {
     newErrors.steps = 'Добавьте хотя бы один шаг'
   } else {
     for (const step of formData.value.steps) {
-      if (!step.text) {
+      if (!step.text?.trim()) {
         newErrors.steps = 'Заполните текст шага'
         break
       }
@@ -555,6 +545,14 @@ const validateForm = () => {
   errors.value = newErrors
 
   if (Object.keys(newErrors).length > 0) {
+    // Помечаем все поля как touched при ошибке валидации
+    touched.value = {
+      title: true,
+      categoryIds: true,
+      ingredients: true,
+      steps: true
+    }
+
     toast.add({
       title: 'Ошибка валидации',
       description: 'Пожалуйста, заполните все обязательные поля',
@@ -569,13 +567,13 @@ const validateForm = () => {
 // Submit
 const handleSubmit = async () => {
   if (!validateForm()) {
-    return // Не закрываем форму
+    return
   }
 
   isSubmitting.value = true
 
   const submitData = {
-    title: formData.value.title,
+    title: formData.value.title.trim(),
     description: formData.value.description || undefined,
     categoryIds: formData.value.categoryIds,
     cookingTime: formData.value.cookingTime,
@@ -589,7 +587,7 @@ const handleSubmit = async () => {
     srcPath: transliterateRussian(formData.value.title),
     steps: formData.value.steps.map(step => ({
       sort: step.sort,
-      text: step.text,
+      text: step.text.trim(),
       image: step.image || undefined
     })),
     ingredients: formData.value.ingredients.map(ing => ({
@@ -602,12 +600,9 @@ const handleSubmit = async () => {
 
   try {
     await emit('save', submitData, props.mode, props.recipe?.id)
-    // Закрываем форму ТОЛЬКО при успехе
     handleClose()
   } catch (error: any) {
-    // Ошибка уже обработана в родителе, просто логируем
     console.error('Error in handleSubmit:', error)
-    // НЕ закрываем форму
   } finally {
     isSubmitting.value = false
   }
@@ -619,7 +614,6 @@ const handleClose = () => {
 
 // Обработчик поиска категорий
 const handleCategorySearch = (query: string) => {
-  console.log('Searching categories with query:', query)
   loadCategories(query)
 }
 
