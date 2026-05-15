@@ -1,5 +1,5 @@
 <template>
-  <UModal v-model:open="isOpen">
+  <UModal v-model="isOpen">
     <div class="p-6">
       <div class="flex items-start gap-4">
         <!-- Иконка предупреждения -->

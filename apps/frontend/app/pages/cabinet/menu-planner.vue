@@ -1,3 +1,4 @@
+<!-- apps\frontend\app\pages\cabinet\menu-planner.vue -->
 <template>
   <div class="mx-auto w-full max-w-7xl px-4 py-6 md:px-6">
     <!-- Header -->
@@ -75,16 +76,31 @@
     </template>
 
     <!-- Модалки -->
-    <MenuListCreateModal
+    <!-- <MenuListCreateModal
       :open="isCreateModalOpen"
-      @update:open="isCreateModalOpen = false"
+      @update:open="(v) => isCreateModalOpen = v"
       @created="handleListCreated"
     />
 
     <MenuListEditModal
       :open="isEditModalOpen"
       :list="editingList"
-      @update:open="isEditModalOpen = false"
+      @update:open="(v) => isEditModalOpen = v"
+      @updated="handleListUpdated"
+    /> -->
+
+    <!-- Для создания нового списка -->
+    <MenuListModal
+      v-model:open="isCreateModalOpen"
+      @update:open="(v) => isCreateModalOpen = v"
+      @created="handleListCreated"
+    />
+
+    <!-- Для редактирования существующего -->
+    <MenuListModal
+      v-model:open="isEditModalOpen"
+      :list="editingList"
+      @update:open="(v) => isEditModalOpen = v"
       @updated="handleListUpdated"
     />
 
@@ -92,14 +108,14 @@
       :open="isDeleteModalOpen"
       title="Удалить список?"
       :description="deleteDescription"
-      @update:open="isDeleteModalOpen = false"
+      @update:open="(v) => isDeleteModalOpen = v"
       @confirm="handleConfirmDelete"
     />
 
     <RecipeSearchModal
       :open="isRecipeSearchOpen"
       :slot-id="selectedSlotId"
-      @update:open="isRecipeSearchOpen = false"
+      @update:open="(v) => isRecipeSearchOpen = v"
       @recipe-added="handleRecipeAdded"
     />
   </div>
@@ -118,8 +134,9 @@ import CalendarView from '~/components/menu-planner/views/CalendarView.vue';
 import MenuListCreateModal from '~/components/menu-planner/modals/MenuListCreateModal.vue';
 import MenuListEditModal from '~/components/menu-planner/modals/MenuListEditModal.vue';
 import RecipeSearchModal from '~/components/menu-planner/modals/RecipeSearchModal.vue';
-import Button from '~/shared/ui/button/Button.vue';
 import DeleteConfirmationModal from '~/components/my-recipe/DeleteConfirmationModal.vue';
+import Button from '~/shared/ui/button/Button.vue';
+import MenuListModal from '~/components/menu-planner/modals/MenuListModal.vue';
 
 definePageMeta({ layout: 'cabinet' });
 

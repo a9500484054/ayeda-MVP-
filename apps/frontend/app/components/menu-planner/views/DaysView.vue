@@ -79,9 +79,8 @@
     </div>
 
     <!-- Модалка для выбора количества дней -->
-    <UModal v-model:open="isCustomDaysModalOpen">
-      <div class="p-4">
-        <h3 class="mb-4 text-lg font-medium">Количество дней</h3>
+    <UModal v-model:open="isCustomDaysModalOpen" title="Количество дней">
+      <template #body>
         <div class="flex items-center gap-4">
           <UInput
             v-model.number="customDaysCount"
@@ -89,10 +88,14 @@
             min="1"
             max="30"
             class="w-24"
+            placeholder="дней"
           />
-          <span class="text-sm text-zinc-500">дней (макс. 30)</span>
+          <span class="text-sm text-gray-500">дней (макс. 30)</span>
         </div>
-        <div class="mt-4 flex justify-end gap-2">
+      </template>
+
+      <template #footer>
+        <div class="flex justify-end gap-2">
           <UButton variant="ghost" @click="isCustomDaysModalOpen = false">
             Отмена
           </UButton>
@@ -100,7 +103,7 @@
             Применить
           </UButton>
         </div>
-      </div>
+      </template>
     </UModal>
 
     <!-- Модалка для Drag & Drop переупорядочивания -->
