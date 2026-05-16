@@ -51,3 +51,24 @@ body {
   border-radius: 8px;
   background: var(--ayeda-surface);
 }
+
+/* Добавьте в app.vue или в глобальный CSS */
+.dragging {
+  opacity: 0.5 !important;
+  cursor: grabbing !important;
+}
+
+.drag-over {
+  border-color: #22c55e !important;
+  background-color: #f0fdf4 !important;
+  transition: all 0.2s ease;
+}
+
+* {
+  user-select: none;
+}
+
+[draggable="true"] {
+  user-select: none;
+  -webkit-user-drag: element;
+}

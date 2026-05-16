@@ -44,11 +44,13 @@
           :slots="store.slots"
           :is-loading="store.isLoading"
           @add-recipe="handleAddRecipeByDay"
+          @move-recipe="handleMoveRecipe"
           @remove-recipe="store.removeRecipeFromSlot"
           @edit-notes="handleEditNotes"
           @create-day="handleCreateDay"
           @rename-day="handleRenameDay"
           @delete-day="handleDeleteDay"
+          @reorder="handleReorder"
         />
 
         <!-- Тип "Календарь" -->
@@ -130,6 +132,7 @@ import DeleteConfirmationModal from '~/components/menu-planner/modals/DeleteConf
 definePageMeta({ layout: 'cabinet' });
 
 const store = useMenuPlannerStore();
+const toast = useToast()
 
 // Modal states
 const isCreateModalOpen = ref(false);
@@ -286,6 +289,58 @@ async function handleRecipeAdded(recipeId: string) {
     console.error('Failed to add recipe:', error);
   }
 }
+// Перемещение рецепта между слотами
+async function handleMoveRecipe(itemId: string, sourceSlotId: string, targetSlotId: string) {
+  console.log('Parent move recipe:', { itemId, sourceSlotId, targetSlotId });
+
+  if (!targetSlotId || targetSlotId === 'undefined') {
+    console.error('Invalid target slot ID');
+    return;
+  }
+
+  try {
+    // Находим рецепт в source слоте
+    const sourceSlot = store.slots.find(s => s.id === sourceSlotId);
+    const movedItem = sourceSlot?.items?.find(i => i.id === itemId);
+
+    if (movedItem && targetSlotId) {
+      // Добавляем в целевой слот
+      await store.addRecipeToSlot(targetSlotId, movedItem.recipeId, movedItem.notes);
+      // Удаляем из исходного слота
+      await store.removeRecipeFromSlot(itemId);
+
+      toast.add({
+        title: 'Успех',
+        description: 'Рецепт перемещен',
+        color: 'success',
+      });
+    }
+  } catch (error) {
+    console.error('Failed to move recipe:', error);
+    toast.add({
+      title: 'Ошибка',
+      description: 'Не удалось переместить рецепт',
+      color: 'error',
+    });
+  }
+}
+
+
+// В menu-planner.vue
+async function handleReorder(slotId: string, items: { id: string; order: number }[]) {
+  console.log('Reorder items:', { slotId, items });
+  try {
+    await store.reorderSlotItems(slotId, items);
+    toast.add({
+      title: 'Успех',
+      description: 'Порядок рецептов изменен',
+      color: 'success',
+    });
+  } catch (error) {
+    console.error('Failed to reorder:', error);
+  }
+}
+
 
 // Load data
 onMounted(() => {

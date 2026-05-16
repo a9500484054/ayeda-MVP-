@@ -50,6 +50,7 @@
           :is-loading="isLoading"
           :can-delete="days.length > 1"
           @add-recipe="handleAddRecipe"
+          @move-recipe="handleMoveRecipe"
           @remove-recipe="handleRemoveRecipe"
           @edit-notes="handleEditNotes"
           @rename-day="handleRenameDay"
@@ -73,12 +74,18 @@ const toast = useToast()
 
 const emit = defineEmits<{
   addRecipe: [dayId: string, mealType: MealType];
+  moveRecipe: [itemId: string, sourceSlotId: string, targetDayId: string, targetMealType: MealType];
   removeRecipe: [itemId: string];
   editNotes: [itemId: string, notes: string];
   createDay: [dayOrder: number, title: string];
   renameDay: [dayId: string, newTitle: string];
   deleteDay: [dayId: string];
 }>();
+
+function handleMoveRecipe(itemId: string, sourceSlotId: string, targetSlotId: string) {
+  console.log('DaysView move recipe:', { itemId, sourceSlotId, targetSlotId });
+  emit('moveRecipe', itemId, sourceSlotId, targetSlotId);
+}
 
 const scrollIndex = ref(0);
 const visibleDaysPerPage = ref(5);
