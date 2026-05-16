@@ -2,7 +2,8 @@ import { useApi } from './useApi';
 
 // ==================== Types ====================
 
-export type DisplayType = 'days' | 'calendar';
+export type DisplayType = 'days' | 'calendar' | 'banquet';
+export type SlotType = 'day' | 'calendar' | 'banquet';
 export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
 export interface MenuList {
@@ -18,11 +19,24 @@ export interface MenuList {
   deletedAt?: string;
 }
 
+export interface MenuDay {
+  id: string;
+  menuListId: string;
+  dayOrder: number;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  slots?: MenuSlot[];
+}
+
 export interface MenuSlot {
   id: string;
   menuListId: string;
-  slotDate: string | null;
-  mealType: MealType;
+  slotType: SlotType;
+  dayId?: string;
+  slotDate?: string;
+  mealType?: MealType;
+  order: number;
   createdAt: string;
   updatedAt: string;
   items?: MenuSlotItem[];
@@ -36,7 +50,7 @@ export interface MenuSlotItem {
   notes?: string;
   createdAt: string;
   updatedAt: string;
-  recipe?: any; // RecipeResponse из useRecipesApi
+  recipe?: any;
 }
 
 // ==================== DTOs ====================
@@ -59,8 +73,24 @@ export interface UpdateMenuListDto {
 
 export interface CreateMenuSlotDto {
   menuListId: string;
+  slotType: SlotType;
+  dayId?: string;
   slotDate?: string;
-  mealType: MealType;
+  mealType?: MealType;
+  order?: number;
+}
+
+export interface CreateDayDto {
+  dayOrder: number;
+  title: string;
+}
+
+export interface UpdateDayDto {
+  title?: string;
+}
+
+export interface ReorderDaysDto {
+  items: { id: string; order: number }[];
 }
 
 export interface AddRecipeToSlotDto {
@@ -109,14 +139,47 @@ export function useMenuPlannerApi() {
       });
     },
 
+    // ==================== Days (только для DAYS) ====================
+
+    async getDays(menuListId: string): Promise<MenuDay[]> {
+      return api(`/menu-planner/lists/${menuListId}/days`);
+    },
+
+    async createDay(menuListId: string, data: CreateDayDto): Promise<MenuDay> {
+      return api(`/menu-planner/lists/${menuListId}/days`, {
+        method: 'POST',
+        body: data,
+      });
+    },
+
+    async updateDay(dayId: string, data: UpdateDayDto): Promise<MenuDay> {
+      return api(`/menu-planner/days/${dayId}`, {
+        method: 'PATCH',
+        body: data,
+      });
+    },
+
+    async reorderDays(menuListId: string, items: { id: string; order: number }[]): Promise<MenuDay[]> {
+      return api(`/menu-planner/lists/${menuListId}/days/reorder`, {
+        method: 'POST',
+        body: { items },
+      });
+    },
+
+    async deleteDay(dayId: string): Promise<void> {
+      return api(`/menu-planner/days/${dayId}`, {
+        method: 'DELETE',
+      });
+    },
+
     // ==================== Slots ====================
 
     async getSlotsByMenuList(menuListId: string): Promise<MenuSlot[]> {
       return api(`/menu-planner/lists/${menuListId}/slots`);
     },
 
-    async getSlot(id: string): Promise<MenuSlot> {
-      return api(`/menu-planner/slots/${id}`);
+    async getSlot(slotId: string): Promise<MenuSlot> {
+      return api(`/menu-planner/slots/${slotId}`);
     },
 
     async createSlot(data: CreateMenuSlotDto): Promise<MenuSlot> {
@@ -126,17 +189,13 @@ export function useMenuPlannerApi() {
       });
     },
 
-    async deleteSlot(id: string): Promise<void> {
-      return api(`/menu-planner/slots/${id}`, {
+    async deleteSlot(slotId: string): Promise<void> {
+      return api(`/menu-planner/slots/${slotId}`, {
         method: 'DELETE',
       });
     },
 
     // ==================== Slot Items (Recipes) ====================
-
-    async getSlotItems(slotId: string): Promise<MenuSlotItem[]> {
-      return api(`/menu-planner/slots/${slotId}/items`);
-    },
 
     async addRecipeToSlot(slotId: string, data: AddRecipeToSlotDto): Promise<MenuSlotItem> {
       return api(`/menu-planner/slots/${slotId}/items`, {
@@ -151,10 +210,10 @@ export function useMenuPlannerApi() {
       });
     },
 
-    async reorderSlotItems(slotId: string, data: ReorderSlotItemsDto): Promise<MenuSlotItem[]> {
+    async reorderSlotItems(slotId: string, items: { id: string; order: number }[]): Promise<MenuSlotItem[]> {
       return api(`/menu-planner/slots/${slotId}/items/reorder`, {
         method: 'POST',
-        body: data,
+        body: { items },
       });
     },
 
@@ -165,10 +224,31 @@ export function useMenuPlannerApi() {
       });
     },
 
+    async getSlotItems(slotId: string): Promise<MenuSlotItem[]> {
+      return api(`/menu-planner/slots/${slotId}/items`);
+    },
+
+    // ==================== Banquet ====================
+
+    async getBanquetItems(menuListId: string): Promise<MenuSlotItem[]> {
+      return api(`/menu-planner/lists/${menuListId}/banquet/items`);
+    },
+
+    async addBanquetItem(menuListId: string, data: AddRecipeToSlotDto): Promise<MenuSlotItem> {
+      return api(`/menu-planner/lists/${menuListId}/banquet/items`, {
+        method: 'POST',
+        body: data,
+      });
+    },
+
     // ==================== Utility ====================
 
     async getMenuStructure(menuListId: string): Promise<MenuList> {
       return api(`/menu-planner/lists/${menuListId}/structure`);
+    },
+
+    async getSlotsByDateRange(menuListId: string, startDate: string, endDate: string): Promise<MenuSlot[]> {
+      return api(`/menu-planner/lists/${menuListId}/slots/range?startDate=${startDate}&endDate=${endDate}`);
     },
   };
 }

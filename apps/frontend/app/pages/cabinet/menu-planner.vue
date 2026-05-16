@@ -1,4 +1,4 @@
-<!-- apps/frontend/app/pages/cabinet/menu-planner.vue (исправленный) -->
+<!-- pages/cabinet/menu-planner.vue (обновленный) -->
 <template>
   <div class="mx-auto w-full max-w-7xl px-4 py-6 md:px-6">
     <!-- Header -->
@@ -8,7 +8,7 @@
           Планировщик меню
         </h1>
         <p class="mt-1 text-sm text-zinc-500">
-          Составляйте меню на дни или календарь, добавляйте рецепты
+          Составляйте меню на дни, календарь или банкет
         </p>
       </div>
 
@@ -40,20 +40,32 @@
         <!-- Тип "Дни" -->
         <DaysView
           v-if="store.isDaysView"
+          :days="store.days"
           :slots="store.slots"
           :is-loading="store.isLoading"
           @add-recipe="handleAddRecipeByDay"
           @remove-recipe="store.removeRecipeFromSlot"
           @edit-notes="handleEditNotes"
           @create-day="handleCreateDay"
+          @rename-day="handleRenameDay"
         />
 
         <!-- Тип "Календарь" -->
         <CalendarView
-          v-else
+          v-else-if="store.isCalendarView"
           :slots="store.slots"
           :is-loading="store.isLoading"
           @add-recipe="handleAddRecipeByDate"
+          @remove-recipe="store.removeRecipeFromSlot"
+          @edit-notes="handleEditNotes"
+        />
+
+        <!-- Тип "Банкет" -->
+        <BanquetView
+          v-else-if="store.isBanquetView"
+          :items="store.slots[0]?.items || []"
+          :is-loading="store.isLoading"
+          @add-recipe="handleAddBanquetItem"
           @remove-recipe="store.removeRecipeFromSlot"
           @edit-notes="handleEditNotes"
         />
@@ -70,14 +82,14 @@
     <!-- Модалки -->
     <MenuListModal
       v-model:open="isCreateModalOpen"
-      @update:open="(v) => isCreateModalOpen = v"
+      @update:open="isCreateModalOpen = v"
       @created="handleListCreated"
     />
 
     <MenuListModal
       v-model:open="isEditModalOpen"
       :list="editingList"
-      @update:open="(v) => isEditModalOpen = v"
+      @update:open="isEditModalOpen = v"
       @updated="handleListUpdated"
     />
 
@@ -85,7 +97,7 @@
       :open="isDeleteModalOpen"
       title="Удалить список?"
       :description="deleteDescription"
-      @update:open="(v) => isDeleteModalOpen = v"
+      @update:open="isDeleteModalOpen = v"
       @confirm="handleConfirmDelete"
     />
 
@@ -93,7 +105,7 @@
     <RecipeSearchModal
       :open="isRecipeSearchOpen"
       :slot-id="selectedSlotId"
-      @update:open="(v) => isRecipeSearchOpen = v"
+      @update:open="isRecipeSearchOpen = v"
       @recipe-added="handleRecipeAdded"
     />
   </div>
@@ -108,6 +120,7 @@ import type { MenuList, MealType } from '~/composables/useMenuPlannerApi';
 import MenuListSelector from '~/components/menu-planner/MenuListSelector.vue';
 import DaysView from '~/components/menu-planner/views/DaysView.vue';
 import CalendarView from '~/components/menu-planner/views/CalendarView.vue';
+import BanquetView from '~/components/menu-planner/views/BanquetView.vue';
 import RecipeSearchModal from '~/components/menu-planner/modals/RecipeSearchModal.vue';
 import Button from '~/shared/ui/button/Button.vue';
 import MenuListModal from '~/components/menu-planner/modals/MenuListModal.vue';
@@ -127,10 +140,10 @@ const deletingList = ref<MenuList | null>(null);
 
 // Состояние для добавления рецепта
 const pendingRecipeData = ref<{
-  type: 'day' | 'date';
-  dayOrder?: number;
+  type: 'day' | 'date' | 'banquet';
+  dayId?: string;
   date?: Date;
-  mealType: MealType;
+  mealType?: MealType;
 } | null>(null);
 
 const selectedSlotId = ref<string | null>(null);
@@ -177,39 +190,44 @@ async function handleListUpdated() {
   await store.fetchMenuLists();
 }
 
-// Новая логика для Days view
-function handleAddRecipeByDay(dayOrder: number, mealType: string) {
-  // Сохраняем данные для создания слота после выбора рецепта
+// Логика для Days view
+function handleAddRecipeByDay(dayId: string, mealType: MealType) {
   pendingRecipeData.value = {
     type: 'day',
-    dayOrder,
-    mealType: mealType as MealType,
+    dayId,
+    mealType,
   };
-  // Открываем модалку поиска рецептов
   isRecipeSearchOpen.value = true;
 }
 
-// Новая логика для Calendar view
-function handleAddRecipeByDate(date: Date, mealType: string) {
+// Логика для Calendar view
+function handleAddRecipeByDate(date: Date, mealType: MealType) {
   pendingRecipeData.value = {
     type: 'date',
     date,
-    mealType: mealType as MealType,
+    mealType,
   };
   isRecipeSearchOpen.value = true;
 }
 
-// Обработка заметок
-function handleEditNotes(itemId: string, notes: string) {
-  // TODO: Implement edit notes API call
-  console.log('Edit notes:', itemId, notes);
+// Логика для Banquet
+function handleAddBanquetItem(recipeId: string, notes?: string) {
+  store.addBanquetItem(recipeId, notes);
 }
 
-// Конвертация dayOrder в дату (для Days view)
-function getDateFromDayOrder(dayOrder: number): string {
-  const date = new Date();
-  date.setDate(date.getDate() + (dayOrder - 1));
-  return date.toISOString().split('T')[0];
+// Обработка заметок
+async function handleEditNotes(itemId: string, notes: string) {
+  await store.updateSlotItemNotes(itemId, notes);
+}
+
+// Создание дня
+async function handleCreateDay(dayOrder: number, title: string) {
+  await store.createDay(dayOrder, title);
+}
+
+// Переименование дня
+async function handleRenameDay(dayId: string, newTitle: string) {
+  await store.updateDay(dayId, newTitle);
 }
 
 // Главный обработчик - вызывается когда выбран рецепт в модалке
@@ -221,38 +239,35 @@ async function handleRecipeAdded(recipeId: string) {
   }
 
   try {
-    const { type, dayOrder, date, mealType } = pendingRecipeData.value;
+    const { type, dayId, date, mealType } = pendingRecipeData.value;
 
-    // Проверяем, существует ли уже слот
-    let existingSlot = null;
-
-    if (type === 'day' && dayOrder !== undefined) {
-      const slotDate = getDateFromDayOrder(dayOrder);
-      existingSlot = store.slots.find(
-        slot => slot.slotDate === slotDate && slot.mealType === mealType
+    if (type === 'day' && dayId && mealType) {
+      // Ищем существующий слот
+      const existingSlot = store.slots.find(
+        slot => slot.dayId === dayId && slot.mealType === mealType && slot.slotType === 'day'
       );
-    } else if (type === 'date' && date) {
-      const slotDate = date.toISOString().split('T')[0];
-      existingSlot = store.slots.find(
-        slot => slot.slotDate === slotDate && slot.mealType === mealType
-      );
-    }
 
-    if (existingSlot) {
-      // Слот существует - просто добавляем рецепт
-      await store.addRecipeToSlot(existingSlot.id, recipeId);
-    } else {
-      // Слота нет - создаем слот и добавляем рецепт одной операцией
-      if (type === 'day' && dayOrder !== undefined) {
-        const slotDate = getDateFromDayOrder(dayOrder);
+      if (existingSlot) {
+        await store.addRecipeToSlot(existingSlot.id, recipeId);
+      } else {
         await store.createSlotWithRecipe({
-          slotDate,
+          slotType: 'day',
+          dayId,
           mealType,
           recipeId,
         });
-      } else if (type === 'date' && date) {
-        const slotDate = date.toISOString().split('T')[0];
+      }
+    } else if (type === 'date' && date && mealType) {
+      const slotDate = date.toISOString().split('T')[0];
+      const existingSlot = store.slots.find(
+        slot => slot.slotDate === slotDate && slot.mealType === mealType && slot.slotType === 'calendar'
+      );
+
+      if (existingSlot) {
+        await store.addRecipeToSlot(existingSlot.id, recipeId);
+      } else {
         await store.createSlotWithRecipe({
+          slotType: 'calendar',
           slotDate,
           mealType,
           recipeId,
@@ -260,26 +275,10 @@ async function handleRecipeAdded(recipeId: string) {
       }
     }
 
-    // Очищаем состояние и закрываем модалку
     pendingRecipeData.value = null;
     isRecipeSearchOpen.value = false;
   } catch (error) {
     console.error('Failed to add recipe:', error);
-  }
-}
-
-// Новая функция для создания пустого дня
-async function handleCreateDay(dayOrder: number) {
-  try {
-    // Создаем пустой день (без слотов)
-    // В store можно добавить метод createEmptyDay
-    // Пока просто логируем
-    console.log('Creating empty day:', dayOrder);
-
-    // TODO: Если нужно хранить информацию о созданных днях в БД,
-    // добавить метод в API и store
-  } catch (error) {
-    console.error('Failed to create day:', error);
   }
 }
 

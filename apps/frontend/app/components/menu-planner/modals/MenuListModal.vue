@@ -10,9 +10,8 @@
         />
         <p v-if="errors.title" class="text-xs text-red-500">{{ errors.title }}</p>
 
-        <!-- Иконка (только для редактирования) -->
+        <!-- Иконка -->
         <UInput
-          v-if="isEditing"
           v-model="form.icon"
           placeholder="Иконка (эмодзи, например 🍕)"
           maxlength="2"
@@ -21,25 +20,25 @@
         <!-- Тип отображения -->
         <div class="flex gap-2">
           <button
-            v-for="type in ['days', 'calendar']"
-            :key="type"
+            v-for="type in displayTypeOptions"
+            :key="type.value"
             class="flex-1 rounded-lg border p-2 text-center text-sm transition-all"
-            :class="form.displayType === type
+            :class="form.displayType === type.value
               ? 'border-green-500 bg-green-50 text-green-700'
               : 'border-gray-200 hover:border-gray-300'"
-            @click="form.displayType = type"
+            @click="form.displayType = type.value"
           >
             <div class="flex items-center justify-center gap-1">
               <UIcon
-                :name="type === 'days' ? 'i-lucide-calendar-days' : 'i-lucide-calendar'"
+                :name="type.icon"
                 class="h-4 w-4"
               />
-              <span>{{ type === 'days' ? 'Дни' : 'Календарь' }}</span>
+              <span>{{ type.label }}</span>
             </div>
           </button>
         </div>
 
-        <!-- Предупреждение при смене типа (только для редактирования) -->
+        <!-- Предупреждение при смене типа -->
         <p
           v-if="isEditing && originalDisplayType !== form.displayType"
           class="flex items-center gap-1 rounded-lg bg-yellow-50 p-2 text-xs text-yellow-700"
@@ -48,9 +47,8 @@
           Изменение типа отображения может повлиять на существующие рецепты
         </p>
 
-        <!-- Описание (только для редактирования) -->
+        <!-- Описание -->
         <UTextarea
-          v-if="isEditing"
           v-model="form.description"
           placeholder="Описание (необязательно)"
           :rows="2"
@@ -70,125 +68,123 @@
 </template>
 
 <script setup lang="ts">
-import type { MenuList, DisplayType } from '~/composables/useMenuPlannerApi'
+import type { MenuList, DisplayType } from '~/composables/useMenuPlannerApi';
 
 const props = defineProps<{
-  open: boolean
-  list?: MenuList | null // Для редактирования передаём list, для создания - null
-}>()
+  open: boolean;
+  list?: MenuList | null;
+}>();
 
 const emit = defineEmits<{
-  'update:open': [boolean]
-  'updated': []
-  'created': [MenuList]
-}>()
+  'update:open': [boolean];
+  'updated': [];
+  'created': [MenuList];
+}>();
 
-const isSubmitting = ref(false)
-const originalDisplayType = ref<DisplayType>('days')
+const isSubmitting = ref(false);
+const originalDisplayType = ref<DisplayType>('days');
 
-// Определяем, в каком режиме мы находимся
-const isEditing = computed(() => !!props.list)
+const isEditing = computed(() => !!props.list);
+
+const displayTypeOptions = [
+  { value: 'days', label: 'Дни', icon: 'i-lucide-calendar-days' },
+  { value: 'calendar', label: 'Календарь', icon: 'i-lucide-calendar' },
+  { value: 'banquet', label: 'Банкет', icon: 'i-lucide-utensils' },
+];
 
 const form = reactive({
   title: '',
   icon: '',
   description: '',
-  displayType: 'days' as DisplayType
-})
+  displayType: 'days' as DisplayType,
+});
 
 const errors = reactive({
-  title: ''
-})
+  title: '',
+});
 
-// Computed для v-model модального окна
 const isOpen = computed({
   get: () => props.open,
-  set: (value) => emit('update:open', value)
-})
+  set: (value) => emit('update:open', value),
+});
 
 const validate = (): boolean => {
-  errors.title = ''
+  errors.title = '';
 
   if (!form.title.trim()) {
-    errors.title = 'Обязательное поле'
-    return false
+    errors.title = 'Обязательное поле';
+    return false;
   }
 
   if (form.title.length > 100) {
-    errors.title = 'Название не должно превышать 100 символов'
-    return false
+    errors.title = 'Название не должно превышать 100 символов';
+    return false;
   }
 
-  return true
-}
+  return true;
+};
 
 const closeModal = () => {
-  isOpen.value = false
-  // Сбрасываем ошибки и форму
-  errors.title = ''
+  isOpen.value = false;
+  errors.title = '';
 
-  // Сбрасываем форму только если не в режиме редактирования
   if (!isEditing.value) {
-    form.title = ''
-    form.icon = ''
-    form.description = ''
-    form.displayType = 'days'
+    form.title = '';
+    form.icon = '';
+    form.description = '';
+    form.displayType = 'days';
   }
-}
+};
 
 const handleSubmit = async () => {
-  if (!validate()) return
+  if (!validate()) return;
 
-  isSubmitting.value = true
+  isSubmitting.value = true;
 
   try {
-    const { useMenuPlannerStore } = await import('~/stores/menuPlannerStore')
-    const store = useMenuPlannerStore()
+    const { useMenuPlannerStore } = await import('~/stores/menuPlannerStore');
+    const store = useMenuPlannerStore();
 
     if (isEditing.value && props.list) {
-      // Режим редактирования
       await store.updateMenuList(props.list.id, {
         title: form.title.trim(),
         icon: form.icon || undefined,
         description: form.description || undefined,
-        displayType: form.displayType
-      })
-      emit('updated')
+        displayType: form.displayType,
+      });
+      emit('updated');
     } else {
-      // Режим создания
       const newList = await store.createMenuList({
         title: form.title.trim(),
-        displayType: form.displayType
-      })
-      emit('created', newList)
+        icon: form.icon || undefined,
+        displayType: form.displayType,
+      });
+      emit('created', newList);
     }
 
-    closeModal()
+    closeModal();
   } catch (error) {
-    console.error(`Failed to ${isEditing.value ? 'update' : 'create'} menu list:`, error)
+    console.error(`Failed to ${isEditing.value ? 'update' : 'create'} menu list:`, error);
   } finally {
-    isSubmitting.value = false
+    isSubmitting.value = false;
   }
-}
+};
 
-// Заполняем форму при открытии
 watch(() => props.open, (isOpen) => {
   if (isOpen) {
     if (props.list) {
-      // Режим редактирования
-      form.title = props.list.title
-      form.icon = props.list.icon || ''
-      form.description = props.list.description || ''
-      form.displayType = props.list.displayType
-      originalDisplayType.value = props.list.displayType
+      form.title = props.list.title;
+      form.icon = props.list.icon || '';
+      form.description = props.list.description || '';
+      form.displayType = props.list.displayType;
+      originalDisplayType.value = props.list.displayType;
     } else {
-      // Режим создания
-      form.title = ''
-      form.icon = ''
-      form.description = ''
-      form.displayType = 'days'
+      form.title = '';
+      form.icon = '';
+      form.description = '';
+      form.displayType = 'days';
     }
-    errors.title = ''
+    errors.title = '';
   }
-}, { immediate: true })
+}, { immediate: true });
 </script>

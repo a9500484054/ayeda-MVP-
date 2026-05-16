@@ -1,6 +1,6 @@
-<!-- apps/frontend/app/components/menu-planner/views/CalendarView.vue (исправленный) -->
 <template>
   <div class="calendar-view">
+    <!-- Навигация по месяцам -->
     <div class="mb-6 flex items-center justify-between">
       <button
         class="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600"
@@ -23,6 +23,7 @@
       </button>
     </div>
 
+    <!-- Дни недели -->
     <div class="mb-2 grid grid-cols-7 gap-1">
       <div
         v-for="day in weekDays"
@@ -33,6 +34,7 @@
       </div>
     </div>
 
+    <!-- Календарная сетка -->
     <div class="grid grid-cols-7 gap-1">
       <div
         v-for="i in startOffset"
@@ -60,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import type { MenuSlot } from '~/composables/useMenuPlannerApi';
+import type { MenuSlot, MealType } from '~/composables/useMenuPlannerApi';
 import CalendarDayCell from '../common/CalendarDayCell.vue';
 
 const props = defineProps<{
@@ -69,7 +71,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  addRecipe: [date: Date, mealType: string];
+  addRecipe: [date: Date, mealType: MealType];
   removeRecipe: [itemId: string];
   editNotes: [itemId: string, notes: string];
 }>();
@@ -105,11 +107,10 @@ const monthDays = computed(() => {
 
 function getSlotsForDate(date: Date): MenuSlot[] {
   const dateStr = date.toISOString().split('T')[0];
-  return props.slots.filter(slot => slot.slotDate === dateStr);
+  return props.slots.filter(slot => slot.slotDate === dateStr && slot.slotType === 'calendar');
 }
 
-// Прямой обработчик - эмитим событие для родителя
-function handleAddRecipe(date: Date, mealType: string) {
+function handleAddRecipe(date: Date, mealType: MealType) {
   emit('addRecipe', date, mealType);
 }
 
