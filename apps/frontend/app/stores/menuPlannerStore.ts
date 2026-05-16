@@ -306,12 +306,14 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
   }
 
   // Удалить день
+  // В методе deleteDay - уже используем api.deleteDay
   async function deleteDay(dayId: string) {
     try {
       await api.deleteDay(dayId);
+      // Удаляем день из локального состояния
       days.value = days.value.filter(d => d.id !== dayId);
 
-      // Также удаляем слоты этого дня из локального состояния
+      // Также удаляем слоты этого дня
       slots.value = slots.value.filter(s => s.dayId !== dayId);
 
       toast.add({

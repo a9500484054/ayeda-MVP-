@@ -4,7 +4,6 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  DeleteDateColumn,
   ManyToOne,
   JoinColumn,
   OneToMany,
@@ -39,9 +38,7 @@ export class MenuDay {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @ApiProperty({ required: false })
-  @DeleteDateColumn({ name: 'deleted_at' })
-  deletedAt: Date;
+  // Удаляем @DeleteDateColumn, так как используем физическое удаление
 
   @ManyToOne(() => MenuList, (menuList) => menuList.days, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'menu_list_id' })

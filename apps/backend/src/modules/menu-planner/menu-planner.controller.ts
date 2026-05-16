@@ -325,4 +325,20 @@ export class MenuPlannerController {
       new Date(endDate),
     );
   }
+
+  @Post('lists/:listId/days/auto')
+  @ApiOperation({ summary: 'Создать день с автоматическим порядком' })
+  @ApiParam({ name: 'listId', description: 'UUID списка меню' })
+  @ApiResponse({ status: HttpStatus.CREATED, type: MenuDayResponseDto })
+  async createDayAuto(
+    @Req() req: RequestWithUser,
+    @Param('listId') listId: string,
+    @Body() body: { title?: string },
+  ): Promise<MenuDayResponseDto> {
+    return this.menuPlannerService.createDayWithAutoOrder(
+      req.user.id,
+      listId,
+      body.title,
+    );
+  }
 }

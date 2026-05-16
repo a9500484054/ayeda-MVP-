@@ -1,3 +1,4 @@
+// menu-day-response.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
 import { MenuSlotResponseDto } from './menu-slot-response.dto';
 
@@ -19,6 +20,8 @@ export class MenuDayResponseDto {
 
   @ApiProperty()
   updatedAt: Date;
+
+  // Убираем deletedAt
 
   @ApiProperty({ type: [MenuSlotResponseDto], required: false })
   slots?: MenuSlotResponseDto[];

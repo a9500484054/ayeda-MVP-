@@ -187,7 +187,7 @@ export class MenuPlannerService {
   async findAllDays(userId: string, menuListId: string): Promise<MenuDayResponseDto[]> {
     await this.findOneMenuList(userId, menuListId);
     const days = await this.menuDayRepository.find({
-      where: { menuListId, deletedAt: IsNull() },
+      where: { menuListId },
       relations: this.dayRelations,
       order: { dayOrder: 'ASC' },
     });
@@ -202,7 +202,7 @@ export class MenuPlannerService {
     }
 
     const existingDay = await this.menuDayRepository.findOne({
-      where: { menuListId, dayOrder: dto.dayOrder, deletedAt: IsNull() },
+      where: { menuListId, dayOrder: dto.dayOrder },
     });
 
     if (existingDay) {
@@ -221,7 +221,7 @@ export class MenuPlannerService {
 
   async updateDay(userId: string, dayId: string, dto: UpdateDayDto): Promise<MenuDayResponseDto> {
     const day = await this.menuDayRepository.findOne({
-      where: { id: dayId, deletedAt: IsNull() },
+      where: { id: dayId },
       relations: ['menuList'],
     });
 
@@ -244,7 +244,7 @@ export class MenuPlannerService {
     });
 
     const days = await this.menuDayRepository.find({
-      where: { menuListId, deletedAt: IsNull() },
+      where: { menuListId },
       relations: this.dayRelations,
       order: { dayOrder: 'ASC' },
     });
@@ -252,16 +252,23 @@ export class MenuPlannerService {
     return days.map((day) => this.toMenuDayResponseDto(day));
   }
 
+  // В menu-planner.service.ts, метод deleteDay
   async deleteDay(userId: string, dayId: string): Promise<void> {
+    // Находим день (только неудаленный)
     const day = await this.menuDayRepository.findOne({
-      where: { id: dayId, deletedAt: IsNull() },
+      where: { id: dayId },
       relations: ['menuList'],
     });
 
-    if (!day) throw new NotFoundException('День не найден');
+    if (!day) {
+      throw new NotFoundException('День не найден');
+    }
+
+    // Проверяем права доступа
     await this.findOneMenuList(userId, day.menuListId);
 
-    await this.menuDayRepository.softDelete(dayId);
+    // Физическое удаление дня
+    await this.menuDayRepository.delete(dayId);
   }
 
   // ==================== SLOTS ====================
@@ -505,5 +512,32 @@ export class MenuPlannerService {
     }
 
     return this.addRecipeToSlot(userId, banquetSlot.id, dto);
+  }
+
+  // В сервисе добавим метод для создания дня с автоматическим порядком
+  async createDayWithAutoOrder(userId: string, menuListId: string, title?: string): Promise<MenuDayResponseDto> {
+    const menuList = await this.findOneMenuList(userId, menuListId);
+
+    if (menuList.displayType !== DisplayType.DAYS) {
+      throw new BadRequestException('Дни можно создавать только в режиме DAYS');
+    }
+
+    // Находим максимальный существующий day_order
+    const maxOrderResult = await this.menuDayRepository
+      .createQueryBuilder('day')
+      .select('MAX(day.dayOrder)', 'max')
+      .where('day.menuListId = :menuListId', { menuListId })
+      .getRawOne();
+
+    const nextOrder = (maxOrderResult?.max || 0) + 1;
+
+    const day = this.menuDayRepository.create({
+      menuListId,
+      dayOrder: nextOrder,
+      title: title || `День ${nextOrder}`,
+    });
+
+    const saved = await this.menuDayRepository.save(day);
+    return this.toMenuDayResponseDto(saved);
   }
 }
