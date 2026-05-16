@@ -48,6 +48,7 @@
           @edit-notes="handleEditNotes"
           @create-day="handleCreateDay"
           @rename-day="handleRenameDay"
+          @delete-day="handleDeleteDay"
         />
 
         <!-- Тип "Календарь" -->
@@ -228,6 +229,10 @@ async function handleCreateDay(dayOrder: number, title: string) {
 // Переименование дня
 async function handleRenameDay(dayId: string, newTitle: string) {
   await store.updateDay(dayId, newTitle);
+}
+
+async function handleDeleteDay(dayId: string) {
+  await store.deleteDay(dayId);
 }
 
 // Главный обработчик - вызывается когда выбран рецепт в модалке

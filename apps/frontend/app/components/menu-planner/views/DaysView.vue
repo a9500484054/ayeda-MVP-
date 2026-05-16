@@ -48,10 +48,12 @@
           :dinner-slot="getSlotByMeal('dinner', day.id)"
           :snack-slot="getSlotByMeal('snack', day.id)"
           :is-loading="isLoading"
+          :can-delete="days.length > 1"
           @add-recipe="handleAddRecipe"
           @remove-recipe="handleRemoveRecipe"
           @edit-notes="handleEditNotes"
           @rename-day="handleRenameDay"
+          @delete-day="handleDeleteDay"
         />
       </div>
     </div>
@@ -59,7 +61,7 @@
 </template>
 
 <script setup lang="ts">
-import type { MenuDay, MenuSlot, MealType, MenuSlotItem } from '~/composables/useMenuPlannerApi';
+import type { MenuDay, MenuSlot, MealType } from '~/composables/useMenuPlannerApi';
 import DayColumn from '../common/DayColumn.vue';
 
 const props = defineProps<{
@@ -74,23 +76,20 @@ const emit = defineEmits<{
   editNotes: [itemId: string, notes: string];
   createDay: [dayOrder: number, title: string];
   renameDay: [dayId: string, newTitle: string];
+  deleteDay: [dayId: string];
 }>();
 
-// Состояния
 const scrollIndex = ref(0);
 const visibleDaysPerPage = ref(5);
 
-// Отображаемые дни
 const displayedDays = computed(() => props.days);
 
-// Получить слот по приему пищи и дню
 function getSlotByMeal(mealType: MealType, dayId: string): MenuSlot | undefined {
   return props.slots.find(
     slot => slot.dayId === dayId && slot.mealType === mealType && slot.slotType === 'day'
   );
 }
 
-// Обработчики
 function handleAddRecipe(dayId: string, mealType: MealType) {
   emit('addRecipe', dayId, mealType);
 }
@@ -107,13 +106,15 @@ function handleRenameDay(dayId: string, newTitle: string) {
   emit('renameDay', dayId, newTitle);
 }
 
-// Добавление нового дня
+function handleDeleteDay(dayId: string) {
+  emit('deleteDay', dayId);
+}
+
 function addNewDay() {
   const nextOrder = props.days.length + 1;
   emit('createDay', nextOrder, `День ${nextOrder}`);
 }
 
-// Навигация
 function scrollPrev() {
   scrollIndex.value = Math.max(0, scrollIndex.value - visibleDaysPerPage.value);
 }
@@ -125,7 +126,6 @@ function scrollNext() {
   );
 }
 
-// Адаптивная ширина
 function updateVisibleDaysPerPage() {
   const width = window.innerWidth;
   if (width < 640) visibleDaysPerPage.value = 1;

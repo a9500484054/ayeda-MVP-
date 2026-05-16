@@ -10,11 +10,19 @@
         >
           <UIcon name="i-lucide-pencil" class="h-3 w-3" />
         </button>
+        <button
+          v-if="canDelete"
+          class="rounded p-0.5 text-zinc-400 opacity-0 transition-all hover:bg-zinc-100 hover:text-red-500 group-hover:opacity-100"
+          @click="openDeleteModal"
+        >
+          <UIcon name="i-lucide-trash-2" class="h-3 w-3" />
+        </button>
       </div>
     </div>
 
     <!-- Слоты приемов пищи -->
     <div class="divide-y divide-zinc-100">
+      <!-- Завтрак -->
       <div class="p-3">
         <MealSlot
           :slot-id="breakfastSlot?.id"
@@ -30,6 +38,7 @@
         />
       </div>
 
+      <!-- Обед -->
       <div class="p-3">
         <MealSlot
           :slot-id="lunchSlot?.id"
@@ -45,6 +54,7 @@
         />
       </div>
 
+      <!-- Ужин -->
       <div class="p-3">
         <MealSlot
           :slot-id="dinnerSlot?.id"
@@ -60,6 +70,7 @@
         />
       </div>
 
+      <!-- Перекус -->
       <div class="p-3">
         <MealSlot
           :slot-id="snackSlot?.id"
@@ -96,6 +107,25 @@
         </div>
       </template>
     </UModal>
+
+    <!-- Модалка подтверждения удаления -->
+    <UModal v-model:open="isDeleteModalOpen" title="Удалить день?">
+      <template #body>
+        <p class="text-sm text-zinc-600">
+          Вы уверены, что хотите удалить день "{{ day.title }}"? Все рецепты в этом дне также будут удалены.
+        </p>
+      </template>
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton variant="ghost" @click="isDeleteModalOpen = false">
+            Отмена
+          </UButton>
+          <UButton color="red" @click="confirmDelete">
+            Удалить
+          </UButton>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
 
@@ -110,6 +140,7 @@ const props = defineProps<{
   dinnerSlot?: MenuSlot;
   snackSlot?: MenuSlot;
   isLoading?: boolean;
+  canDelete?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -117,10 +148,12 @@ const emit = defineEmits<{
   removeRecipe: [itemId: string];
   editNotes: [itemId: string, notes: string];
   renameDay: [dayId: string, newTitle: string];
+  deleteDay: [dayId: string];
 }>();
 
 const dragOverMeal = ref<string | null>(null);
 const isRenameModalOpen = ref(false);
+const isDeleteModalOpen = ref(false);
 const newTitle = ref('');
 
 function openRenameModal() {
@@ -133,6 +166,15 @@ function saveRename() {
     emit('renameDay', props.day.id, newTitle.value.trim());
   }
   isRenameModalOpen.value = false;
+}
+
+function openDeleteModal() {
+  isDeleteModalOpen.value = true;
+}
+
+function confirmDelete() {
+  emit('deleteDay', props.day.id);
+  isDeleteModalOpen.value = false;
 }
 
 function handleRemoveRecipe(itemId: string) {

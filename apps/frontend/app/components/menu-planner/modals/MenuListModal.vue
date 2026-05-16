@@ -26,19 +26,39 @@
             :class="form.displayType === type.value
               ? 'border-green-500 bg-green-50 text-green-700'
               : 'border-gray-200 hover:border-gray-300'"
-            @click="form.displayType = type.value"
+            @click="onDisplayTypeChange(type.value)"
           >
             <div class="flex items-center justify-center gap-1">
-              <UIcon
-                :name="type.icon"
-                class="h-4 w-4"
-              />
+              <UIcon :name="type.icon" class="h-4 w-4" />
               <span>{{ type.label }}</span>
             </div>
           </button>
         </div>
 
-        <!-- Предупреждение при смене типа -->
+        <!-- Шаблоны дней (только для создания и только для DAYS) -->
+        <div v-if="!isEditing && form.displayType === 'days'" class="space-y-2">
+          <label class="text-sm font-medium text-zinc-700">Шаблон дней</label>
+          <div class="flex gap-2">
+            <button
+              v-for="preset in dayPresets"
+              :key="preset.days"
+              type="button"
+              class="flex-1 rounded-lg border p-2 text-center text-sm transition-all"
+              :class="selectedPreset === preset.days
+                ? 'border-green-500 bg-green-50 text-green-700'
+                : 'border-gray-200 hover:border-gray-300'"
+              @click="selectPreset(preset.days)"
+            >
+              <div class="font-medium">{{ preset.days }}</div>
+              <div class="text-xs text-zinc-500">{{ preset.label }}</div>
+            </button>
+          </div>
+          <p class="text-xs text-zinc-500">
+            Будет создано {{ selectedPreset }} дней. Дни можно будет добавить или удалить позже.
+          </p>
+        </div>
+
+        <!-- Предупреждение при смене типа (только для редактирования) -->
         <p
           v-if="isEditing && originalDisplayType !== form.displayType"
           class="flex items-center gap-1 rounded-lg bg-yellow-50 p-2 text-xs text-yellow-700"
@@ -83,6 +103,15 @@ const emit = defineEmits<{
 
 const isSubmitting = ref(false);
 const originalDisplayType = ref<DisplayType>('days');
+const selectedPreset = ref(7); // по умолчанию 7 дней
+
+const dayPresets = [
+  { days: 1, label: '1 день' },
+  { days: 3, label: '3 дня' },
+  { days: 7, label: 'Неделя' },
+  { days: 14, label: '2 недели' },
+  { days: 30, label: 'Месяц' },
+];
 
 const isEditing = computed(() => !!props.list);
 
@@ -107,6 +136,14 @@ const isOpen = computed({
   get: () => props.open,
   set: (value) => emit('update:open', value),
 });
+
+function onDisplayTypeChange(type: DisplayType) {
+  form.displayType = type;
+}
+
+function selectPreset(days: number) {
+  selectedPreset.value = days;
+}
 
 const validate = (): boolean => {
   errors.title = '';
@@ -133,6 +170,7 @@ const closeModal = () => {
     form.icon = '';
     form.description = '';
     form.displayType = 'days';
+    selectedPreset.value = 7;
   }
 };
 
@@ -158,6 +196,7 @@ const handleSubmit = async () => {
         title: form.title.trim(),
         icon: form.icon || undefined,
         displayType: form.displayType,
+        presetDays: form.displayType === 'days' ? selectedPreset.value : undefined,
       });
       emit('created', newList);
     }
@@ -183,6 +222,7 @@ watch(() => props.open, (isOpen) => {
       form.icon = '';
       form.description = '';
       form.displayType = 'days';
+      selectedPreset.value = 7;
     }
     errors.title = '';
   }

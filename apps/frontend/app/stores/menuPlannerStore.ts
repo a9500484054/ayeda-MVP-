@@ -128,8 +128,14 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
     }
   }
 
+
   // Создать новый список меню
-  async function createMenuList(data: { title: string; displayType?: DisplayType; icon?: string }) {
+  async function createMenuList(data: {
+    title: string;
+    displayType?: DisplayType;
+    icon?: string;
+    presetDays?: number; // добавляем presetDays
+  }) {
     isLoading.value = true;
     try {
       const newList = await api.createMenuList({
@@ -142,9 +148,11 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
       menuLists.value.push(newList);
       activeMenuListId.value = newList.id;
 
-      // Если создали список DAYS, создаем дни по умолчанию (7 дней)
-      if (newList.displayType === 'days') {
-        await createDefaultDays(newList.id);
+      // Если создали список DAYS и указан presetDays, создаем дни
+      if (newList.displayType === 'days' && data.presetDays) {
+        await createDefaultDays(newList.id, data.presetDays);
+      } else if (newList.displayType === 'days') {
+        await createDefaultDays(newList.id, 7); // по умолчанию 7 дней
       }
 
       await fetchSlots();
@@ -167,10 +175,11 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
     }
   }
 
+
   // Создать дни по умолчанию (для DAYS)
-  async function createDefaultDays(menuListId: string) {
+  async function createDefaultDays(menuListId: string, daysCount: number = 7) {
     try {
-      for (let i = 1; i <= 7; i++) {
+      for (let i = 1; i <= daysCount; i++) {
         await api.createDay(menuListId, {
           dayOrder: i,
           title: `День ${i}`,
@@ -304,6 +313,12 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
 
       // Также удаляем слоты этого дня из локального состояния
       slots.value = slots.value.filter(s => s.dayId !== dayId);
+
+      toast.add({
+        title: 'Успех',
+        description: 'День удален',
+        color: 'success',
+      });
     } catch (err: any) {
       toast.add({
         title: 'Ошибка',
@@ -579,6 +594,8 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
       days.value = [];
     }
   }
+
+
 
   // Очистить ошибку
   function clearError() {
