@@ -5,17 +5,19 @@
       <div class="flex items-center justify-center gap-2">
         <h3 class="font-medium text-zinc-800">{{ day.title }}</h3>
         <button
-          class="rounded p-0.5 text-zinc-400 opacity-0 transition-all hover:bg-zinc-100 hover:text-green-600 group-hover:opacity-100"
+          class="rounded p-0.5 text-zinc-400 transition-all hover:bg-zinc-100 hover:text-green-600 group-hover:opacity-100"
           @click="openRenameModal"
         >
           <UIcon name="i-lucide-pencil" class="h-3 w-3" />
         </button>
+
         <button
           v-if="canDelete"
-          class="rounded p-0.5 text-zinc-400 opacity-0 transition-all hover:bg-zinc-100 hover:text-red-500 group-hover:opacity-100"
+          class="rounded p-0.5 text-zinc-400  transition-all hover:bg-zinc-100 hover:text-red-500 group-hover:opacity-100"
           @click="openDeleteModal"
         >
           <UIcon name="i-lucide-trash-2" class="h-3 w-3" />
+          удалить
         </button>
       </div>
     </div>

@@ -69,6 +69,7 @@ const props = defineProps<{
   slots: MenuSlot[];
   isLoading?: boolean;
 }>();
+const toast = useToast()
 
 const emit = defineEmits<{
   addRecipe: [dayId: string, mealType: MealType];
@@ -111,8 +112,22 @@ function handleDeleteDay(dayId: string) {
 }
 
 function addNewDay() {
-  const nextOrder = props.days.length + 1;
-  emit('createDay', nextOrder, `День ${nextOrder}`);
+  // Находим максимальный существующий dayOrder
+  const existingOrders = props.days.map(d => d.dayOrder);
+  const maxOrder = existingOrders.length > 0 ? Math.max(...existingOrders) : 0;
+
+  // Новый порядковый номер = максимальный + 1
+  const nextOrder = maxOrder + 1;
+
+  if (nextOrder <= 30) {
+    emit('createDay', nextOrder, `День ${nextOrder}`);
+  } else {
+    toast.add({
+      title: 'Лимит дней',
+      description: 'Нельзя добавить больше 30 дней',
+      color: 'warning',
+    });
+  }
 }
 
 function scrollPrev() {

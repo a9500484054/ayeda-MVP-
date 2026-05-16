@@ -405,11 +405,19 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
 
       return { slot: newSlot, item: newItem };
     } catch (err: any) {
-      toast.add({
-        title: 'Ошибка',
-        description: err.message || 'Не удалось добавить рецепт',
-        color: 'error',
-      });
+      if (err.message?.includes('duplicate key') || err.code === 23505) {
+        toast.add({
+          title: 'Рецепт уже добавлен',
+          description: 'Этот рецепт уже есть в данном приеме пищи',
+          color: 'warning',
+        });
+      } else {
+        toast.add({
+          title: 'Ошибка',
+          description: err.message || 'Не удалось добавить рецепт',
+          color: 'error',
+        });
+      }
       throw err;
     } finally {
       isLoading.value = false;
@@ -417,7 +425,19 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
   }
 
   // Добавить рецепт в существующий слот
+  // В store, метод addRecipeToSlot
   async function addRecipeToSlot(slotId: string, recipeId: string, notes?: string) {
+    // Проверяем, не добавлен ли уже этот рецепт в слот
+    const slot = slots.value.find(s => s.id === slotId);
+    if (slot?.items?.some(item => item.recipeId === recipeId)) {
+      toast.add({
+        title: 'Рецепт уже добавлен',
+        description: 'Этот рецепт уже есть в данном приеме пищи',
+        color: 'warning',
+      });
+      return null;
+    }
+
     isLoading.value = true;
     try {
       const newItem = await api.addRecipeToSlot(slotId, { recipeId, notes });
@@ -438,11 +458,20 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
       });
       return newItem;
     } catch (err: any) {
-      toast.add({
-        title: 'Ошибка',
-        description: err.message || 'Не удалось добавить рецепт',
-        color: 'error',
-      });
+      // Обрабатываем ошибку дубликата
+      if (err.message?.includes('duplicate key') || err.code === 23505) {
+        toast.add({
+          title: 'Рецепт уже добавлен',
+          description: 'Этот рецепт уже есть в данном приеме пищи',
+          color: 'warning',
+        });
+      } else {
+        toast.add({
+          title: 'Ошибка',
+          description: err.message || 'Не удалось добавить рецепт',
+          color: 'error',
+        });
+      }
       throw err;
     } finally {
       isLoading.value = false;
@@ -595,7 +624,10 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
     }
   }
 
-
+  function isRecipeInSlot(slotId: string, recipeId: string): boolean {
+    const slot = slots.value.find(s => s.id === slotId);
+    return slot?.items?.some(item => item.recipeId === recipeId) || false;
+  }
 
   // Очистить ошибку
   function clearError() {
@@ -650,5 +682,6 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
     // Other
     setActiveMenuList,
     clearError,
+    isRecipeInSlot,
   };
 });

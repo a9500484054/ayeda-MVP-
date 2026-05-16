@@ -1,6 +1,5 @@
-<!-- apps/frontend/app/components/menu-planner/modals/RecipeSearchModal.vue -->
 <template>
-  <UModal v-model:open="isModalOpen" :title="title">
+  <UModal v-model:open="isModalOpen" title="Добавить рецепт">
     <template #body>
       <div class="flex flex-col gap-4">
         <!-- Поиск -->
@@ -21,35 +20,30 @@
 
         <!-- Список рецептов -->
         <div class="max-h-[500px] overflow-y-auto">
-          <!-- Загрузка -->
           <div v-if="isLoadingRecipes" class="flex flex-col items-center justify-center py-12">
             <div class="h-8 w-8 animate-spin rounded-full border-2 border-zinc-200 border-t-green-600" />
             <p class="mt-3 text-sm text-zinc-500">Поиск рецептов...</p>
           </div>
 
-          <!-- Нет результатов -->
           <div v-else-if="!isLoadingRecipes && recipes.length === 0 && searchQuery" class="py-12 text-center">
             <UIcon name="i-lucide-cooking-pot" class="mx-auto h-12 w-12 text-zinc-300" />
             <p class="mt-3 text-sm text-zinc-500">Рецепты не найдены</p>
-            <p class="text-xs text-zinc-400">Попробуйте изменить поисковый запрос</p>
           </div>
 
-          <!-- Список рецептов -->
           <div v-else-if="recipes.length > 0" class="space-y-2">
             <RecipeSearchCard
               v-for="recipe in recipes"
               :key="recipe.id"
               :recipe="recipe"
               :is-selected="selectedRecipeId === recipe.id"
+              :is-disabled="isRecipeAlreadyAdded(recipe.id)"
               @select="selectRecipe"
             />
           </div>
 
-          <!-- Пустое состояние без поиска -->
           <div v-else class="py-12 text-center">
             <UIcon name="i-lucide-search" class="mx-auto h-12 w-12 text-zinc-300" />
             <p class="mt-3 text-sm text-zinc-500">Начните вводить название рецепта</p>
-            <p class="text-xs text-zinc-400">Например: "Борщ", "Салат Цезарь", "Омлет"</p>
           </div>
         </div>
       </div>
@@ -62,7 +56,7 @@
         </UButton>
         <UButton
           color="primary"
-          :disabled="!selectedRecipeId"
+          :disabled="!selectedRecipeId || isRecipeAlreadyAdded(selectedRecipeId)"
           :loading="isAdding"
           @click="addRecipe"
         >
@@ -75,6 +69,7 @@
 
 <script setup lang="ts">
 import type { RecipeResponse } from '~/composables/useRecipesApi';
+import { useMenuPlannerStore } from '~/stores/menuPlannerStore';
 import RecipeSearchCard from '../common/RecipeSearchCard.vue';
 
 const props = defineProps<{
@@ -87,36 +82,30 @@ const emit = defineEmits<{
   'recipe-added': [recipeId: string];
 }>();
 
-// Состояния
+const store = useMenuPlannerStore();
 const searchQuery = ref('');
 const recipes = ref<RecipeResponse[]>([]);
 const isLoadingRecipes = ref(false);
 const selectedRecipeId = ref<string | null>(null);
 const isAdding = ref(false);
-
-// Таймер для debounce
 let searchTimeout: NodeJS.Timeout;
 
-// Computed для v-model модалки
 const isModalOpen = computed({
-  get: () => {
-    console.log('🔍 RecipeSearchModal: open =', props.open);
-    return props.open;
-  },
+  get: () => props.open,
   set: (value) => {
-    console.log('🔍 RecipeSearchModal: setting open to', value);
-    if (!value) {
-      resetModal();
-    }
+    if (!value) resetModal();
     emit('update:open', value);
   }
 });
 
-const title = computed(() => {
-  return props.slotId ? 'Добавить рецепт' : 'Выбор рецепта';
-});
+// Проверка, добавлен ли уже рецепт в текущий слот
+function isRecipeAlreadyAdded(recipeId: string): boolean {
+  if (!props.slotId) return false;
 
-// Поиск рецептов
+  const slot = store.slots.find(s => s.id === props.slotId);
+  return slot?.items?.some(item => item.recipeId === recipeId) || false;
+}
+
 async function searchRecipes() {
   if (!searchQuery.value.trim()) {
     recipes.value = [];
@@ -129,14 +118,12 @@ async function searchRecipes() {
     const { useRecipesApi } = await import('~/composables/useRecipesApi');
     const api = useRecipesApi();
 
-    // Используем правильный метод searchRecipes, а не getRecipes
     const result = await api.searchRecipes(searchQuery.value, {
       page: 1,
       limit: 20
     });
 
     recipes.value = result.items || result.data || [];
-    console.log(`📚 Found ${recipes.value.length} recipes`);
   } catch (error) {
     console.error('Failed to search recipes:', error);
     recipes.value = [];
@@ -145,7 +132,6 @@ async function searchRecipes() {
   }
 }
 
-// Debounced search
 function handleSearchInput() {
   clearTimeout(searchTimeout);
   searchTimeout = setTimeout(() => {
@@ -153,20 +139,27 @@ function handleSearchInput() {
   }, 500);
 }
 
-// Выбор рецепта
 function selectRecipe(recipe: RecipeResponse) {
-  console.log('📖 Recipe selected:', recipe.id, recipe.title);
   selectedRecipeId.value = recipe.id;
 }
 
-// Добавление рецепта
 async function addRecipe() {
   if (!selectedRecipeId.value) return;
+
+  // Дополнительная проверка перед отправкой
+  if (isRecipeAlreadyAdded(selectedRecipeId.value)) {
+    toast.add({
+      title: 'Рецепт уже добавлен',
+      description: 'Этот рецепт уже есть в данном приеме пищи',
+      color: 'warning',
+    });
+    closeModal();
+    return;
+  }
 
   isAdding.value = true;
 
   try {
-    console.log('✅ Adding recipe:', selectedRecipeId.value);
     emit('recipe-added', selectedRecipeId.value);
     closeModal();
   } catch (error) {
@@ -176,7 +169,6 @@ async function addRecipe() {
   }
 }
 
-// Сброс состояния при закрытии
 function resetModal() {
   searchQuery.value = '';
   recipes.value = [];
@@ -188,11 +180,9 @@ function closeModal() {
   isModalOpen.value = false;
 }
 
-// Сброс при открытии
 watch(() => props.open, (isOpen) => {
   if (isOpen) {
     resetModal();
-    // Фокусируемся на поле поиска
     setTimeout(() => {
       const input = document.querySelector('input[type="text"]') as HTMLInputElement;
       input?.focus();
@@ -200,24 +190,3 @@ watch(() => props.open, (isOpen) => {
   }
 });
 </script>
-
-<style scoped>
-/* Стили для скролла */
-:deep(.overflow-y-auto)::-webkit-scrollbar {
-  width: 6px;
-}
-
-:deep(.overflow-y-auto)::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 10px;
-}
-
-:deep(.overflow-y-auto)::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 10px;
-}
-
-:deep(.overflow-y-auto)::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-</style>

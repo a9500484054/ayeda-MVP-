@@ -1,12 +1,13 @@
-<!-- apps/frontend/app/components/menu-planner/modals/RecipeSearchCard.vue -->
 <template>
   <div
     v-if="recipe && recipe.id"
     class="recipe-search-card flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-all"
-    :class="isSelected
-      ? 'border-green-400 bg-green-50 ring-2 ring-green-400'
-      : 'border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50'"
-    @click="handleClick"
+    :class="{
+      'border-green-400 bg-green-50 ring-2 ring-green-400': isSelected,
+      'border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50': !isSelected && !isDisabled,
+      'border-zinc-200 bg-zinc-50 opacity-50 cursor-not-allowed': isDisabled,
+    }"
+    @click="!isDisabled && handleClick()"
   >
     <!-- Изображение -->
     <div class="h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg bg-zinc-100">
@@ -23,10 +24,16 @@
 
     <!-- Информация -->
     <div class="min-w-0 flex-1">
-      <h4 class="truncate font-medium text-zinc-800">
-        {{ recipe.title || 'Без названия' }}
-      </h4>
-      <div class="mt-1 flex flex-wrap gap-3 text-xs text-zinc-500">
+      <div class="flex items-center gap-2">
+        <h4 class="truncate font-medium" :class="isDisabled ? 'text-zinc-500' : 'text-zinc-800'">
+          {{ recipe.title || 'Без названия' }}
+        </h4>
+        <span v-if="isDisabled" class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700">
+          <UIcon name="i-lucide-check" class="mr-0.5 h-3 w-3" />
+          Добавлен
+        </span>
+      </div>
+      <div class="mt-1 flex flex-wrap gap-3 text-xs" :class="isDisabled ? 'text-zinc-400' : 'text-zinc-500'">
         <span class="flex items-center gap-1">
           <UIcon name="i-lucide-clock" class="h-3 w-3" />
           {{ recipe.cookingTime || 0 }} мин
@@ -59,6 +66,7 @@ import type { RecipeResponse } from '~/composables/useRecipesApi';
 const props = defineProps<{
   recipe: RecipeResponse | null | undefined;
   isSelected: boolean;
+  isDisabled?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -82,7 +90,7 @@ function handleClick() {
   transition: all 0.2s ease;
 }
 
-.recipe-search-card:hover {
+.recipe-search-card:not(.opacity-50):hover {
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
