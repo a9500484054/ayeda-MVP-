@@ -208,15 +208,28 @@ async function ensureSlotExists(dayOrder: number, mealType: string): Promise<str
 }
 
 // Обработчики
-function handleAddRecipe(dayOrder: number, mealType: string) {
+async function handleAddRecipe(dayOrder: number, mealType: string) {
   const slot = getSlotByDayAndMeal(dayOrder, mealType);
   if (slot) {
     emit('addRecipe', slot.id);
   } else {
-    // Сначала создаем слот
+    // Эмитим создание слота, родитель сам откроет модалку после создания
     emit('createSlot', { dayOrder, mealType });
-    // TODO: После создания слота открыть модалку добавления
   }
+}
+
+// Добавьте временное решение через событие и колбэк
+function createSlotAndWait(dayOrder: number, mealType: string): Promise<string | null> {
+  return new Promise((resolve) => {
+    const handler = (slotId: string) => {
+      resolve(slotId);
+      emit('createSlot', { dayOrder, mealType });
+      // Нужно будет добавить слушатель ответа от родителя
+    };
+    // Временный фикс - эмитим и надеемся на ответ
+    emit('createSlot', { dayOrder, mealType });
+    setTimeout(() => resolve(null), 500);
+  });
 }
 
 function handleRemoveRecipe(itemId: string) {
@@ -227,8 +240,12 @@ function handleEditNotes(itemId: string, notes: string) {
   emit('editNotes', itemId, notes);
 }
 
-function handleCreateSlot(data: { dayOrder: number; mealType: string }) {
-  emit('createSlot', data);
+async function handleCreateSlot(data: { dayOrder: number; mealType: string }) {
+  // Эмитим событие с правильными данными
+  emit('createSlot', {
+    dayOrder: data.dayOrder,
+    mealType: data.mealType
+  });
 }
 
 // Управление днями

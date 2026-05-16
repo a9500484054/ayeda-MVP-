@@ -120,9 +120,9 @@ import DisplayTypeInfo from '~/components/menu-planner/DisplayTypeInfo.vue';
 import DaysView from '~/components/menu-planner/views/DaysView.vue';
 import CalendarView from '~/components/menu-planner/views/CalendarView.vue';
 import RecipeSearchModal from '~/components/menu-planner/modals/RecipeSearchModal.vue';
-import DeleteConfirmationModal from '~/components/my-recipe/DeleteConfirmationModal.vue';
 import Button from '~/shared/ui/button/Button.vue';
 import MenuListModal from '~/components/menu-planner/modals/MenuListModal.vue';
+import DeleteConfirmationModal from '~/components/menu-planner/modals/DeleteConfirmationModal.vue';
 
 definePageMeta({ layout: 'cabinet' });
 
@@ -189,12 +189,28 @@ function handleEditNotes(itemId: string, notes: string) {
   console.log('Edit notes:', itemId, notes);
 }
 
+function getDateFromDayOrder(dayOrder: number): string {
+  const date = new Date();
+  date.setDate(date.getDate() + (dayOrder - 1)); // day-1 = сегодня
+  return date.toISOString().split('T')[0]; // YYYY-MM-DD
+}
+
 async function handleCreateSlot(data: { dayOrder?: number; slotDate?: string; mealType: string }) {
   try {
+    let slotData: any = { mealType: data.mealType };
+
     if (data.dayOrder !== undefined) {
-      console.log('Create slot for day:', data.dayOrder, data.mealType);
+      // Конвертируем номер дня в реальную дату
+      slotData.slotDate = getDateFromDayOrder(data.dayOrder);
     } else if (data.slotDate) {
-      console.log('Create slot for date:', data.slotDate, data.mealType);
+      slotData.slotDate = data.slotDate;
+    }
+
+    const newSlot = await store.createSlot(slotData);
+
+    if (newSlot) {
+      await nextTick();
+      handleAddRecipe(newSlot.id);
     }
   } catch (error) {
     console.error('Failed to create slot:', error);

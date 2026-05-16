@@ -1,4 +1,4 @@
-<!-- Исправленный RecipeCardInSlot.vue -->
+<!-- apps\frontend\app\components\menu-planner\common\RecipeCardInSlot.vue -->
 <template>
   <div
     class="recipe-card group relative rounded-lg bg-zinc-50 p-2 transition-all hover:bg-zinc-100"

@@ -1,3 +1,4 @@
+<!-- apps\frontend\app\components\menu-planner\common\CalendarDayCell.vue -->
 <template>
   <div
     class="calendar-day-cell min-h-[120px] rounded-lg border p-2 transition-all"
