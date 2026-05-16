@@ -1,11 +1,12 @@
-<!-- apps\frontend\app\components\menu-planner\common\MealSlot.vue -->
+<!-- apps/frontend/app/components/menu-planner/common/MealSlot.vue -->
 <template>
   <div
     class="meal-slot min-h-[100px] rounded-xl border p-2 transition-all"
     :class="{
-      'border-zinc-200 bg-white': !isDragOver && !isEmpty,
-      'border-dashed border-zinc-300 bg-zinc-50': !isDragOver && isEmpty,
+      'border-zinc-200 bg-white': !isDragOver && !isEmpty && isDayCreated,
+      'border-dashed border-zinc-300 bg-zinc-50': !isDragOver && (isEmpty || !isDayCreated),
       'border-green-300 bg-green-50': isDragOver,
+      'opacity-60': !isDayCreated,
     }"
     draggable="true"
     @dragstart="handleDragStart"
@@ -23,8 +24,15 @@
       </span>
     </div>
 
+    <!-- Если день не создан -->
+    <div v-if="!isDayCreated" class="flex min-h-[60px] flex-col items-center justify-center">
+      <div class="text-center text-xs text-zinc-400">
+        День не создан
+      </div>
+    </div>
+
     <!-- Пустой слот -->
-    <div v-if="isEmpty" class="flex min-h-[60px] flex-col items-center justify-center">
+    <div v-else-if="isEmpty" class="flex min-h-[60px] flex-col items-center justify-center">
       <button
         class="flex flex-col items-center gap-1 text-zinc-400 transition-colors hover:text-green-600"
         @click="emit('addRecipe')"
@@ -79,6 +87,7 @@ const props = defineProps<{
   items?: MenuSlotItem[];
   mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
   isDragOver?: boolean;
+  isDayCreated?: boolean; // Добавляем проп для проверки, создан ли день
 }>();
 
 const emit = defineEmits<{

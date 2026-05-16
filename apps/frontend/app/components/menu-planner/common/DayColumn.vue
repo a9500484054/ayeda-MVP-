@@ -1,4 +1,4 @@
-<!-- apps\frontend\app\components\menu-planner\common\DayColumn.vue -->
+<!-- apps/frontend/app/components/menu-planner/common/DayColumn.vue -->
 <template>
   <div class="day-column w-[280px] flex-shrink-0 rounded-xl border border-zinc-200 bg-white shadow-sm">
     <!-- Заголовок дня -->
@@ -7,6 +7,10 @@
       <p v-if="date" class="mt-0.5 text-xs text-zinc-400">
         {{ formatDate(date) }}
       </p>
+      <!-- Индикатор, что день создан -->
+      <span v-if="!hasDay" class="mt-1 inline-block text-xs text-zinc-400">
+        (не создан)
+      </span>
     </div>
 
     <!-- Слоты приемов пищи -->
@@ -18,6 +22,7 @@
           :items="breakfastSlot?.items"
           meal-type="breakfast"
           :is-drag-over="dragOverMeal === 'breakfast'"
+          :is-day-created="hasDay"
           @add-recipe="() => emit('addRecipe', dayNumber, 'breakfast')"
           @remove-recipe="handleRemoveRecipe"
           @edit-notes="handleEditNotes"
@@ -35,6 +40,7 @@
           :items="lunchSlot?.items"
           meal-type="lunch"
           :is-drag-over="dragOverMeal === 'lunch'"
+          :is-day-created="hasDay"
           @add-recipe="() => emit('addRecipe', dayNumber, 'lunch')"
           @remove-recipe="handleRemoveRecipe"
           @edit-notes="handleEditNotes"
@@ -52,6 +58,7 @@
           :items="dinnerSlot?.items"
           meal-type="dinner"
           :is-drag-over="dragOverMeal === 'dinner'"
+          :is-day-created="hasDay"
           @add-recipe="() => emit('addRecipe', dayNumber, 'dinner')"
           @remove-recipe="handleRemoveRecipe"
           @edit-notes="handleEditNotes"
@@ -69,6 +76,7 @@
           :items="snackSlot?.items"
           meal-type="snack"
           :is-drag-over="dragOverMeal === 'snack'"
+          :is-day-created="hasDay"
           @add-recipe="() => emit('addRecipe', dayNumber, 'snack')"
           @remove-recipe="handleRemoveRecipe"
           @edit-notes="handleEditNotes"
@@ -89,6 +97,7 @@ import MealSlot from './MealSlot.vue';
 const props = defineProps<{
   dayNumber: number;
   date?: Date;
+  hasDay: boolean; // Создан ли день (есть ли хотя бы один слот)
   breakfastSlot?: MenuSlot;
   lunchSlot?: MenuSlot;
   dinnerSlot?: MenuSlot;
@@ -100,7 +109,6 @@ const emit = defineEmits<{
   addRecipe: [dayNumber: number, mealType: string];
   removeRecipe: [itemId: string];
   editNotes: [itemId: string, notes: string];
-  createSlot: [data: { dayOrder: number; mealType: string }];
 }>();
 
 const dragOverMeal = ref<string | null>(null);
@@ -120,7 +128,6 @@ function handleEditNotes(itemId: string, notes: string) {
 
 function handleDrop(recipeId: string, mealType: string) {
   console.log(`Drop recipe ${recipeId} to day ${props.dayNumber}, meal ${mealType}`);
-  // TODO: Добавить рецепт в слот
   dragOverMeal.value = null;
 }
 </script>

@@ -1,4 +1,4 @@
-<!-- apps\frontend\app\components\menu-planner\common\CalendarDayCell.vue -->
+<!-- apps/frontend/app/components/menu-planner/common/CalendarDayCell.vue (исправленный) -->
 <template>
   <div
     class="calendar-day-cell min-h-[120px] rounded-lg border p-2 transition-all"
@@ -7,7 +7,6 @@
       'border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-sm': !isToday,
     }"
   >
-    <!-- Дата -->
     <div class="mb-2 flex items-center justify-between">
       <span
         class="text-sm font-medium"
@@ -24,13 +23,12 @@
       </button>
     </div>
 
-    <!-- Слоты приемов пищи -->
     <div class="space-y-2">
       <div
         v-for="meal in mealTypes"
         :key="meal.value"
         class="meal-row cursor-pointer rounded p-1 transition-colors hover:bg-zinc-50"
-        @click="openAddRecipe(meal.value)"
+        @click="handleAddToMeal(meal.value)"
       >
         <div class="flex items-center justify-between text-xs">
           <span class="text-zinc-500">{{ meal.label }}</span>
@@ -39,19 +37,17 @@
           </span>
         </div>
 
-        <!-- Первый рецепт (кратко) -->
         <div v-if="firstRecipe(meal.value)" class="mt-0.5 truncate text-xs text-zinc-700">
           {{ firstRecipe(meal.value) }}
         </div>
 
-        <!-- Индикатор дополнительных рецептов -->
         <div v-if="getItemsCount(meal.value) > 1" class="mt-0.5 text-[10px] text-green-600">
           +{{ getItemsCount(meal.value) - 1 }}
         </div>
       </div>
     </div>
 
-    <!-- Модалка для добавления/редактирования -->
+    <!-- Модалка для просмотра/редактирования -->
     <UModal v-model:open="isDetailModalOpen">
       <div class="max-h-[80vh] w-[500px] overflow-y-auto p-4">
         <div class="mb-4 flex items-center justify-between">
@@ -136,20 +132,11 @@
         </div>
       </div>
     </UModal>
-
-    <!-- Модалка поиска рецептов -->
-    <RecipeSearchModal
-      :open="isRecipeSearchOpen"
-      :slot-id="editingSlotId"
-      @update:open="isRecipeSearchOpen = false"
-      @recipe-added="handleRecipeAddedToMeal"
-    />
   </div>
 </template>
 
 <script setup lang="ts">
 import type { MenuSlot, MenuSlotItem } from '~/composables/useMenuPlannerApi';
-import RecipeSearchModal from '../modals/RecipeSearchModal.vue';
 
 const props = defineProps<{
   date: Date;
@@ -162,7 +149,6 @@ const emit = defineEmits<{
   addRecipe: [date: Date, mealType: string];
   removeRecipe: [itemId: string];
   editNotes: [itemId: string, notes: string];
-  createSlot: [data: { slotDate: string; mealType: string }];
 }>();
 
 const mealTypes = [
@@ -174,38 +160,30 @@ const mealTypes = [
 
 const isDetailModalOpen = ref(false);
 const isNotesModalOpen = ref(false);
-const isRecipeSearchOpen = ref(false);
-const selectedMealType = ref<string>('');
-const editingSlotId = ref<string | null>(null);
 const editingItemId = ref<string | null>(null);
 const notesValue = ref('');
 
-// Получить слот для конкретного приема пищи
 function getSlot(mealType: string): MenuSlot | undefined {
   const dateStr = props.date.toISOString().split('T')[0];
   return props.slots.find(s => s.slotDate === dateStr && s.mealType === mealType);
 }
 
-// Получить все рецепты в слоте
 function getItems(mealType: string): MenuSlotItem[] {
   const slot = getSlot(mealType);
   if (!slot?.items) return [];
   return [...slot.items].sort((a, b) => a.order - b.order);
 }
 
-// Получить количество рецептов
 function getItemsCount(mealType: string): number {
   return getItems(mealType).length;
 }
 
-// Получить первый рецепт
 function firstRecipe(mealType: string): string | null {
   const items = getItems(mealType);
   if (items.length === 0) return null;
   return items[0].recipe?.title || 'Рецепт';
 }
 
-// Форматирование даты
 function formatDate(date: Date): string {
   const options: Intl.DateTimeFormatOptions = {
     day: 'numeric',
@@ -215,28 +193,14 @@ function formatDate(date: Date): string {
   return date.toLocaleDateString('ru-RU', options);
 }
 
-// Открыть модалку для добавления
 function openAddMenu() {
   isDetailModalOpen.value = true;
 }
 
-function openAddRecipe(mealType: string) {
-  const slot = getSlot(mealType);
-  if (slot) {
-    editingSlotId.value = slot.id;
-    isRecipeSearchOpen.value = true;
-  } else {
-    // Создаем слот
-    emit('createSlot', {
-      slotDate: props.date.toISOString().split('T')[0],
-      mealType,
-    });
-    // TODO: После создания слота открыть модалку
-  }
-}
-
+// Просто эмитим событие, слот будет создан в родителе при добавлении рецепта
 function handleAddToMeal(mealType: string) {
-  openAddRecipe(mealType);
+  emit('addRecipe', props.date, mealType);
+  isDetailModalOpen.value = false;
 }
 
 function handleRemoveRecipe(itemId: string) {
@@ -256,11 +220,6 @@ function saveNotes() {
   isNotesModalOpen.value = false;
   editingItemId.value = null;
   notesValue.value = '';
-}
-
-function handleRecipeAddedToMeal() {
-  isRecipeSearchOpen.value = false;
-  editingSlotId.value = null;
 }
 </script>
 

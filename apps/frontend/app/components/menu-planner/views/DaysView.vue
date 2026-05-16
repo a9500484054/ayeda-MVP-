@@ -1,44 +1,44 @@
-<!-- apps\frontend\app\components\menu-planner\views\DaysView.vue -->
+<!-- apps/frontend/app/components/menu-planner/views/DaysView.vue -->
 <template>
   <div class="days-view">
     <!-- Управление днями -->
     <div class="mb-4 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <!-- Выбор количества дней -->
+        <!-- Выбор количества дней (только для UI, не создает слоты) -->
         <div class="flex items-center gap-2 rounded-xl border border-zinc-200 bg-white p-1">
           <button
             v-for="preset in dayPresets"
             :key="preset.value"
             class="rounded-lg px-3 py-1.5 text-sm transition-all"
-            :class="daysCount === preset.value
+            :class="visibleDaysLimit === preset.value
               ? 'bg-green-600 text-white'
               : 'text-zinc-600 hover:bg-zinc-100'"
-            @click="setDaysCount(preset.value)"
+            @click="setDaysLimit(preset.value)"
           >
             {{ preset.label }}
           </button>
           <button
             class="rounded-lg px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100"
-            :class="{ 'bg-green-600 text-white': !dayPresets.some(p => p.value === daysCount) }"
+            :class="{ 'bg-green-600 text-white': !dayPresets.some(p => p.value === visibleDaysLimit) }"
             @click="openCustomDaysModal"
           >
             Свои
           </button>
         </div>
 
-        <!-- Кнопка добавить день -->
+        <!-- Кнопка добавления нового дня -->
         <button
-          v-if="daysCount < 30"
+          v-if="createdDays.length < 30"
           class="flex items-center gap-1 rounded-xl border border-dashed border-zinc-300 px-3 py-1.5 text-sm text-zinc-500 transition-all hover:border-green-400 hover:text-green-600"
-          @click="addDay"
+          @click="addNewDay"
         >
           <UIcon name="i-lucide-plus" class="h-4 w-4" />
-          Добавить день ({{ daysCount }}/30)
+          Добавить день ({{ createdDays.length }}/30)
         </button>
       </div>
 
-      <!-- Навигация (если дней больше чем помещается) -->
-      <div v-if="totalDays > visibleDays" class="flex items-center gap-2">
+      <!-- Навигация -->
+      <div v-if="displayedDays.length > visibleDaysPerPage" class="flex items-center gap-2">
         <button
           class="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600"
           :disabled="scrollIndex === 0"
@@ -47,11 +47,11 @@
           <UIcon name="i-lucide-chevron-left" class="h-5 w-5" />
         </button>
         <span class="text-sm text-zinc-500">
-          {{ scrollIndex + 1 }} - {{ Math.min(scrollIndex + visibleDays, totalDays) }} / {{ totalDays }}
+          {{ scrollIndex + 1 }} - {{ Math.min(scrollIndex + visibleDaysPerPage, displayedDays.length) }} / {{ displayedDays.length }}
         </span>
         <button
           class="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600"
-          :disabled="scrollIndex + visibleDays >= totalDays"
+          :disabled="scrollIndex + visibleDaysPerPage >= displayedDays.length"
           @click="scrollNext"
         >
           <UIcon name="i-lucide-chevron-right" class="h-5 w-5" />
@@ -59,69 +59,65 @@
       </div>
     </div>
 
-    <!-- Контейнер с горизонтальным скроллом -->
+    <!-- Контейнер с днями -->
     <div class="days-scroll-container overflow-x-auto pb-4">
       <div class="flex gap-4" :style="{ minWidth: 'fit-content' }">
         <DayColumn
-          v-for="day in visibleDaysRange"
-          :key="day"
-          :day-number="day"
-          :breakfast-slot="getSlotByDayAndMeal(day, 'breakfast')"
-          :lunch-slot="getSlotByDayAndMeal(day, 'lunch')"
-          :dinner-slot="getSlotByDayAndMeal(day, 'dinner')"
-          :snack-slot="getSlotByDayAndMeal(day, 'snack')"
+          v-for="dayNumber in displayedDays"
+          :key="dayNumber"
+          :day-number="dayNumber"
+          :has-day="createdDays.includes(dayNumber)"
+          :breakfast-slot="getSlotByDayAndMeal(dayNumber, 'breakfast')"
+          :lunch-slot="getSlotByDayAndMeal(dayNumber, 'lunch')"
+          :dinner-slot="getSlotByDayAndMeal(dayNumber, 'dinner')"
+          :snack-slot="getSlotByDayAndMeal(dayNumber, 'snack')"
           :is-loading="isLoading"
           @add-recipe="handleAddRecipe"
           @remove-recipe="handleRemoveRecipe"
           @edit-notes="handleEditNotes"
-          @create-slot="handleCreateSlot"
         />
       </div>
     </div>
 
     <!-- Модалка для выбора количества дней -->
-    <UModal v-model:open="isCustomDaysModalOpen" title="Количество дней">
+    <UModal v-model:open="isCustomDaysModalOpen" title="Лимит отображаемых дней">
       <template #body>
-        <div class="flex items-center gap-4">
-          <UInput
-            v-model.number="customDaysCount"
-            type="number"
-            min="1"
-            max="30"
-            class="w-24"
-            placeholder="дней"
-          />
-          <span class="text-sm text-gray-500">дней (макс. 30)</span>
+        <div class="space-y-4">
+          <p class="text-sm text-zinc-600">
+            Выберите, сколько дней показывать на экране. Это не удаляет существующие дни.
+          </p>
+          <div class="flex items-center gap-4">
+            <UInput
+              v-model.number="customDaysLimit"
+              type="number"
+              min="1"
+              max="30"
+              class="w-24"
+              placeholder="дней"
+            />
+            <span class="text-sm text-gray-500">дней (макс. 30)</span>
+          </div>
+          <p class="text-xs text-zinc-500">
+            Всего создано дней: {{ createdDays.length }}
+          </p>
         </div>
       </template>
-
       <template #footer>
         <div class="flex justify-end gap-2">
           <UButton variant="ghost" @click="isCustomDaysModalOpen = false">
             Отмена
           </UButton>
-          <UButton color="primary" @click="applyCustomDays">
+          <UButton color="primary" @click="applyCustomDaysLimit">
             Применить
           </UButton>
         </div>
       </template>
     </UModal>
-
-    <!-- Модалка для Drag & Drop переупорядочивания -->
-    <UDragDropReorderModal
-      v-if="reorderModalOpen"
-      :items="reorderItems"
-      :is-open="reorderModalOpen"
-      title="Порядок дней"
-      description="Перетащите дни для изменения порядка"
-      @update:is-open="reorderModalOpen = false"
-      @reorder="handleReorder"
-    />
   </div>
 </template>
 
 <script setup lang="ts">
-import type { MenuSlot, MenuSlotItem } from '~/composables/useMenuPlannerApi';
+import type { MenuSlot } from '~/composables/useMenuPlannerApi';
 import DayColumn from '../common/DayColumn.vue';
 
 const props = defineProps<{
@@ -130,20 +126,18 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  addRecipe: [slotId: string];
+  addRecipe: [dayOrder: number, mealType: string];
   removeRecipe: [itemId: string];
   editNotes: [itemId: string, notes: string];
-  createSlot: [data: { dayOrder: number; mealType: string }];
+  createDay: [dayOrder: number]; // Создание пустого дня
 }>();
 
-// Состояние
-const daysCount = ref(7);
+// Состояния
+const visibleDaysLimit = ref(7);
 const scrollIndex = ref(0);
-const visibleDays = ref(5); // Количество видимых дней (можно сделать responsive)
+const visibleDaysPerPage = ref(5);
 const isCustomDaysModalOpen = ref(false);
-const customDaysCount = ref(7);
-const reorderModalOpen = ref(false);
-const reorderItems = ref<{ id: number; title: string }[]>([]);
+const customDaysLimit = ref(7);
 
 // Пресеты дней
 const dayPresets = [
@@ -155,81 +149,57 @@ const dayPresets = [
   { value: 30, label: 'Месяц' },
 ];
 
-// Получить уникальные номера дней из слотов
-const dayOrders = computed(() => {
-  const orders = new Set<number>();
+// Получаем все созданные дни (из слотов)
+const createdDays = computed(() => {
+  const daysSet = new Set<number>();
   props.slots.forEach(slot => {
-    if (slot.order !== undefined && slot.order !== null) {
-      orders.add(slot.order);
+    if (slot.dayOrder !== undefined && slot.dayOrder !== null) {
+      daysSet.add(slot.dayOrder);
     }
   });
-  return Array.from(orders).sort((a, b) => a - b);
+  return Array.from(daysSet).sort((a, b) => a - b);
 });
 
-const totalDays = computed(() => {
-  if (dayOrders.value.length > 0) {
-    return Math.max(daysCount.value, Math.max(...dayOrders.value));
-  }
-  return daysCount.value;
-});
+// Дни для отображения (учитываем лимит)
+const displayedDays = computed(() => {
+  const maxDay = Math.max(visibleDaysLimit.value, ...createdDays.value, 0);
+  const days: number[] = [];
 
-// Видимые дни
-const visibleDaysRange = computed(() => {
-  const start = scrollIndex.value + 1;
-  const end = Math.min(scrollIndex.value + visibleDays.value, totalDays.value);
-  const result: number[] = [];
-  for (let i = start; i <= end; i++) {
-    result.push(i);
+  for (let i = 1; i <= maxDay; i++) {
+    days.push(i);
   }
-  return result;
+
+  return days;
 });
 
 // Получить слот по дню и приему пищи
 function getSlotByDayAndMeal(dayOrder: number, mealType: string): MenuSlot | undefined {
   return props.slots.find(
-    slot => slot.order === dayOrder && slot.mealType === mealType
+    slot => slot.dayOrder === dayOrder && slot.mealType === mealType
   );
 }
 
-// Создать слот, если его нет
-async function ensureSlotExists(dayOrder: number, mealType: string): Promise<string | null> {
-  const existingSlot = getSlotByDayAndMeal(dayOrder, mealType);
-  if (existingSlot) {
-    return existingSlot.id;
+// Создание нового пустого дня
+async function addNewDay() {
+  if (createdDays.value.length >= 30) return;
+
+  // Находим следующий доступный номер дня
+  let nextDay = 1;
+  while (createdDays.value.includes(nextDay)) {
+    nextDay++;
   }
 
-  // Эмитим событие для создания слота
-  return new Promise((resolve) => {
-    emit('createSlot', { dayOrder, mealType });
-    // TODO: Нужно дождаться ответа от родителя
-    // Пока возвращаем null
-    resolve(null);
-  });
-}
+  // Эмитим событие для создания пустого дня
+  emit('createDay', nextDay);
 
-// Обработчики
-async function handleAddRecipe(dayOrder: number, mealType: string) {
-  const slot = getSlotByDayAndMeal(dayOrder, mealType);
-  if (slot) {
-    emit('addRecipe', slot.id);
-  } else {
-    // Эмитим создание слота, родитель сам откроет модалку после создания
-    emit('createSlot', { dayOrder, mealType });
+  // Если новый день выходит за лимит, увеличиваем лимит
+  if (nextDay > visibleDaysLimit.value) {
+    visibleDaysLimit.value = nextDay;
   }
 }
 
-// Добавьте временное решение через событие и колбэк
-function createSlotAndWait(dayOrder: number, mealType: string): Promise<string | null> {
-  return new Promise((resolve) => {
-    const handler = (slotId: string) => {
-      resolve(slotId);
-      emit('createSlot', { dayOrder, mealType });
-      // Нужно будет добавить слушатель ответа от родителя
-    };
-    // Временный фикс - эмитим и надеемся на ответ
-    emit('createSlot', { dayOrder, mealType });
-    setTimeout(() => resolve(null), 500);
-  });
+function handleAddRecipe(dayOrder: number, mealType: string) {
+  emit('addRecipe', dayOrder, mealType);
 }
 
 function handleRemoveRecipe(itemId: string) {
@@ -240,88 +210,50 @@ function handleEditNotes(itemId: string, notes: string) {
   emit('editNotes', itemId, notes);
 }
 
-async function handleCreateSlot(data: { dayOrder: number; mealType: string }) {
-  // Эмитим событие с правильными данными
-  emit('createSlot', {
-    dayOrder: data.dayOrder,
-    mealType: data.mealType
-  });
-}
-
-// Управление днями
-function setDaysCount(count: number) {
-  daysCount.value = count;
+function setDaysLimit(limit: number) {
+  visibleDaysLimit.value = limit;
   scrollIndex.value = 0;
-  // TODO: Создать недостающие дни/слоты
 }
 
 function openCustomDaysModal() {
-  customDaysCount.value = daysCount.value;
+  customDaysLimit.value = visibleDaysLimit.value;
   isCustomDaysModalOpen.value = true;
 }
 
-function applyCustomDays() {
-  if (customDaysCount.value >= 1 && customDaysCount.value <= 30) {
-    setDaysCount(customDaysCount.value);
+function applyCustomDaysLimit() {
+  if (customDaysLimit.value >= 1 && customDaysLimit.value <= 30) {
+    setDaysLimit(customDaysLimit.value);
   }
   isCustomDaysModalOpen.value = false;
 }
 
-function addDay() {
-  if (daysCount.value < 30) {
-    setDaysCount(daysCount.value + 1);
-  }
-}
-
-// Навигация
 function scrollPrev() {
-  scrollIndex.value = Math.max(0, scrollIndex.value - visibleDays.value);
+  scrollIndex.value = Math.max(0, scrollIndex.value - visibleDaysPerPage.value);
 }
 
 function scrollNext() {
   scrollIndex.value = Math.min(
-    totalDays.value - visibleDays.value,
-    scrollIndex.value + visibleDays.value
+    displayedDays.value.length - visibleDaysPerPage.value,
+    scrollIndex.value + visibleDaysPerPage.value
   );
 }
 
-// Reorder (для будущей реализации)
-function openReorderModal() {
-  reorderItems.value = dayOrders.value.map(order => ({
-    id: order,
-    title: `День ${order}`,
-  }));
-  reorderModalOpen.value = true;
-}
-
-function handleReorder(items: { id: number; order: number }[]) {
-  // TODO: Обновить порядок дней
-  console.log('Reorder days:', items);
-}
-
-// Адаптивная ширина
-function updateVisibleDays() {
+function updateVisibleDaysPerPage() {
   const width = window.innerWidth;
-  if (width < 640) {
-    visibleDays.value = 1;
-  } else if (width < 768) {
-    visibleDays.value = 2;
-  } else if (width < 1024) {
-    visibleDays.value = 3;
-  } else if (width < 1280) {
-    visibleDays.value = 4;
-  } else {
-    visibleDays.value = 5;
-  }
+  if (width < 640) visibleDaysPerPage.value = 1;
+  else if (width < 768) visibleDaysPerPage.value = 2;
+  else if (width < 1024) visibleDaysPerPage.value = 3;
+  else if (width < 1280) visibleDaysPerPage.value = 4;
+  else visibleDaysPerPage.value = 5;
 }
 
 onMounted(() => {
-  updateVisibleDays();
-  window.addEventListener('resize', updateVisibleDays);
+  updateVisibleDaysPerPage();
+  window.addEventListener('resize', updateVisibleDaysPerPage);
 });
 
 onUnmounted(() => {
-  window.removeEventListener('resize', updateVisibleDays);
+  window.removeEventListener('resize', updateVisibleDaysPerPage);
 });
 </script>
 
