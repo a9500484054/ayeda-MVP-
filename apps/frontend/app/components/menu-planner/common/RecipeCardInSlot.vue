@@ -16,7 +16,7 @@
       <div class="h-10 w-10 flex-shrink-0 overflow-hidden rounded-lg bg-zinc-200">
         <img
           v-if="item.recipe && item.recipe.photo && item.recipe.photo.src"
-          :src="item.recipe.photo.src"
+          :src="`${apiUrl}${item.recipe.photo.src}`"
           :alt="item.recipe.title || 'Рецепт'"
           class="h-full w-full object-cover"
         />
@@ -54,33 +54,38 @@
 
     <!-- Modal для заметок -->
     <UModal v-model:open="isNotesModalOpen">
-      <div class="p-4">
-        <h3 class="mb-4 text-lg font-medium">Заметки к рецепту</h3>
-        <UTextarea
-          v-model="notesValue"
-          placeholder="Добавьте заметки (например, 'заменить на рис', 'без соли')"
-          :rows="4"
-        />
-        <div class="mt-4 flex justify-end gap-2">
-          <UButton variant="ghost" @click="isNotesModalOpen = false">
-            Отмена
-          </UButton>
-          <UButton color="primary" @click="saveNotes">
-            Сохранить
-          </UButton>
+      <template #body>
+        <div class="p-4">
+          <h3 class="mb-4 text-lg font-medium">Заметки к рецепту</h3>
+          <UTextarea
+            v-model="notesValue"
+            placeholder="Добавьте заметки (например, 'заменить на рис', 'без соли')"
+            :rows="4"
+          />
+          <div class="mt-4 flex justify-end gap-2">
+            <UButton variant="ghost" @click="isNotesModalOpen = false">
+              Отмена
+            </UButton>
+            <UButton color="primary" @click="saveNotes">
+              Сохранить
+            </UButton>
+          </div>
         </div>
-      </div>
+      </template>
     </UModal>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { MenuSlotItem } from '~/composables/useMenuPlannerApi';
+const config = useRuntimeConfig()
 
 const props = defineProps<{
   item: MenuSlotItem;
   isDraggable?: boolean;
 }>();
+
+const apiUrl = config.public.apiUrl || 'http://localhost:3001'
 
 const emit = defineEmits<{
   remove: [];

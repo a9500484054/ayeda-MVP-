@@ -21,7 +21,6 @@
         <UIcon name="i-lucide-cooking-pot" class="h-6 w-6 text-zinc-400" />
       </div>
     </div>
-
     <!-- Информация -->
     <div class="min-w-0 flex-1">
       <div class="flex items-center gap-2">
