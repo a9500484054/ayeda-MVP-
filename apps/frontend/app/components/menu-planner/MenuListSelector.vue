@@ -3,13 +3,6 @@
     <!-- Заголовок -->
     <div class="mb-3 flex items-center justify-between">
       <label class="text-sm font-medium text-zinc-700">Список меню</label>
-      <button
-        v-if="lists.length > 0"
-        class="text-xs text-green-600 hover:text-green-700 transition-colors"
-        @click="emit('create')"
-      >
-        + Создать список
-      </button>
     </div>
 
     <!-- Список карточек -->

@@ -1,3 +1,4 @@
+<!-- apps\frontend\app\components\menu-planner\common\DayColumn.vue -->
 <template>
   <div class="day-column w-[280px] flex-shrink-0 rounded-xl border border-zinc-200 bg-white shadow-sm">
     <!-- Заголовок дня -->

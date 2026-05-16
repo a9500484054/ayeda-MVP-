@@ -38,9 +38,9 @@
       />
 
       <!-- Переключатель типа отображения -->
-      <div v-if="store.activeMenuList" class="mt-6">
+      <!-- <div v-if="store.activeMenuList" class="mt-6">
         <DisplayTypeInfo :display-type="store.activeMenuList.displayType" />
-      </div>
+      </div> -->
 
       <!-- Контент в зависимости от типа -->
       <div v-if="store.activeMenuList" class="mt-6">
@@ -76,18 +76,6 @@
     </template>
 
     <!-- Модалки -->
-    <!-- <MenuListCreateModal
-      :open="isCreateModalOpen"
-      @update:open="(v) => isCreateModalOpen = v"
-      @created="handleListCreated"
-    />
-
-    <MenuListEditModal
-      :open="isEditModalOpen"
-      :list="editingList"
-      @update:open="(v) => isEditModalOpen = v"
-      @updated="handleListUpdated"
-    /> -->
 
     <!-- Для создания нового списка -->
     <MenuListModal
@@ -131,8 +119,6 @@ import MenuListSelector from '~/components/menu-planner/MenuListSelector.vue';
 import DisplayTypeInfo from '~/components/menu-planner/DisplayTypeInfo.vue';
 import DaysView from '~/components/menu-planner/views/DaysView.vue';
 import CalendarView from '~/components/menu-planner/views/CalendarView.vue';
-import MenuListCreateModal from '~/components/menu-planner/modals/MenuListCreateModal.vue';
-import MenuListEditModal from '~/components/menu-planner/modals/MenuListEditModal.vue';
 import RecipeSearchModal from '~/components/menu-planner/modals/RecipeSearchModal.vue';
 import DeleteConfirmationModal from '~/components/my-recipe/DeleteConfirmationModal.vue';
 import Button from '~/shared/ui/button/Button.vue';

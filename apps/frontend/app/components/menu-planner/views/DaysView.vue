@@ -1,3 +1,4 @@
+<!-- apps\frontend\app\components\menu-planner\views\DaysView.vue -->
 <template>
   <div class="days-view">
     <!-- Управление днями -->
