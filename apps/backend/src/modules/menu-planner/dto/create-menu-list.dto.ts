@@ -1,32 +1,33 @@
+// apps\backend\src\modules\menu-planner\dto\create-menu-list.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsOptional, IsBoolean, MaxLength, MinLength, IsEnum } from 'class-validator';
 import { DisplayType } from '../enums/display-type.enum';
 
 export class CreateMenuListDto {
-  @ApiProperty({ example: 'Семейное меню', description: 'Название списка меню' })
-  @IsString({ message: 'Название должно быть строкой' })
-  @MinLength(1, { message: 'Название не может быть пустым' })
-  @MaxLength(100, { message: 'Название не должно превышать 100 символов' })
+  @ApiProperty({ example: 'Семейное меню' })
+  @IsString()
+  @MinLength(1)
+  @MaxLength(100)
   title: string;
 
-  @ApiProperty({ required: false, example: 'Меню для всей семьи на неделю' })
+  @ApiProperty({ required: false })
   @IsOptional()
-  @IsString({ message: 'Описание должно быть строкой' })
+  @IsString()
   description?: string;
 
   @ApiProperty({ required: false, example: '🍕' })
   @IsOptional()
-  @IsString({ message: 'Иконка должна быть строкой' })
-  @MaxLength(50, { message: 'Иконка не должна превышать 50 символов' })
+  @IsString()
+  @MaxLength(50)
   icon?: string;
 
   @ApiProperty({ required: false, default: true })
   @IsOptional()
-  @IsBoolean({ message: 'isActive должен быть булевым значением' })
+  @IsBoolean()
   isActive?: boolean;
 
   @ApiProperty({ enum: DisplayType, default: DisplayType.DAYS, required: false })
   @IsOptional()
-  @IsEnum(DisplayType, { message: 'displayType должен быть days или calendar' })
+  @IsEnum(DisplayType)
   displayType?: DisplayType;
 }

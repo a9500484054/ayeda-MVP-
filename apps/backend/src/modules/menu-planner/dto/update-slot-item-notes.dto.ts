@@ -1,3 +1,4 @@
+// apps\backend\src\modules\menu-planner\dto\update-slot-item-notes.dto.ts
 import { IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 

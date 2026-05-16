@@ -5,27 +5,33 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource, Not, Between, IsNull } from 'typeorm';
+import { Repository, DataSource, Not, Between, IsNull, In } from 'typeorm';
 import { MenuList } from './entities/menu-list.entity';
+import { MenuDay } from './entities/menu-day.entity';
 import { MenuSlot } from './entities/menu-slot.entity';
 import { MenuSlotItem } from './entities/menu-slot-item.entity';
 import { CreateMenuListDto } from './dto/create-menu-list.dto';
 import { UpdateMenuListDto } from './dto/update-menu-list.dto';
 import { CreateMenuSlotDto } from './dto/create-menu-slot.dto';
-import { UpdateMenuSlotDto } from './dto/update-menu-slot.dto';
 import { AddRecipeToSlotDto } from './dto/add-recipe-to-slot.dto';
 import { ReorderSlotItemsDto } from './dto/reorder-slot-items.dto';
+import { CreateDayDto, UpdateDayDto, ReorderDaysDto } from './dto/create-day.dto';
 import { RecipesService } from '../recipes/recipes.service';
 import { MenuListResponseDto } from './dto/menu-list-response.dto';
 import { MenuSlotResponseDto } from './dto/menu-slot-response.dto';
 import { MenuSlotItemResponseDto } from './dto/menu-slot-item-response.dto';
+import { MenuDayResponseDto } from './dto/menu-day-response.dto';
 import { DisplayType } from './enums/display-type.enum';
+import { SlotType } from './enums/slot-type.enum';
+import { MealType } from './enums/meal-type.enum';
 
 @Injectable()
 export class MenuPlannerService {
   constructor(
     @InjectRepository(MenuList)
     private menuListRepository: Repository<MenuList>,
+    @InjectRepository(MenuDay)
+    private menuDayRepository: Repository<MenuDay>,
     @InjectRepository(MenuSlot)
     private menuSlotRepository: Repository<MenuSlot>,
     @InjectRepository(MenuSlotItem)
@@ -55,17 +61,14 @@ export class MenuPlannerService {
     'recipe.categories.category',
   ];
 
-  private toDateString(date: Date | string | null): string | null {
-    if (!date) {
-      return null;
-    }
+  private readonly dayRelations = ['slots', 'slots.items', 'slots.items.recipe'];
 
+  private toDateString(date: Date | string | null): string | null {
+    if (!date) return null;
     return date instanceof Date ? date.toISOString().split('T')[0] : date;
   }
 
-  private toMenuSlotItemResponseDto(
-    item: MenuSlotItem,
-  ): MenuSlotItemResponseDto {
+  private toMenuSlotItemResponseDto(item: MenuSlotItem): MenuSlotItemResponseDto {
     return {
       id: item.id,
       slotId: item.slotId,
@@ -74,9 +77,7 @@ export class MenuPlannerService {
       notes: item.notes,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt,
-      recipe: item.recipe
-        ? this.recipesService.toResponseDto(item.recipe)
-        : undefined,
+      recipe: item.recipe ? this.recipesService.toResponseDto(item.recipe) : undefined,
     };
   }
 
@@ -84,11 +85,26 @@ export class MenuPlannerService {
     return {
       id: slot.id,
       menuListId: slot.menuListId,
+      slotType: slot.slotType,
+      dayId: slot.dayId,
       slotDate: this.toDateString(slot.slotDate),
-      mealType: slot.mealType,
+      mealType: slot.mealType ?? undefined,
+      order: slot.order,
       createdAt: slot.createdAt,
       updatedAt: slot.updatedAt,
       items: slot.items?.map((item) => this.toMenuSlotItemResponseDto(item)),
+    };
+  }
+
+  private toMenuDayResponseDto(day: MenuDay): MenuDayResponseDto {
+    return {
+      id: day.id,
+      menuListId: day.menuListId,
+      dayOrder: day.dayOrder,
+      title: day.title,
+      createdAt: day.createdAt,
+      updatedAt: day.updatedAt,
+      slots: day.slots?.map((slot) => this.toMenuSlotResponseDto(slot)),
     };
   }
 
@@ -104,69 +120,50 @@ export class MenuPlannerService {
       updatedAt: menuList.updatedAt,
       deletedAt: menuList.deletedAt,
       slots: menuList.slots?.map((slot) => this.toMenuSlotResponseDto(slot)),
+      days: menuList.days?.map((day) => this.toMenuDayResponseDto(day)),
       displayType: menuList.displayType,
     };
   }
 
   // ==================== MENU LISTS ====================
 
-  async createMenuList(
-    userId: string,
-    dto: CreateMenuListDto,
-  ): Promise<MenuListResponseDto> {
+  async createMenuList(userId: string, dto: CreateMenuListDto): Promise<MenuListResponseDto> {
     const menuList = this.menuListRepository.create({
       userId,
       title: dto.title,
       description: dto.description,
       icon: dto.icon,
       isActive: dto.isActive ?? true,
-      displayType: dto.displayType ?? DisplayType.DAYS,  // ← добавить
+      displayType: dto.displayType ?? DisplayType.DAYS,
     });
 
-    return this.toMenuListResponseDto(
-      await this.menuListRepository.save(menuList),
-    );
+    const saved = await this.menuListRepository.save(menuList);
+    return this.toMenuListResponseDto(saved);
   }
 
   async findAllMenuLists(userId: string): Promise<MenuListResponseDto[]> {
     const menuLists = await this.menuListRepository.find({
       where: { userId, deletedAt: IsNull() },
-      relations: [
-        'slots',
-        ...this.slotRelations.map((relation) => `slots.${relation}`),
-      ],
-      order: {
-        createdAt: 'DESC',
-      },
+      relations: ['slots', 'days', ...this.slotRelations.map((r) => `slots.${r}`)],
+      order: { createdAt: 'DESC' },
     });
 
-    return menuLists.map((menuList) => this.toMenuListResponseDto(menuList));
+    return menuLists.map((list) => this.toMenuListResponseDto(list));
   }
 
   async findOneMenuList(userId: string, id: string): Promise<MenuList> {
     const menuList = await this.menuListRepository.findOne({
       where: { id, deletedAt: IsNull() },
-      relations: [
-        'slots',
-        ...this.slotRelations.map((relation) => `slots.${relation}`),
-      ],
+      relations: ['slots', 'days', 'days.slots', ...this.slotRelations.map((r) => `slots.${r}`)],
     });
 
-    if (!menuList) {
-      throw new NotFoundException('Список меню не найден');
-    }
-
-    if (menuList.userId !== userId) {
-      throw new ForbiddenException('У вас нет доступа к этому списку меню');
-    }
+    if (!menuList) throw new NotFoundException('Список меню не найден');
+    if (menuList.userId !== userId) throw new ForbiddenException('Нет доступа');
 
     return menuList;
   }
 
-  async findOneMenuListResponse(
-    userId: string,
-    id: string,
-  ): Promise<MenuListResponseDto> {
+  async findOneMenuListResponse(userId: string, id: string): Promise<MenuListResponseDto> {
     return this.toMenuListResponseDto(await this.findOneMenuList(userId, id));
   }
 
@@ -176,11 +173,8 @@ export class MenuPlannerService {
     dto: UpdateMenuListDto,
   ): Promise<MenuListResponseDto> {
     const menuList = await this.findOneMenuList(userId, id);
-
     Object.assign(menuList, dto);
-    return this.toMenuListResponseDto(
-      await this.menuListRepository.save(menuList),
-    );
+    return this.toMenuListResponseDto(await this.menuListRepository.save(menuList));
   }
 
   async removeMenuList(userId: string, id: string): Promise<void> {
@@ -188,129 +182,135 @@ export class MenuPlannerService {
     await this.menuListRepository.softDelete(id);
   }
 
-  // ==================== MENU SLOTS ====================
+  // ==================== DAYS (только для режима DAYS) ====================
 
-  async createMenuSlot(
-    userId: string,
-    dto: CreateMenuSlotDto,
-  ): Promise<MenuSlotResponseDto> {
-    // Проверяем, что список меню принадлежит пользователю
-    await this.findOneMenuList(userId, dto.menuListId);
+  async findAllDays(userId: string, menuListId: string): Promise<MenuDayResponseDto[]> {
+    await this.findOneMenuList(userId, menuListId);
+    const days = await this.menuDayRepository.find({
+      where: { menuListId, deletedAt: IsNull() },
+      relations: this.dayRelations,
+      order: { dayOrder: 'ASC' },
+    });
+    return days.map((day) => this.toMenuDayResponseDto(day));
+  }
 
-    // Проверяем уникальность слота (если есть дата)
-    if (dto.slotDate) {
-      const existingSlot = await this.menuSlotRepository.findOne({
-        where: {
-          menuListId: dto.menuListId,
-          slotDate: new Date(dto.slotDate),
-          mealType: dto.mealType,
-        },
-      });
+  async createDay(userId: string, menuListId: string, dto: CreateDayDto): Promise<MenuDayResponseDto> {
+    const menuList = await this.findOneMenuList(userId, menuListId);
 
-      if (existingSlot) {
-        throw new BadRequestException(
-          `Слот на дату ${dto.slotDate} и прием пищи ${dto.mealType} уже существует`,
-        );
-      }
+    if (menuList.displayType !== DisplayType.DAYS) {
+      throw new BadRequestException('Дни можно создавать только в режиме DAYS');
     }
+
+    const existingDay = await this.menuDayRepository.findOne({
+      where: { menuListId, dayOrder: dto.dayOrder, deletedAt: IsNull() },
+    });
+
+    if (existingDay) {
+      throw new BadRequestException(`День с порядком ${dto.dayOrder} уже существует`);
+    }
+
+    const day = this.menuDayRepository.create({
+      menuListId,
+      dayOrder: dto.dayOrder,
+      title: dto.title,
+    });
+
+    const saved = await this.menuDayRepository.save(day);
+    return this.toMenuDayResponseDto(saved);
+  }
+
+  async updateDay(userId: string, dayId: string, dto: UpdateDayDto): Promise<MenuDayResponseDto> {
+    const day = await this.menuDayRepository.findOne({
+      where: { id: dayId, deletedAt: IsNull() },
+      relations: ['menuList'],
+    });
+
+    if (!day) throw new NotFoundException('День не найден');
+    await this.findOneMenuList(userId, day.menuListId);
+
+    if (dto.title !== undefined) day.title = dto.title;
+
+    const saved = await this.menuDayRepository.save(day);
+    return this.toMenuDayResponseDto(saved);
+  }
+
+  async reorderDays(userId: string, menuListId: string, dto: ReorderDaysDto): Promise<MenuDayResponseDto[]> {
+    await this.findOneMenuList(userId, menuListId);
+
+    await this.dataSource.transaction(async (manager) => {
+      for (const item of dto.items) {
+        await manager.update(MenuDay, item.id, { dayOrder: item.order });
+      }
+    });
+
+    const days = await this.menuDayRepository.find({
+      where: { menuListId, deletedAt: IsNull() },
+      relations: this.dayRelations,
+      order: { dayOrder: 'ASC' },
+    });
+
+    return days.map((day) => this.toMenuDayResponseDto(day));
+  }
+
+  async deleteDay(userId: string, dayId: string): Promise<void> {
+    const day = await this.menuDayRepository.findOne({
+      where: { id: dayId, deletedAt: IsNull() },
+      relations: ['menuList'],
+    });
+
+    if (!day) throw new NotFoundException('День не найден');
+    await this.findOneMenuList(userId, day.menuListId);
+
+    await this.menuDayRepository.softDelete(dayId);
+  }
+
+  // ==================== SLOTS ====================
+
+  async createSlot(userId: string, dto: CreateMenuSlotDto): Promise<MenuSlotResponseDto> {
+    await this.findOneMenuList(userId, dto.menuListId);
 
     const slot = this.menuSlotRepository.create({
       menuListId: dto.menuListId,
+      slotType: dto.slotType,
+      dayId: dto.dayId,
       slotDate: dto.slotDate ? new Date(dto.slotDate) : null,
       mealType: dto.mealType,
+      order: dto.order ?? 0,
     });
 
-    return this.toMenuSlotResponseDto(await this.menuSlotRepository.save(slot));
+    const saved = await this.menuSlotRepository.save(slot);
+    return this.toMenuSlotResponseDto(saved);
   }
 
-  async findAllSlotsByMenuList(
-    userId: string,
-    menuListId: string,
-  ): Promise<MenuSlotResponseDto[]> {
+  async findAllSlotsByMenuList(userId: string, menuListId: string): Promise<MenuSlotResponseDto[]> {
     await this.findOneMenuList(userId, menuListId);
-
     const slots = await this.menuSlotRepository.find({
-      where: { menuListId },
+      where: { menuListId, deletedAt: IsNull() },
       relations: this.slotRelations,
-      order: {
-        slotDate: 'ASC',
-        mealType: 'ASC',
-      },
+      order: { createdAt: 'ASC' },
     });
-
     return slots.map((slot) => this.toMenuSlotResponseDto(slot));
   }
 
-  async findOneMenuSlot(userId: string, id: string): Promise<MenuSlot> {
+  async findOneSlot(userId: string, slotId: string): Promise<MenuSlot> {
     const slot = await this.menuSlotRepository.findOne({
-      where: { id },
+      where: { id: slotId, deletedAt: IsNull() },
       relations: ['menuList', ...this.slotRelations],
     });
 
-    if (!slot) {
-      throw new NotFoundException('Слот меню не найден');
-    }
-
-    // Проверяем, что слот принадлежит пользователю через menuList
+    if (!slot) throw new NotFoundException('Слот не найден');
     await this.findOneMenuList(userId, slot.menuListId);
 
     return slot;
   }
 
-  async findOneMenuSlotResponse(
-    userId: string,
-    id: string,
-  ): Promise<MenuSlotResponseDto> {
-    return this.toMenuSlotResponseDto(await this.findOneMenuSlot(userId, id));
+  async findOneSlotResponse(userId: string, slotId: string): Promise<MenuSlotResponseDto> {
+    return this.toMenuSlotResponseDto(await this.findOneSlot(userId, slotId));
   }
 
-  async updateMenuSlot(
-    userId: string,
-    id: string,
-    dto: UpdateMenuSlotDto,
-  ): Promise<MenuSlotResponseDto> {
-    const slot = await this.findOneMenuSlot(userId, id);
-
-    // Если меняется дата или тип приема пищи - проверяем уникальность
-    if (
-      (dto.slotDate &&
-        dto.slotDate !== slot.slotDate?.toISOString().split('T')[0]) ||
-      (dto.mealType && dto.mealType !== slot.mealType)
-    ) {
-      const newDate = dto.slotDate ? new Date(dto.slotDate) : slot.slotDate;
-      const newMealType = dto.mealType || slot.mealType;
-
-      if (newDate) {
-        const existingSlot = await this.menuSlotRepository.findOne({
-          where: {
-            menuListId: slot.menuListId,
-            slotDate: newDate,
-            mealType: newMealType,
-            id: Not(id),
-          },
-        });
-
-        if (existingSlot) {
-          throw new BadRequestException(
-            `Слот на дату ${newDate.toISOString().split('T')[0]} и прием пищи ${newMealType} уже существует`,
-          );
-        }
-      }
-    }
-
-    if (dto.slotDate) {
-      slot.slotDate = new Date(dto.slotDate);
-    }
-    if (dto.mealType) {
-      slot.mealType = dto.mealType;
-    }
-
-    return this.toMenuSlotResponseDto(await this.menuSlotRepository.save(slot));
-  }
-
-  async removeMenuSlot(userId: string, id: string): Promise<void> {
-    await this.findOneMenuSlot(userId, id);
-    await this.menuSlotRepository.delete(id);
+  async deleteSlot(userId: string, slotId: string): Promise<void> {
+    await this.findOneSlot(userId, slotId);
+    await this.menuSlotRepository.softDelete(slotId);
   }
 
   // ==================== SLOT ITEMS (RECIPES) ====================
@@ -320,33 +320,25 @@ export class MenuPlannerService {
     slotId: string,
     dto: AddRecipeToSlotDto,
   ): Promise<MenuSlotItemResponseDto> {
-    // Проверяем существование слота и права доступа
-    await this.findOneMenuSlot(userId, slotId);
+    const slot = await this.findOneSlot(userId, slotId);
 
-    // Проверяем существование рецепта
     await this.recipesService.findOne(dto.recipeId);
 
-    // Проверяем, не добавлен ли уже этот рецепт в слот
     const existingItem = await this.menuSlotItemRepository.findOne({
-      where: {
-        slotId,
-        recipeId: dto.recipeId,
-      },
+      where: { slotId, recipeId: dto.recipeId, deletedAt: IsNull() },
     });
 
     if (existingItem) {
       throw new BadRequestException('Этот рецепт уже добавлен в данный слот');
     }
 
-    // Получаем максимальный order для этого слота
     const maxOrder = await this.menuSlotItemRepository
       .createQueryBuilder('item')
       .select('MAX(item.order)', 'max')
       .where('item.slotId = :slotId', { slotId })
       .getRawOne();
 
-    const order =
-      dto.order !== undefined ? dto.order : Number(maxOrder?.max ?? -1) + 1;
+    const order = dto.order !== undefined ? dto.order : Number(maxOrder?.max ?? -1) + 1;
 
     const slotItem = this.menuSlotItemRepository.create({
       slotId,
@@ -355,32 +347,25 @@ export class MenuPlannerService {
       notes: dto.notes,
     });
 
-    const savedSlotItem = await this.menuSlotItemRepository.save(slotItem);
-    const slotItemWithRecipe = await this.menuSlotItemRepository.findOneOrFail({
-      where: { id: savedSlotItem.id },
+    const saved = await this.menuSlotItemRepository.save(slotItem);
+    const withRelations = await this.menuSlotItemRepository.findOneOrFail({
+      where: { id: saved.id },
       relations: this.itemRelations,
     });
 
-    return this.toMenuSlotItemResponseDto(slotItemWithRecipe);
+    return this.toMenuSlotItemResponseDto(withRelations);
   }
 
-  async removeRecipeFromSlot(
-    userId: string,
-    slotItemId: string,
-  ): Promise<void> {
-    const slotItem = await this.menuSlotItemRepository.findOne({
-      where: { id: slotItemId },
+  async removeRecipeFromSlot(userId: string, itemId: string): Promise<void> {
+    const item = await this.menuSlotItemRepository.findOne({
+      where: { id: itemId, deletedAt: IsNull() },
       relations: ['slot', 'slot.menuList'],
     });
 
-    if (!slotItem) {
-      throw new NotFoundException('Элемент слота не найден');
-    }
+    if (!item) throw new NotFoundException('Элемент не найден');
+    await this.findOneMenuList(userId, item.slot.menuListId);
 
-    // Проверяем права доступа
-    await this.findOneMenuList(userId, slotItem.slot.menuListId);
-
-    await this.menuSlotItemRepository.delete(slotItemId);
+    await this.menuSlotItemRepository.softDelete(itemId);
   }
 
   async reorderSlotItems(
@@ -388,19 +373,16 @@ export class MenuPlannerService {
     slotId: string,
     dto: ReorderSlotItemsDto,
   ): Promise<MenuSlotItemResponseDto[]> {
-    // Проверяем слот и права
-    await this.findOneMenuSlot(userId, slotId);
+    await this.findOneSlot(userId, slotId);
 
-    // Обновляем порядок в транзакции
     await this.dataSource.transaction(async (manager) => {
       for (const item of dto.items) {
         await manager.update(MenuSlotItem, item.id, { order: item.order });
       }
     });
 
-    // Возвращаем обновленный список
     const items = await this.menuSlotItemRepository.find({
-      where: { slotId },
+      where: { slotId, deletedAt: IsNull() },
       relations: this.itemRelations,
       order: { order: 'ASC' },
     });
@@ -410,56 +392,37 @@ export class MenuPlannerService {
 
   async updateSlotItemNotes(
     userId: string,
-    slotItemId: string,
+    itemId: string,
     notes: string,
   ): Promise<MenuSlotItemResponseDto> {
-    const slotItem = await this.menuSlotItemRepository.findOne({
-      where: { id: slotItemId },
-      relations: ['slot', 'slot.menuList'],
+    const item = await this.menuSlotItemRepository.findOne({
+      where: { id: itemId, deletedAt: IsNull() },
+      relations: ['slot', 'slot.menuList', ...this.itemRelations],
     });
 
-    if (!slotItem) {
-      throw new NotFoundException('Элемент слота не найден');
-    }
+    if (!item) throw new NotFoundException('Элемент не найден');
+    await this.findOneMenuList(userId, item.slot.menuListId);
 
-    // Проверяем права доступа
-    await this.findOneMenuList(userId, slotItem.slot.menuListId);
+    item.notes = notes;
+    const saved = await this.menuSlotItemRepository.save(item);
 
-    slotItem.notes = notes;
-    await this.menuSlotItemRepository.save(slotItem);
-
-    const slotItemWithRecipe = await this.menuSlotItemRepository.findOneOrFail({
-      where: { id: slotItemId },
-      relations: this.itemRelations,
-    });
-
-    return this.toMenuSlotItemResponseDto(slotItemWithRecipe);
+    return this.toMenuSlotItemResponseDto(saved);
   }
 
-  async getSlotItems(
-    userId: string,
-    slotId: string,
-  ): Promise<MenuSlotItemResponseDto[]> {
-    await this.findOneMenuSlot(userId, slotId);
-
+  async getSlotItems(userId: string, slotId: string): Promise<MenuSlotItemResponseDto[]> {
+    await this.findOneSlot(userId, slotId);
     const items = await this.menuSlotItemRepository.find({
-      where: { slotId },
+      where: { slotId, deletedAt: IsNull() },
       relations: this.itemRelations,
       order: { order: 'ASC' },
     });
-
     return items.map((item) => this.toMenuSlotItemResponseDto(item));
   }
 
-  // ==================== UTILITY METHODS ====================
+  // ==================== UTILITY ====================
 
-  async getMenuStructure(
-    userId: string,
-    menuListId: string,
-  ): Promise<MenuListResponseDto> {
-    return this.toMenuListResponseDto(
-      await this.findOneMenuList(userId, menuListId),
-    );
+  async getMenuStructure(userId: string, menuListId: string): Promise<MenuListResponseDto> {
+    return this.toMenuListResponseDto(await this.findOneMenuList(userId, menuListId));
   }
 
   async getSlotsByDateRange(
@@ -473,15 +436,74 @@ export class MenuPlannerService {
     const slots = await this.menuSlotRepository.find({
       where: {
         menuListId,
+        slotType: SlotType.CALENDAR,
         slotDate: Between(startDate, endDate),
+        deletedAt: IsNull(),
       },
       relations: this.slotRelations,
-      order: {
-        slotDate: 'ASC',
-        mealType: 'ASC',
-      },
+      order: { slotDate: 'ASC', mealType: 'ASC' },
     });
 
     return slots.map((slot) => this.toMenuSlotResponseDto(slot));
+  }
+
+  // ==================== BANQUET ====================
+
+  async getBanquetItems(userId: string, menuListId: string): Promise<MenuSlotItemResponseDto[]> {
+    const menuList = await this.findOneMenuList(userId, menuListId);
+
+    if (menuList.displayType !== DisplayType.BANQUET) {
+      throw new BadRequestException('Этот список не является банкетом');
+    }
+
+    const slots = await this.menuSlotRepository.find({
+      where: {
+        menuListId,
+        slotType: SlotType.BANQUET,
+        deletedAt: IsNull(),
+      },
+      relations: this.slotRelations,
+      order: { order: 'ASC' },
+    });
+
+    const allItems: MenuSlotItem[] = [];
+    for (const slot of slots) {
+      if (slot.items) allItems.push(...slot.items);
+    }
+
+    return allItems.map((item) => this.toMenuSlotItemResponseDto(item));
+  }
+
+  async addBanquetItem(
+    userId: string,
+    menuListId: string,
+    dto: AddRecipeToSlotDto,
+  ): Promise<MenuSlotItemResponseDto> {
+    const menuList = await this.findOneMenuList(userId, menuListId);
+
+    if (menuList.displayType !== DisplayType.BANQUET) {
+      throw new BadRequestException('Добавление блюд доступно только для банкета');
+    }
+
+    // Находим или создаем слот для банкета
+    let banquetSlot = await this.menuSlotRepository.findOne({
+      where: {
+        menuListId,
+        slotType: SlotType.BANQUET,
+        deletedAt: IsNull(),
+      },
+    });
+
+    if (!banquetSlot) {
+      banquetSlot = await this.menuSlotRepository.save(
+        this.menuSlotRepository.create({
+          menuListId,
+          slotType: SlotType.BANQUET,
+          order: 0,
+        }),
+      );
+    }
+
+    return this.addRecipeToSlot(userId, banquetSlot.id, dto);
   }
 }

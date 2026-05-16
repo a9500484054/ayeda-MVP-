@@ -1,5 +1,7 @@
+// apps\backend\src\modules\menu-planner\dto\menu-list-response.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
 import { MenuSlotResponseDto } from './menu-slot-response.dto';
+import { MenuDayResponseDto } from './menu-day-response.dto';
 import { DisplayType } from '../enums/display-type.enum';
 
 export class MenuListResponseDto {
@@ -9,7 +11,7 @@ export class MenuListResponseDto {
   @ApiProperty()
   userId: string;
 
-  @ApiProperty({ example: 'Семейное меню' })
+  @ApiProperty()
   title: string;
 
   @ApiProperty({ required: false })
@@ -32,6 +34,9 @@ export class MenuListResponseDto {
 
   @ApiProperty({ type: [MenuSlotResponseDto], required: false })
   slots?: MenuSlotResponseDto[];
+
+  @ApiProperty({ type: [MenuDayResponseDto], required: false })  // ← Добавить это поле
+  days?: MenuDayResponseDto[];
 
   @ApiProperty({ enum: DisplayType })
   displayType: DisplayType;

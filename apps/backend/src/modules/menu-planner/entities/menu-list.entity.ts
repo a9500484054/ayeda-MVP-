@@ -11,6 +11,7 @@ import {
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../users/entities/user.entity';
+import { MenuDay } from './menu-day.entity';
 import { MenuSlot } from './menu-slot.entity';
 import { DisplayType } from '../enums/display-type.enum';
 
@@ -24,21 +25,30 @@ export class MenuList {
   @Column({ name: 'user_id' })
   userId: string;
 
-  @ApiProperty({ example: 'Семейное меню' })
+  @ApiProperty()
   @Column({ length: 100 })
   title: string;
 
-  @ApiProperty({ required: false, example: 'Меню для всей семьи на неделю' })
+  @ApiProperty({ required: false })
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @ApiProperty({ required: false, example: '🍕' })
+  @ApiProperty({ required: false })
   @Column({ length: 50, nullable: true })
   icon: string;
 
   @ApiProperty({ default: true })
   @Column({ name: 'is_active', default: true })
   isActive: boolean;
+
+  @ApiProperty({ enum: DisplayType, default: DisplayType.DAYS })
+  @Column({
+    name: 'display_type',
+    type: 'enum',
+    enum: DisplayType,
+    default: DisplayType.DAYS,
+  })
+  displayType: DisplayType;
 
   @ApiProperty()
   @CreateDateColumn({ name: 'created_at' })
@@ -52,21 +62,13 @@ export class MenuList {
   @DeleteDateColumn({ name: 'deleted_at' })
   deletedAt: Date;
 
-  // Relations
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
+  @OneToMany(() => MenuDay, (day) => day.menuList)
+  days: MenuDay[];
+
   @OneToMany(() => MenuSlot, (slot) => slot.menuList)
   slots: MenuSlot[];
-
-  // Добавить в класс MenuList
-  @ApiProperty({ enum: DisplayType, default: DisplayType.DAYS })
-  @Column({
-    name: 'display_type',
-    type: 'enum',
-    enum: DisplayType,
-    default: DisplayType.DAYS,
-  })
-  displayType: DisplayType;
 }

@@ -1,9 +1,11 @@
+// apps\backend\src\modules\menu-planner\entities\menu-slot-item.entity.ts
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
@@ -41,7 +43,10 @@ export class MenuSlotItem {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  // Relations
+  @ApiProperty({ required: false })
+  @DeleteDateColumn({ name: 'deleted_at' })
+  deletedAt: Date;
+
   @ManyToOne(() => MenuSlot, (slot) => slot.items, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'slot_id' })
   slot: MenuSlot;

@@ -1,3 +1,4 @@
+// apps\backend\src\modules\menu-planner\dto\menu-slot-item-response.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
 import { RecipeResponseDto } from '../../recipes/dto/recipe-response.dto';
 
