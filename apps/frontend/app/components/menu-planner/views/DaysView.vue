@@ -55,6 +55,7 @@
           @edit-notes="handleEditNotes"
           @rename-day="handleRenameDay"
           @delete-day="handleDeleteDay"
+          @reorder="handleReorder"
         />
       </div>
     </div>
@@ -85,6 +86,10 @@ const emit = defineEmits<{
 function handleMoveRecipe(itemId: string, sourceSlotId: string, targetSlotId: string) {
   console.log('DaysView move recipe:', { itemId, sourceSlotId, targetSlotId });
   emit('moveRecipe', itemId, sourceSlotId, targetSlotId);
+}
+
+function handleReorder(slotId: string, items: { id: string; order: number }[]) {
+  emit('reorder', slotId, items);
 }
 
 const scrollIndex = ref(0);

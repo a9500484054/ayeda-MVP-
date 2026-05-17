@@ -6,9 +6,9 @@
       'border-dashed border-zinc-300 bg-zinc-50': !isDragOver && isEmpty,
       'border-green-500 bg-green-50 ring-2 ring-green-300': isDragOver,
     }"
-    @dragover.prevent="slotId && handleDragOver($event)"
+    @dragover.prevent="handleDragOver"
     @dragleave="handleDragLeave"
-    @drop.prevent="slotId && handleDrop($event)"
+    @drop.prevent="handleDrop"
   >
     <!-- Заголовок -->
     <div class="mb-2 flex items-center justify-between border-b border-zinc-100 pb-1">
@@ -42,14 +42,15 @@
           :drag-index="index"
           @remove="emit('removeRecipe', item.id)"
           @edit-notes="(notes) => emit('editNotes', item.id, notes)"
-          @drag-start="handleDragStart"
-          @drag-end="handleDragEnd"
+          @drag-start="() => {}"
+          @drag-end="() => {}"
           @drag-over="handleItemDragOver"
-          @drop="handleItemDrop"
+          @drop="(event, idx) => handleItemDrop(event, idx)"
         />
       </div>
     </div>
 
+    <!-- Кнопка добавления (для непустого слота) -->
     <button
       v-if="!isEmpty && itemsLength < 10"
       class="mt-2 flex w-full items-center justify-center gap-1 rounded-lg py-1.5 text-xs text-zinc-400 transition-colors hover:bg-zinc-50 hover:text-zinc-600"
@@ -102,21 +103,10 @@ const sortedItems = computed(() => {
 const itemsLength = computed(() => props.items?.length || 0);
 const isEmpty = computed(() => itemsLength.value === 0);
 
-function handleDragStart() {
-  // drag state теперь только через dataTransfer
-}
-
-function handleDragEnd() {
-  isDragOver.value = false;
-}
-
 function getDragData(event: DragEvent) {
   if (!event.dataTransfer) return null;
-
   const raw = event.dataTransfer.getData('text/plain');
-
   if (!raw) return null;
-
   try {
     return JSON.parse(raw);
   } catch {
@@ -124,37 +114,31 @@ function getDragData(event: DragEvent) {
   }
 }
 
+// Обработчики для переупорядочивания (drop на рецепт)
 function handleItemDragOver(event: DragEvent) {
   event.preventDefault();
-
   if (event.dataTransfer) {
     event.dataTransfer.dropEffect = 'move';
   }
-
   const target = event.currentTarget as HTMLElement;
   target.classList.add('drag-over');
 }
 
 function handleItemDrop(event: DragEvent, targetIndex: number) {
   event.preventDefault();
-
   const target = event.currentTarget as HTMLElement;
   target.classList.remove('drag-over');
 
   const dragData = getDragData(event);
-
   if (!dragData || !props.slotId) return;
 
-  // reorder только внутри одного слота
-  if (dragData.slotId === props.slotId) {
+  // Только переупорядочивание внутри одного слота
+  if (dragData.slotId === props.slotId && dragData.dragIndex !== undefined) {
     const fromIndex = dragData.dragIndex;
-
     if (fromIndex === targetIndex) return;
 
     const newItems = [...sortedItems.value];
-
     const [movedItem] = newItems.splice(fromIndex, 1);
-
     newItems.splice(targetIndex, 0, movedItem);
 
     const reorderedItems = newItems.map((item, idx) => ({
@@ -166,46 +150,33 @@ function handleItemDrop(event: DragEvent, targetIndex: number) {
   }
 }
 
+// Обработчики для перемещения между слотами (drop на сам слот)
 function handleDragOver(event: DragEvent) {
   event.preventDefault();
-
   if (event.dataTransfer) {
     event.dataTransfer.dropEffect = 'move';
   }
-
   isDragOver.value = true;
 }
 
 function handleDragLeave(event: DragEvent) {
   const relatedTarget = event.relatedTarget as HTMLElement | null;
-
-  if (
-    relatedTarget &&
-    (event.currentTarget as HTMLElement).contains(relatedTarget)
-  ) {
+  if (relatedTarget && (event.currentTarget as HTMLElement).contains(relatedTarget)) {
     return;
   }
-
   isDragOver.value = false;
 }
 
 function handleDrop(event: DragEvent) {
   event.preventDefault();
-
   isDragOver.value = false;
 
   const dragData = getDragData(event);
-
   if (!dragData || !props.slotId) return;
 
-  // перенос между слотами
+  // Перемещение между слотами (только если source и target разные)
   if (dragData.slotId !== props.slotId) {
-    emit(
-      'moveRecipe',
-      dragData.itemId,
-      dragData.slotId,
-      props.slotId
-    );
+    emit('moveRecipe', dragData.itemId, dragData.slotId, props.slotId);
   }
 }
 </script>
@@ -224,5 +195,10 @@ function handleDrop(event: DragEvent) {
 .recipe-item.drag-over {
   transform: translateY(4px);
   border-top: 2px solid #22c55e;
+}
+
+.meal-slot.drag-over {
+  background-color: #f0fdf4;
+  border-color: #22c55e;
 }
 </style>

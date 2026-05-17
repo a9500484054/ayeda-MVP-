@@ -16,7 +16,7 @@
       <div class="h-10 w-10 flex-shrink-0 overflow-hidden rounded-lg bg-zinc-200">
         <img
           v-if="item.recipe?.photo?.src"
-          :src="`${apiUrl}${item.recipe.photo.src}`"
+          :src="getImageUrl(item.recipe.photo.src)"
           :alt="item.recipe.title || 'Рецепт'"
           class="h-full w-full object-cover"
         />
@@ -72,7 +72,16 @@
 
 <script setup lang="ts">
 import type { MenuSlotItem } from '~/composables/useMenuPlannerApi';
-const config = useRuntimeConfig()
+
+const config = useRuntimeConfig();
+const apiUrl = config.public.apiUrl || 'http://localhost:3001';
+
+const getImageUrl = (src: string) => {
+  if (!src) return '';
+  if (src.startsWith('http')) return src;
+  if (src.startsWith('/')) return `${apiUrl}${src}`;
+  return `${apiUrl}/${src}`;
+};
 
 const props = defineProps<{
   item: MenuSlotItem;
@@ -80,7 +89,6 @@ const props = defineProps<{
   slotId?: string;
   dragIndex?: number;
 }>();
-const apiUrl = config.public.apiUrl || 'http://localhost:3001'
 
 const emit = defineEmits<{
   remove: [];

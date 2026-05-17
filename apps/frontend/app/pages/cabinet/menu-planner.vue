@@ -1,6 +1,6 @@
 <!-- pages/cabinet/menu-planner.vue (обновленный) -->
 <template>
-  <div class="mx-auto w-full max-w-7xl px-4 py-6 md:px-6">
+  <div class="mx-auto w-full px-4 py-6 md:px-6">
     <!-- Header -->
     <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
@@ -298,30 +298,58 @@ async function handleMoveRecipe(itemId: string, sourceSlotId: string, targetSlot
     return;
   }
 
+  // Проверка на одинаковые слоты
+  if (sourceSlotId === targetSlotId) {
+    console.log('Same slot - skipping move');
+    return;
+  }
+
   try {
-    // Находим рецепт в source слоте
     const sourceSlot = store.slots.find(s => s.id === sourceSlotId);
     const movedItem = sourceSlot?.items?.find(i => i.id === itemId);
 
-    if (movedItem && targetSlotId) {
-      // Добавляем в целевой слот
-      await store.addRecipeToSlot(targetSlotId, movedItem.recipeId, movedItem.notes);
-      // Удаляем из исходного слота
-      await store.removeRecipeFromSlot(itemId);
+    if (!movedItem) {
+      console.error('Recipe not found in source slot');
+      return;
+    }
 
+    // Проверяем, нет ли уже такого рецепта в целевом слоте
+    const targetSlot = store.slots.find(s => s.id === targetSlotId);
+    const alreadyExists = targetSlot?.items?.some(i => i.recipeId === movedItem.recipeId);
+
+    if (alreadyExists) {
       toast.add({
-        title: 'Успех',
-        description: 'Рецепт перемещен',
-        color: 'success',
+        title: 'Рецепт уже есть',
+        description: 'Этот рецепт уже добавлен в целевой слот',
+        color: 'warning',
+      });
+      return;
+    }
+
+    await store.addRecipeToSlot(targetSlotId, movedItem.recipeId, movedItem.notes);
+    await store.removeRecipeFromSlot(itemId);
+
+    toast.add({
+      title: 'Успех',
+      description: 'Рецепт перемещен',
+      color: 'success',
+    });
+  } catch (error: any) {
+    console.error('Failed to move recipe:', error);
+
+    if (error.message?.includes('duplicate') || error.code === 23505) {
+      toast.add({
+        title: 'Нельзя переместить',
+        description: 'Этот рецепт уже есть в целевом слоте',
+        color: 'warning',
+      });
+    } else {
+      toast.add({
+        title: 'Ошибка',
+        description: 'Не удалось переместить рецепт',
+        color: 'error',
       });
     }
-  } catch (error) {
-    console.error('Failed to move recipe:', error);
-    toast.add({
-      title: 'Ошибка',
-      description: 'Не удалось переместить рецепт',
-      color: 'error',
-    });
   }
 }
 
