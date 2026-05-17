@@ -56,6 +56,7 @@
           @rename-day="handleRenameDay"
           @delete-day="handleDeleteDay"
           @reorder="handleReorder"
+          @create-slot="handleCreateSlot"
         />
       </div>
     </div>
@@ -81,6 +82,8 @@ const emit = defineEmits<{
   createDay: [dayOrder: number, title: string];
   renameDay: [dayId: string, newTitle: string];
   deleteDay: [dayId: string];
+  createSlot: [dayId: string, mealType: MealType, recipeId: string, notes?: string];
+
 }>();
 
 function handleMoveRecipe(itemId: string, sourceSlotId: string, targetSlotId: string) {
@@ -121,6 +124,10 @@ function handleRenameDay(dayId: string, newTitle: string) {
 
 function handleDeleteDay(dayId: string) {
   emit('deleteDay', dayId);
+}
+
+function handleCreateSlot(dayId: string, mealType: MealType, recipeId: string, notes?: string) {
+  emit('createSlot', dayId, mealType, recipeId, notes);
 }
 
 function addNewDay() {

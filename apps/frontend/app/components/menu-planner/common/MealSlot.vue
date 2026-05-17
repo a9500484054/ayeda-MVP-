@@ -74,6 +74,7 @@ const props = defineProps<{
   slotId?: string;
   items?: MenuSlotItem[];
   mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  isDragOver?: boolean; // Внешнее состояние от родителя
 }>();
 
 const emit = defineEmits<{
@@ -82,9 +83,8 @@ const emit = defineEmits<{
   editNotes: [itemId: string, notes: string];
   moveRecipe: [itemId: string, sourceSlotId: string, targetSlotId: string];
   reorder: [slotId: string, items: { id: string; order: number }[]];
+  requestCreateSlot: [dayId: string, mealType: string, recipeId: string, notes?: string];
 }>();
-
-const isDragOver = ref(false);
 
 const mealLabels: Record<string, string> = {
   breakfast: '🍳 Завтрак',
@@ -146,7 +146,7 @@ function handleItemDrop(event: DragEvent, targetIndex: number) {
       order: idx,
     }));
 
-    emit('reorder', props.slotId, reorderedItems);
+    emit('reorder', props.slotId!, reorderedItems);
   }
 }
 
@@ -156,7 +156,7 @@ function handleDragOver(event: DragEvent) {
   if (event.dataTransfer) {
     event.dataTransfer.dropEffect = 'move';
   }
-  isDragOver.value = true;
+  // Не меняем состояние isDragOver, оно приходит от родителя
 }
 
 function handleDragLeave(event: DragEvent) {
@@ -164,12 +164,11 @@ function handleDragLeave(event: DragEvent) {
   if (relatedTarget && (event.currentTarget as HTMLElement).contains(relatedTarget)) {
     return;
   }
-  isDragOver.value = false;
+  // Не меняем состояние isDragOver, оно приходит от родителя
 }
 
 function handleDrop(event: DragEvent) {
   event.preventDefault();
-  isDragOver.value = false;
 
   const dragData = getDragData(event);
   if (!dragData || !props.slotId) return;

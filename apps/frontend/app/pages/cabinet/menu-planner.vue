@@ -51,6 +51,7 @@
           @rename-day="handleRenameDay"
           @delete-day="handleDeleteDay"
           @reorder="handleReorder"
+          @create-slot="handleCreateSlot"
         />
 
         <!-- Тип "Календарь" -->
@@ -368,7 +369,30 @@ async function handleReorder(slotId: string, items: { id: string; order: number 
     console.error('Failed to reorder:', error);
   }
 }
+async function handleCreateSlot(dayId: string, mealType: MealType, recipeId: string, notes?: string) {
+  try {
+    await store.createSlotWithRecipe({
+      slotType: 'day',
+      dayId,
+      mealType,
+      recipeId,
+      notes,
+    });
 
+    toast.add({
+      title: 'Успех',
+      description: 'Рецепт добавлен',
+      color: 'success',
+    });
+  } catch (error) {
+    console.error('Failed to create slot with recipe:', error);
+    toast.add({
+      title: 'Ошибка',
+      description: 'Не удалось добавить рецепт',
+      color: 'error',
+    });
+  }
+}
 
 // Load data
 onMounted(() => {
