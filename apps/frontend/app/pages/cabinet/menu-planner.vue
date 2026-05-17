@@ -296,6 +296,11 @@ async function handleMoveRecipe(itemId: string, sourceSlotId: string, targetSlot
 
   if (!targetSlotId || targetSlotId === 'undefined') {
     console.error('Invalid target slot ID');
+    toast.add({
+      title: 'Ошибка',
+      description: 'Неверный целевой слот',
+      color: 'error',
+    });
     return;
   }
 
@@ -311,6 +316,11 @@ async function handleMoveRecipe(itemId: string, sourceSlotId: string, targetSlot
 
     if (!movedItem) {
       console.error('Recipe not found in source slot');
+      toast.add({
+        title: 'Ошибка',
+        description: 'Рецепт не найден в исходном слоте',
+        color: 'error',
+      });
       return;
     }
 
@@ -320,14 +330,17 @@ async function handleMoveRecipe(itemId: string, sourceSlotId: string, targetSlot
 
     if (alreadyExists) {
       toast.add({
-        title: 'Рецепт уже есть',
-        description: 'Этот рецепт уже добавлен в целевой слот',
+        title: 'Нельзя переместить',
+        description: 'Этот рецепт уже есть в целевом слоте',
         color: 'warning',
       });
       return;
     }
 
+    // Сначала добавляем рецепт в целевой слот
     await store.addRecipeToSlot(targetSlotId, movedItem.recipeId, movedItem.notes);
+
+    // Затем удаляем из исходного
     await store.removeRecipeFromSlot(itemId);
 
     toast.add({
@@ -338,16 +351,23 @@ async function handleMoveRecipe(itemId: string, sourceSlotId: string, targetSlot
   } catch (error: any) {
     console.error('Failed to move recipe:', error);
 
-    if (error.message?.includes('duplicate') || error.code === 23505) {
+    // Более детальная обработка ошибок
+    if (error.message?.includes('duplicate') || error.code === '23505' || error.statusCode === 409) {
       toast.add({
         title: 'Нельзя переместить',
         description: 'Этот рецепт уже есть в целевом слоте',
         color: 'warning',
       });
+    } else if (error.statusCode === 500) {
+      toast.add({
+        title: 'Ошибка сервера',
+        description: 'Попробуйте обновить страницу',
+        color: 'error',
+      });
     } else {
       toast.add({
         title: 'Ошибка',
-        description: 'Не удалось переместить рецепт',
+        description: error.message || 'Не удалось переместить рецепт',
         color: 'error',
       });
     }
@@ -371,26 +391,57 @@ async function handleReorder(slotId: string, items: { id: string; order: number 
 }
 async function handleCreateSlot(dayId: string, mealType: MealType, recipeId: string, notes?: string) {
   try {
-    await store.createSlotWithRecipe({
-      slotType: 'day',
-      dayId,
-      mealType,
-      recipeId,
-      notes,
-    });
+    // Проверяем, существует ли уже слот с таким же рецептом в этом дне
+    const existingSlot = store.slots.find(
+      slot => slot.dayId === dayId && slot.mealType === mealType
+    );
+
+    if (existingSlot) {
+      // Если слот существует, проверяем наличие рецепта
+      const alreadyExists = existingSlot.items?.some(item => item.recipeId === recipeId);
+      if (alreadyExists) {
+        toast.add({
+          title: 'Рецепт уже есть',
+          description: 'Этот рецепт уже добавлен в этот прием пищи',
+          color: 'warning',
+        });
+        return;
+      }
+
+      // Добавляем в существующий слот
+      await store.addRecipeToSlot(existingSlot.id, recipeId, notes);
+    } else {
+      // Создаем новый слот с рецептом
+      await store.createSlotWithRecipe({
+        slotType: 'day',
+        dayId,
+        mealType,
+        recipeId,
+        notes,
+      });
+    }
 
     toast.add({
       title: 'Успех',
       description: 'Рецепт добавлен',
       color: 'success',
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to create slot with recipe:', error);
-    toast.add({
-      title: 'Ошибка',
-      description: 'Не удалось добавить рецепт',
-      color: 'error',
-    });
+
+    if (error.message?.includes('duplicate') || error.code === '23505') {
+      toast.add({
+        title: 'Рецепт уже есть',
+        description: 'Этот рецепт уже добавлен в этот прием пищи',
+        color: 'warning',
+      });
+    } else {
+      toast.add({
+        title: 'Ошибка',
+        description: error.message || 'Не удалось добавить рецепт',
+        color: 'error',
+      });
+    }
   }
 }
 

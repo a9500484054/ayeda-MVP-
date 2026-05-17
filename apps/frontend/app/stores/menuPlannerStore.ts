@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { useMenuPlannerApi, type MenuList, type MenuSlot, type MenuSlotItem, type MenuDay, type SlotType, type MealType } from '~/composables/useMenuPlannerApi';
+import { useMenuPlannerApi, type MenuList, type MenuSlot, type MenuSlotItem, type MenuDay, type SlotType, type MealType, type DisplayType, type UpdateMenuListDto } from '~/composables/useMenuPlannerApi';
 
 export const useMenuPlannerStore = defineStore('menuPlanner', () => {
   const api = useMenuPlannerApi();
@@ -32,33 +32,28 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
     return activeMenuList.value?.displayType === 'banquet';
   });
 
-  // Для режима DAYS: получить слот по дню и приему пищи
   const getSlotByDayAndMeal = (dayId: string, mealType: MealType): MenuSlot | undefined => {
     return slots.value.find(
       slot => slot.dayId === dayId && slot.mealType === mealType && slot.slotType === 'day'
     );
   };
 
-  // Для режима CALENDAR: получить слот по дате и приему пищи
   const getSlotByDateAndMeal = (date: string, mealType: MealType): MenuSlot | undefined => {
     return slots.value.find(
       slot => slot.slotDate === date && slot.mealType === mealType && slot.slotType === 'calendar'
     );
   };
 
-  // Получить все слоты для конкретного дня (DAYS)
   const getSlotsByDay = (dayId: string): MenuSlot[] => {
     return slots.value.filter(slot => slot.dayId === dayId && slot.slotType === 'day');
   };
 
-  // Получить все слоты для конкретной даты (CALENDAR)
   const getSlotsByDate = (date: string): MenuSlot[] => {
     return slots.value.filter(slot => slot.slotDate === date && slot.slotType === 'calendar');
   };
 
   // ==================== Actions ====================
 
-  // Загрузить все списки меню
   async function fetchMenuLists() {
     isLoading.value = true;
     error.value = null;
@@ -81,7 +76,6 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
     }
   }
 
-  // Загрузить данные в зависимости от типа
   async function fetchDataByType() {
     if (!activeMenuListId.value) return;
 
@@ -94,12 +88,10 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
     } else if (list.displayType === 'calendar') {
       await fetchSlots();
     } else if (list.displayType === 'banquet') {
-      // Для банкета загружаем слоты (один слот со всеми блюдами)
-      await fetchSlots();
+      await fetchBanquetItems();
     }
   }
 
-  // Загрузить дни (только для DAYS)
   async function fetchDays() {
     if (!activeMenuListId.value) return;
 
@@ -110,7 +102,6 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
     }
   }
 
-  // Загрузить слоты для активного списка
   async function fetchSlots() {
     if (!activeMenuListId.value) {
       slots.value = [];
@@ -128,13 +119,11 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
     }
   }
 
-
-  // Создать новый список меню
   async function createMenuList(data: {
     title: string;
     displayType?: DisplayType;
     icon?: string;
-    presetDays?: number; // добавляем presetDays
+    presetDays?: number;
   }) {
     isLoading.value = true;
     try {
@@ -148,11 +137,10 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
       menuLists.value.push(newList);
       activeMenuListId.value = newList.id;
 
-      // Если создали список DAYS и указан presetDays, создаем дни
       if (newList.displayType === 'days' && data.presetDays) {
         await createDefaultDays(newList.id, data.presetDays);
       } else if (newList.displayType === 'days') {
-        await createDefaultDays(newList.id, 7); // по умолчанию 7 дней
+        await createDefaultDays(newList.id, 7);
       }
 
       await fetchSlots();
@@ -175,8 +163,6 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
     }
   }
 
-
-  // Создать дни по умолчанию (для DAYS)
   async function createDefaultDays(menuListId: string, daysCount: number = 7) {
     try {
       for (let i = 1; i <= daysCount; i++) {
@@ -191,7 +177,6 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
     }
   }
 
-  // Обновить список меню
   async function updateMenuList(id: string, data: Partial<UpdateMenuListDto>) {
     isLoading.value = true;
     try {
@@ -221,7 +206,6 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
     }
   }
 
-  // Удалить список меню
   async function deleteMenuList(id: string) {
     isLoading.value = true;
     try {
@@ -250,7 +234,6 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
 
   // ==================== Days Actions ====================
 
-  // Создать день (только для DAYS)
   async function createDay(dayOrder: number, title: string) {
     if (!activeMenuListId.value) return;
 
@@ -269,7 +252,6 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
     }
   }
 
-  // Обновить день
   async function updateDay(dayId: string, title: string) {
     try {
       const updated = await api.updateDay(dayId, { title });
@@ -288,7 +270,6 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
     }
   }
 
-  // Переупорядочить дни
   async function reorderDays(items: { id: string; order: number }[]) {
     if (!activeMenuListId.value) return;
 
@@ -305,15 +286,10 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
     }
   }
 
-  // Удалить день
-  // В методе deleteDay - уже используем api.deleteDay
   async function deleteDay(dayId: string) {
     try {
       await api.deleteDay(dayId);
-      // Удаляем день из локального состояния
       days.value = days.value.filter(d => d.id !== dayId);
-
-      // Также удаляем слоты этого дня
       slots.value = slots.value.filter(s => s.dayId !== dayId);
 
       toast.add({
@@ -333,7 +309,6 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
 
   // ==================== Slot Actions ====================
 
-  // Создать слот (для DAYS или CALENDAR)
   async function createSlot(data: {
     slotType: SlotType;
     dayId?: string;
@@ -360,97 +335,95 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
     }
   }
 
-  // Создать слот с рецептом (атомарно)
-  async function createSlotWithRecipe(data: {
-    slotType: SlotType;
+  async function createSlotWithRecipe(params: {
+    slotType: 'day' | 'calendar';
     dayId?: string;
     slotDate?: string;
-    mealType?: MealType;
+    mealType: MealType;
     recipeId: string;
     notes?: string;
   }) {
-    if (!activeMenuListId.value) return;
+    if (!activeMenuListId.value) {
+      throw new Error('No active menu list');
+    }
 
-    isLoading.value = true;
     try {
-      // Создаем слот
-      const newSlot = await api.createSlot({
-        menuListId: activeMenuListId.value,
-        slotType: data.slotType,
-        dayId: data.dayId,
-        slotDate: data.slotDate,
-        mealType: data.mealType,
-      });
+      // Проверяем, не существует ли уже слот с таким же рецептом
+      const existingSlot = slots.value.find(slot =>
+        slot.slotType === params.slotType &&
+        slot.dayId === params.dayId &&
+        slot.slotDate === params.slotDate &&
+        slot.mealType === params.mealType
+      );
 
-      slots.value.push(newSlot);
+      if (existingSlot) {
+        // Проверяем, нет ли уже такого рецепта в слоте
+        const recipeExists = existingSlot.items?.some(item => item.recipeId === params.recipeId);
+        if (recipeExists) {
+          throw new Error('Recipe already exists in this slot');
+        }
+        // Если слот существует, просто добавляем рецепт
+        return await addRecipeToSlot(existingSlot.id, params.recipeId, params.notes);
+      }
+
+      // Создаем новый слот
+      const slot = await api.createSlot({
+        menuListId: activeMenuListId.value,
+        slotType: params.slotType,
+        dayId: params.dayId,
+        slotDate: params.slotDate,
+        mealType: params.mealType,
+      });
 
       // Добавляем рецепт
-      const newItem = await api.addRecipeToSlot(newSlot.id, {
-        recipeId: data.recipeId,
-        notes: data.notes,
+      const item = await api.addRecipeToSlot(slot.id, {
+        recipeId: params.recipeId,
+        notes: params.notes
       });
 
-      // Обновляем items в слоте
-      const slotIndex = slots.value.findIndex(s => s.id === newSlot.id);
-      if (slotIndex !== -1) {
-        if (!slots.value[slotIndex].items) {
-          slots.value[slotIndex].items = [];
-        }
-        slots.value[slotIndex].items!.push(newItem);
-      }
+      // Обновляем локальное состояние
+      slot.items = [item];
+      slots.value.push(slot);
 
-      toast.add({
-        title: 'Успех',
-        description: 'Рецепт добавлен',
-        color: 'success',
-      });
+      return { slot, item };
+    } catch (error: any) {
+      console.error('Failed to create slot with recipe:', error);
 
-      return { slot: newSlot, item: newItem };
-    } catch (err: any) {
-      if (err.message?.includes('duplicate key') || err.code === 23505) {
+      if (error.message?.includes('already exists')) {
         toast.add({
-          title: 'Рецепт уже добавлен',
-          description: 'Этот рецепт уже есть в данном приеме пищи',
+          title: 'Рецепт уже есть',
+          description: 'Этот рецепт уже добавлен в этот прием пищи',
           color: 'warning',
         });
       } else {
         toast.add({
           title: 'Ошибка',
-          description: err.message || 'Не удалось добавить рецепт',
+          description: error.message || 'Не удалось добавить рецепт',
           color: 'error',
         });
       }
-      throw err;
-    } finally {
-      isLoading.value = false;
+      throw error;
     }
   }
 
-  // Добавить рецепт в существующий слот
-  // В store, метод addRecipeToSlot
   async function addRecipeToSlot(slotId: string, recipeId: string, notes?: string) {
-    // Проверяем, не добавлен ли уже этот рецепт в слот
-    const slot = slots.value.find(s => s.id === slotId);
-    if (slot?.items?.some(item => item.recipeId === recipeId)) {
-      toast.add({
-        title: 'Рецепт уже добавлен',
-        description: 'Этот рецепт уже есть в данном приеме пищи',
-        color: 'warning',
-      });
-      return null;
-    }
-
-    isLoading.value = true;
     try {
-      const newItem = await api.addRecipeToSlot(slotId, { recipeId, notes });
+      // Проверяем, не существует ли уже такой рецепт в слоте
+      const slot = slots.value.find(s => s.id === slotId);
+      const alreadyExists = slot?.items?.some(item => item.recipeId === recipeId);
 
-      const slotIndex = slots.value.findIndex(s => s.id === slotId);
-      if (slotIndex !== -1) {
-        if (!slots.value[slotIndex].items) {
-          slots.value[slotIndex].items = [];
-        }
-        slots.value[slotIndex].items!.push(newItem);
-        slots.value[slotIndex].items!.sort((a, b) => a.order - b.order);
+      if (alreadyExists) {
+        throw new Error('Recipe already exists in this slot');
+      }
+
+      const item = await api.addRecipeToSlot(slotId, { recipeId, notes });
+
+      // Обновляем локальное состояние
+      const targetSlot = slots.value.find(s => s.id === slotId);
+      if (targetSlot) {
+        if (!targetSlot.items) targetSlot.items = [];
+        targetSlot.items.push(item);
+        targetSlot.items.sort((a, b) => a.order - b.order);
       }
 
       toast.add({
@@ -458,29 +431,28 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
         description: 'Рецепт добавлен',
         color: 'success',
       });
-      return newItem;
-    } catch (err: any) {
-      // Обрабатываем ошибку дубликата
-      if (err.message?.includes('duplicate key') || err.code === 23505) {
+
+      return item;
+    } catch (error: any) {
+      console.error('Failed to add recipe to slot:', error);
+
+      if (error.message?.includes('already exists')) {
         toast.add({
-          title: 'Рецепт уже добавлен',
-          description: 'Этот рецепт уже есть в данном приеме пищи',
+          title: 'Рецепт уже есть',
+          description: 'Этот рецепт уже добавлен в этот слот',
           color: 'warning',
         });
       } else {
         toast.add({
           title: 'Ошибка',
-          description: err.message || 'Не удалось добавить рецепт',
+          description: error.message || 'Не удалось добавить рецепт',
           color: 'error',
         });
       }
-      throw err;
-    } finally {
-      isLoading.value = false;
+      throw error;
     }
   }
 
-  // Удалить рецепт из слота
   async function removeRecipeFromSlot(itemId: string) {
     isLoading.value = true;
     try {
@@ -490,6 +462,11 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
         const itemIndex = slot.items?.findIndex(i => i.id === itemId);
         if (itemIndex !== undefined && itemIndex !== -1) {
           slot.items?.splice(itemIndex, 1);
+
+          // Если слот стал пустым и это не банкет, удаляем слот
+          if (slot.items?.length === 0 && slot.slotType !== 'banquet') {
+            await deleteSlot(slot.id);
+          }
           break;
         }
       }
@@ -511,7 +488,15 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
     }
   }
 
-  // Обновить порядок рецептов в слоте
+  async function deleteSlot(slotId: string) {
+    try {
+      await api.deleteSlot(slotId);
+      slots.value = slots.value.filter(s => s.id !== slotId);
+    } catch (err: any) {
+      console.error('Failed to delete slot:', err);
+    }
+  }
+
   async function reorderSlotItems(slotId: string, items: { id: string; order: number }[]) {
     try {
       const reordered = await api.reorderSlotItems(slotId, items);
@@ -521,10 +506,14 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
       }
     } catch (err: any) {
       console.error('Failed to reorder items:', err);
+      toast.add({
+        title: 'Ошибка',
+        description: err.message || 'Не удалось изменить порядок',
+        color: 'error',
+      });
     }
   }
 
-  // Обновить заметки рецепта
   async function updateSlotItemNotes(itemId: string, notes: string) {
     try {
       const updated = await api.updateSlotItemNotes(itemId, notes);
@@ -548,13 +537,13 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
 
   // ==================== Banquet Actions ====================
 
-  // Получить блюда банкета
   async function fetchBanquetItems() {
     if (!activeMenuListId.value) return;
 
+    isLoading.value = true;
     try {
       const items = await api.getBanquetItems(activeMenuListId.value);
-      // Для банкета создаем виртуальный слот с items
+
       if (items.length > 0) {
         const banquetSlot: MenuSlot = {
           id: 'banquet-slot',
@@ -571,10 +560,11 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
       }
     } catch (err: any) {
       console.error('Failed to fetch banquet items:', err);
+    } finally {
+      isLoading.value = false;
     }
   }
 
-  // Добавить блюдо в банкет
   async function addBanquetItem(recipeId: string, notes?: string) {
     if (!activeMenuListId.value) return;
 
@@ -615,7 +605,6 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
     }
   }
 
-  // Установить активный список
   async function setActiveMenuList(id: string | null) {
     activeMenuListId.value = id;
     if (id) {
@@ -631,7 +620,6 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
     return slot?.items?.some(item => item.recipeId === recipeId) || false;
   }
 
-  // Очистить ошибку
   function clearError() {
     error.value = null;
   }
@@ -677,6 +665,7 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
     removeRecipeFromSlot,
     reorderSlotItems,
     updateSlotItemNotes,
+    deleteSlot,
 
     // Banquet actions
     addBanquetItem,
