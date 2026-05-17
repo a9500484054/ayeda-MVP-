@@ -5,7 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource, Not, Between, IsNull, In } from 'typeorm';
+import { Repository, DataSource, Between } from 'typeorm';
 import { MenuList } from './entities/menu-list.entity';
 import { MenuDay } from './entities/menu-day.entity';
 import { MenuSlot } from './entities/menu-slot.entity';
@@ -118,7 +118,7 @@ export class MenuPlannerService {
       isActive: menuList.isActive,
       createdAt: menuList.createdAt,
       updatedAt: menuList.updatedAt,
-      deletedAt: menuList.deletedAt,
+      // deletedAt: undefined, // Больше не используем
       slots: menuList.slots?.map((slot) => this.toMenuSlotResponseDto(slot)),
       days: menuList.days?.map((day) => this.toMenuDayResponseDto(day)),
       displayType: menuList.displayType,
@@ -143,7 +143,7 @@ export class MenuPlannerService {
 
   async findAllMenuLists(userId: string): Promise<MenuListResponseDto[]> {
     const menuLists = await this.menuListRepository.find({
-      where: { userId, deletedAt: IsNull() },
+      where: { userId }, // Убрали deletedAt: IsNull()
       relations: ['slots', 'days', ...this.slotRelations.map((r) => `slots.${r}`)],
       order: { createdAt: 'DESC' },
     });
@@ -153,7 +153,7 @@ export class MenuPlannerService {
 
   async findOneMenuList(userId: string, id: string): Promise<MenuList> {
     const menuList = await this.menuListRepository.findOne({
-      where: { id, deletedAt: IsNull() },
+      where: { id }, // Убрали deletedAt: IsNull()
       relations: ['slots', 'days', 'days.slots', ...this.slotRelations.map((r) => `slots.${r}`)],
     });
 
@@ -178,11 +178,12 @@ export class MenuPlannerService {
   }
 
   async removeMenuList(userId: string, id: string): Promise<void> {
-    await this.findOneMenuList(userId, id);
-    await this.menuListRepository.softDelete(id);
+    const menuList = await this.findOneMenuList(userId, id);
+    // Физическое удаление (каскадно удалит все связанные данные из-за CASCADE)
+    await this.menuListRepository.remove(menuList);
   }
 
-  // ==================== DAYS (только для режима DAYS) ====================
+  // ==================== DAYS ====================
 
   async findAllDays(userId: string, menuListId: string): Promise<MenuDayResponseDto[]> {
     await this.findOneMenuList(userId, menuListId);
@@ -252,9 +253,7 @@ export class MenuPlannerService {
     return days.map((day) => this.toMenuDayResponseDto(day));
   }
 
-  // В menu-planner.service.ts, метод deleteDay
   async deleteDay(userId: string, dayId: string): Promise<void> {
-    // Находим день (только неудаленный)
     const day = await this.menuDayRepository.findOne({
       where: { id: dayId },
       relations: ['menuList'],
@@ -264,11 +263,10 @@ export class MenuPlannerService {
       throw new NotFoundException('День не найден');
     }
 
-    // Проверяем права доступа
     await this.findOneMenuList(userId, day.menuListId);
 
-    // Физическое удаление дня
-    await this.menuDayRepository.delete(dayId);
+    // Физическое удаление (каскадно удалит слоты и их items из-за CASCADE)
+    await this.menuDayRepository.remove(day);
   }
 
   // ==================== SLOTS ====================
@@ -292,7 +290,7 @@ export class MenuPlannerService {
   async findAllSlotsByMenuList(userId: string, menuListId: string): Promise<MenuSlotResponseDto[]> {
     await this.findOneMenuList(userId, menuListId);
     const slots = await this.menuSlotRepository.find({
-      where: { menuListId, deletedAt: IsNull() },
+      where: { menuListId }, // Убрали deletedAt: IsNull()
       relations: this.slotRelations,
       order: { createdAt: 'ASC' },
     });
@@ -301,7 +299,7 @@ export class MenuPlannerService {
 
   async findOneSlot(userId: string, slotId: string): Promise<MenuSlot> {
     const slot = await this.menuSlotRepository.findOne({
-      where: { id: slotId, deletedAt: IsNull() },
+      where: { id: slotId }, // Убрали deletedAt: IsNull()
       relations: ['menuList', ...this.slotRelations],
     });
 
@@ -316,8 +314,9 @@ export class MenuPlannerService {
   }
 
   async deleteSlot(userId: string, slotId: string): Promise<void> {
-    await this.findOneSlot(userId, slotId);
-    await this.menuSlotRepository.softDelete(slotId);
+    const slot = await this.findOneSlot(userId, slotId);
+    // Физическое удаление (каскадно удалит все items из-за CASCADE)
+    await this.menuSlotRepository.remove(slot);
   }
 
   // ==================== SLOT ITEMS (RECIPES) ====================
@@ -331,8 +330,9 @@ export class MenuPlannerService {
 
     await this.recipesService.findOne(dto.recipeId);
 
+    // Проверяем существование активной записи (без soft delete теперь просто проверяем наличие)
     const existingItem = await this.menuSlotItemRepository.findOne({
-      where: { slotId, recipeId: dto.recipeId, deletedAt: IsNull() },
+      where: { slotId, recipeId: dto.recipeId },
     });
 
     if (existingItem) {
@@ -365,14 +365,15 @@ export class MenuPlannerService {
 
   async removeRecipeFromSlot(userId: string, itemId: string): Promise<void> {
     const item = await this.menuSlotItemRepository.findOne({
-      where: { id: itemId, deletedAt: IsNull() },
+      where: { id: itemId },
       relations: ['slot', 'slot.menuList'],
     });
 
     if (!item) throw new NotFoundException('Элемент не найден');
     await this.findOneMenuList(userId, item.slot.menuListId);
 
-    await this.menuSlotItemRepository.softDelete(itemId);
+    // Физическое удаление
+    await this.menuSlotItemRepository.remove(item);
   }
 
   async reorderSlotItems(
@@ -389,7 +390,7 @@ export class MenuPlannerService {
     });
 
     const items = await this.menuSlotItemRepository.find({
-      where: { slotId, deletedAt: IsNull() },
+      where: { slotId },
       relations: this.itemRelations,
       order: { order: 'ASC' },
     });
@@ -403,7 +404,7 @@ export class MenuPlannerService {
     notes: string,
   ): Promise<MenuSlotItemResponseDto> {
     const item = await this.menuSlotItemRepository.findOne({
-      where: { id: itemId, deletedAt: IsNull() },
+      where: { id: itemId },
       relations: ['slot', 'slot.menuList', ...this.itemRelations],
     });
 
@@ -419,7 +420,7 @@ export class MenuPlannerService {
   async getSlotItems(userId: string, slotId: string): Promise<MenuSlotItemResponseDto[]> {
     await this.findOneSlot(userId, slotId);
     const items = await this.menuSlotItemRepository.find({
-      where: { slotId, deletedAt: IsNull() },
+      where: { slotId },
       relations: this.itemRelations,
       order: { order: 'ASC' },
     });
@@ -445,7 +446,6 @@ export class MenuPlannerService {
         menuListId,
         slotType: SlotType.CALENDAR,
         slotDate: Between(startDate, endDate),
-        deletedAt: IsNull(),
       },
       relations: this.slotRelations,
       order: { slotDate: 'ASC', mealType: 'ASC' },
@@ -467,7 +467,6 @@ export class MenuPlannerService {
       where: {
         menuListId,
         slotType: SlotType.BANQUET,
-        deletedAt: IsNull(),
       },
       relations: this.slotRelations,
       order: { order: 'ASC' },
@@ -492,12 +491,10 @@ export class MenuPlannerService {
       throw new BadRequestException('Добавление блюд доступно только для банкета');
     }
 
-    // Находим или создаем слот для банкета
     let banquetSlot = await this.menuSlotRepository.findOne({
       where: {
         menuListId,
         slotType: SlotType.BANQUET,
-        deletedAt: IsNull(),
       },
     });
 
@@ -514,7 +511,6 @@ export class MenuPlannerService {
     return this.addRecipeToSlot(userId, banquetSlot.id, dto);
   }
 
-  // В сервисе добавим метод для создания дня с автоматическим порядком
   async createDayWithAutoOrder(userId: string, menuListId: string, title?: string): Promise<MenuDayResponseDto> {
     const menuList = await this.findOneMenuList(userId, menuListId);
 
@@ -522,7 +518,6 @@ export class MenuPlannerService {
       throw new BadRequestException('Дни можно создавать только в режиме DAYS');
     }
 
-    // Находим максимальный существующий day_order
     const maxOrderResult = await this.menuDayRepository
       .createQueryBuilder('day')
       .select('MAX(day.dayOrder)', 'max')

@@ -29,8 +29,7 @@ export class MenuListResponseDto {
   @ApiProperty()
   updatedAt: Date;
 
-  @ApiProperty({ required: false })
-  deletedAt?: Date;
+  // ❌ УДАЛЕНО поле deletedAt
 
   @ApiProperty({ type: [MenuSlotResponseDto], required: false })
   slots?: MenuSlotResponseDto[];

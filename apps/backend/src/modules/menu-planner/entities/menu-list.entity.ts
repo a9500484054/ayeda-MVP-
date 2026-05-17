@@ -58,9 +58,7 @@ export class MenuList {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @ApiProperty({ required: false })
-  @DeleteDateColumn({ name: 'deleted_at' })
-  deletedAt: Date;
+  // ❌ УДАЛЕНА строка: @DeleteDateColumn({ name: 'deleted_at' })
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })

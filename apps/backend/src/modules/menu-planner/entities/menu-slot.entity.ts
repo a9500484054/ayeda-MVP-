@@ -64,9 +64,7 @@ export class MenuSlot {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @ApiProperty({ required: false })
-  @DeleteDateColumn({ name: 'deleted_at' })
-  deletedAt: Date;
+  // ❌ УДАЛЕНА строка: @DeleteDateColumn({ name: 'deleted_at' })
 
   @ManyToOne(() => MenuList, (menuList) => menuList.slots, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'menu_list_id' })
