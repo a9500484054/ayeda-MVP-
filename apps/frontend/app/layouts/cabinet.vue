@@ -45,6 +45,7 @@
         'lg:sticky lg:translate-x-0 w-64',
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
       ]"
+      style="min-width: 256px;"
     >
       <!-- Градиентный фон -->
       <div class="absolute inset-0 bg-gradient-to-br from-emerald-700 to-teal-800">

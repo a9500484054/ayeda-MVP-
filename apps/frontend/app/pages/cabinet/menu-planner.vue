@@ -1,6 +1,6 @@
 <!-- pages/cabinet/menu-planner.vue (обновленный) -->
 <template>
-  <div class="mx-auto w-full px-4 py-6 md:px-6">
+  <div class="mx-auto w-full max-w-7xl px-4 py-6 md:px-6">
     <!-- Header -->
     <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>

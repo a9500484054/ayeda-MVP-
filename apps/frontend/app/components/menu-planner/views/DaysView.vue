@@ -36,28 +36,30 @@
       </div>
     </div>
 
-    <!-- Контейнер с днями -->
-    <div class="days-scroll-container overflow-x-auto pb-4">
-      <div class="flex gap-4" :style="{ minWidth: 'fit-content' }">
-        <DayColumn
-          v-for="day in displayedDays"
-          :key="day.id"
-          :day="day"
-          :breakfast-slot="getSlotByMeal('breakfast', day.id)"
-          :lunch-slot="getSlotByMeal('lunch', day.id)"
-          :dinner-slot="getSlotByMeal('dinner', day.id)"
-          :snack-slot="getSlotByMeal('snack', day.id)"
-          :is-loading="isLoading"
-          :can-delete="days.length > 1"
-          @add-recipe="handleAddRecipe"
-          @move-recipe="handleMoveRecipe"
-          @remove-recipe="handleRemoveRecipe"
-          @edit-notes="handleEditNotes"
-          @rename-day="handleRenameDay"
-          @delete-day="handleDeleteDay"
-          @reorder="handleReorder"
-          @create-slot="handleCreateSlot"
-        />
+    <!-- Контейнер с днями - исправленные стили -->
+    <div class="days-scroll-wrapper">
+      <div class="days-scroll-container">
+        <div class="days-flex-wrapper">
+          <DayColumn
+            v-for="day in displayedDays"
+            :key="day.id"
+            :day="day"
+            :breakfast-slot="getSlotByMeal('breakfast', day.id)"
+            :lunch-slot="getSlotByMeal('lunch', day.id)"
+            :dinner-slot="getSlotByMeal('dinner', day.id)"
+            :snack-slot="getSlotByMeal('snack', day.id)"
+            :is-loading="isLoading"
+            :can-delete="days.length > 1"
+            @add-recipe="handleAddRecipe"
+            @move-recipe="handleMoveRecipe"
+            @remove-recipe="handleRemoveRecipe"
+            @edit-notes="handleEditNotes"
+            @rename-day="handleRenameDay"
+            @delete-day="handleDeleteDay"
+            @reorder="handleReorder"
+            @create-slot="handleCreateSlot"
+          />
+        </div>
       </div>
     </div>
   </div>
@@ -180,26 +182,39 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.days-scroll-wrapper {
+  overflow-x: auto;
+  overflow-y: visible;
+  position: relative;
+}
+
 .days-scroll-container {
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 #f1f5f9;
+  min-width: min-content;
+  width: 100%;
 }
 
-.days-scroll-container::-webkit-scrollbar {
-  height: 6px;
+.days-flex-wrapper {
+  display: flex;
+  gap: 1rem; /* 16px gap-4 */
+  width: fit-content;
 }
 
-.days-scroll-container::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 10px;
+/* Стили для скроллбара (опционально) */
+.days-scroll-wrapper::-webkit-scrollbar {
+  height: 8px;
 }
 
-.days-scroll-container::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 10px;
+.days-scroll-wrapper::-webkit-scrollbar-track {
+  background: #f4f4f5;
+  border-radius: 4px;
 }
 
-.days-scroll-container::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+.days-scroll-wrapper::-webkit-scrollbar-thumb {
+  background: #a1a1aa;
+  border-radius: 4px;
+}
+
+.days-scroll-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #71717a;
 }
 </style>
