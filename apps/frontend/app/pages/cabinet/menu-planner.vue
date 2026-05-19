@@ -199,7 +199,7 @@ async function handleListUpdated() {
 }
 
 // Обработчик добавления ингредиентов в список покупок
-async function handleAddToShoppingList(ingredients: Array<{ id: string; name: string; quantity: number; unit: string }>) {
+async function handleAddToShoppingList(ingredients: Array<{ id: string; name: string; amount: number; unit: string }>) {
   if (!ingredients.length) {
     toast.add({
       title: 'Нет ингредиентов',
@@ -213,25 +213,13 @@ async function handleAddToShoppingList(ingredients: Array<{ id: string; name: st
     // Выводим в консоль для проверки
     console.log('=== Ингредиенты для добавления в список покупок ===');
     console.log(`Всего ингредиентов: ${ingredients.length}`);
-    console.table(ingredients);
+    console.log(`Объект ингредиентов:`, ingredients);
 
-    // Детальный вывод каждого ингредиента
     ingredients.forEach((ingredient, index) => {
-      console.log(`${index + 1}. ${ingredient.name}: ${ingredient.quantity} ${ingredient.unit || 'шт'}`);
+      console.log(`${index + 1}. ${ingredient.name}: ${ingredient.amount} ${ingredient.unit}`);
     });
 
     // Здесь будет логика добавления в список покупок через API
-    // const { useShoppingListApi } = await import('~/composables/useShoppingListApi');
-    // const shoppingListApi = useShoppingListApi();
-    //
-    // for (const ingredient of ingredients) {
-    //   await shoppingListApi.addIngredient({
-    //     name: ingredient.name,
-    //     quantity: ingredient.quantity,
-    //     unit: ingredient.unit
-    //   });
-    // }
-
     toast.add({
       title: 'Добавлено в список покупок',
       description: `${ingredients.length} ингредиент${getIngredientEnding(ingredients.length)} добавлен${getIngredientEndingVerb(ingredients.length)} в список`,
