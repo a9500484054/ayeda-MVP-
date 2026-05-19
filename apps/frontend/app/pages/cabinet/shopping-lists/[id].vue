@@ -80,6 +80,7 @@ import ShoppingListItemModal from '~/components/shopping/list/ShoppingListItemMo
 import ShareListModal from '~/components/shopping/lists/ShareListModal.vue';
 import DeleteConfirmationModal from '~/components/menu-planner/modals/DeleteConfirmationModal.vue';
 import { useShoppingListPrint } from '~/composables/useShoppingListPrint';
+import { useApi } from "~/composables/useApi";
 
 definePageMeta({ layout: 'cabinet' });
 

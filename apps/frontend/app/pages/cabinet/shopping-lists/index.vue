@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto w-full max-w-7xl px-4 py-6 md:px-6">
+  <div class="mx-auto w-full max-w-3xl px-4 py-6 md:px-6">
     <ShoppingListsHeader @create="openCreateModal" />
 
     <!-- Loading -->
@@ -13,6 +13,7 @@
       v-else-if="store.lists.length > 0"
       :lists="store.lists"
       @reorder="handleReorder"
+      @navigate="handleNavigate"
       @rename="openRenameModal"
       @share="openShareModal"
       @copy="handleCopyList"
@@ -66,8 +67,8 @@ import DeleteConfirmationModal from '~/components/menu-planner/modals/DeleteConf
 
 definePageMeta({ layout: 'cabinet' });
 
-const store = useShoppingListsStore();
 const router = useRouter();
+const store = useShoppingListsStore();
 const toast = useToast();
 
 // Состояния модалок
@@ -82,6 +83,11 @@ onMounted(() => {
   store.fetchLists();
 });
 
+// Навигация
+function handleNavigate(listId: string) {
+  router.push(`/cabinet/shopping-lists/${listId}`);
+}
+
 // Drag & Drop сортировка
 async function handleReorder(dragIndex: number, dropIndex: number) {
   const items = [...store.lists];
@@ -95,6 +101,7 @@ async function handleReorder(dragIndex: number, dropIndex: number) {
 
   await store.reorderLists(reorderData);
 }
+
 
 // Создание списка
 function openCreateModal() {
