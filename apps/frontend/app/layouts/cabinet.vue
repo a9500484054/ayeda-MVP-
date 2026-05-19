@@ -283,7 +283,7 @@ const dropdownItems = computed<DropdownMenuItem[][]>(() => [
 const mainLinks = [
   { to: '/cabinet/my-recipes', label: 'Мои рецепты', icon: 'i-lucide-book-open' },
   { to: '/cabinet/menu-planner', label: 'Планировщик меню', icon: 'i-lucide-calendar-days' },
-  { to: '/in-development', label: 'Список покупок', icon: 'i-lucide-shopping-cart' },
+  { to: '/cabinet/shopping-lists', label: 'Списки покупок', icon: 'i-lucide-shopping-cart' }, 
 ];
 
 const exploreLinks = [
