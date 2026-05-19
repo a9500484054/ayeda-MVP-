@@ -14,30 +14,30 @@ export class ShoppingCategory {
   id: string;
 
   @ApiProperty()
-  @Column({ length: 50, unique: true })
+  @Column({ name: 'code', type: 'varchar', length: 50, unique: true })
   code: string;
 
   @ApiProperty()
-  @Column({ length: 100 })
+  @Column({ name: 'name', type: 'varchar', length: 100 })
   name: string;
 
   @ApiProperty()
-  @Column({ length: 50 })
+  @Column({ name: 'icon', type: 'varchar', length: 50 })
   icon: string;
 
   @ApiProperty({ default: 0 })
-  @Column({ name: 'sort_order', default: 0 })
+  @Column({ name: 'sort_order', type: 'integer', default: 0 })
   sortOrder: number;
 
   @ApiProperty({ default: true })
-  @Column({ name: 'is_active', default: true })
+  @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive: boolean;
 
   @ApiProperty()
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 
   @ApiProperty()
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
 }

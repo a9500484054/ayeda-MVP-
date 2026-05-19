@@ -20,31 +20,37 @@ export class ShoppingList {
   id: string;
 
   @ApiProperty()
-  @Column({ name: 'user_id' })
+  @Column({ name: 'user_id', type: 'uuid' })
   userId: string;
 
   @ApiProperty()
-  @Column({ length: 200 })
+  @Column({ name: 'title', type: 'varchar', length: 200 })
   title: string;
 
   @ApiProperty({ nullable: true })
-  @Column({ name: 'share_token', length: 64, nullable: true, unique: true })
+  @Column({
+    name: 'share_token',
+    type: 'varchar',
+    length: 64,
+    nullable: true,
+    unique: true
+  })
   shareToken: string | null;
 
   @ApiProperty({ default: 0 })
-  @Column({ name: 'sort_order', default: 0 })
+  @Column({ name: 'sort_order', type: 'integer', default: 0 })
   sortOrder: number;
 
   @ApiProperty()
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 
   @ApiProperty()
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
 
   @ApiProperty({ nullable: true })
-  @DeleteDateColumn({ name: 'deleted_at' })
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz' })
   deletedAt: Date | null;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
