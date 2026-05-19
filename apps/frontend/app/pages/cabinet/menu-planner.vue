@@ -1,4 +1,4 @@
-<!-- pages/cabinet/menu-planner.vue (обновленный) -->
+<!-- pages/cabinet/menu-planner.vue -->
 <template>
   <div class="mx-auto w-full max-w-7xl px-4 py-6 md:px-6">
     <!-- Header -->
@@ -52,6 +52,7 @@
           @delete-day="handleDeleteDay"
           @reorder="handleReorder"
           @create-slot="handleCreateSlot"
+          @add-to-shopping-list="handleAddToShoppingList"
         />
 
         <!-- Тип "Календарь" -->
@@ -62,6 +63,7 @@
           @add-recipe="handleAddRecipeByDate"
           @remove-recipe="store.removeRecipeFromSlot"
           @edit-notes="handleEditNotes"
+          @add-to-shopping-list="handleAddToShoppingList"
         />
 
         <!-- Тип "Банкет" -->
@@ -72,6 +74,7 @@
           @add-recipe="handleAddBanquetItem"
           @remove-recipe="store.removeRecipeFromSlot"
           @edit-notes="handleEditNotes"
+          @add-to-shopping-list="handleAddToShoppingList"
         />
       </div>
 
@@ -195,6 +198,67 @@ async function handleListUpdated() {
   await store.fetchMenuLists();
 }
 
+// Обработчик добавления ингредиентов в список покупок
+async function handleAddToShoppingList(ingredients: Array<{ id: string; name: string; quantity: number; unit: string }>) {
+  if (!ingredients.length) {
+    toast.add({
+      title: 'Нет ингредиентов',
+      description: 'В меню нет ингредиентов для добавления',
+      color: 'warning'
+    });
+    return;
+  }
+
+  try {
+    // Выводим в консоль для проверки
+    console.log('=== Ингредиенты для добавления в список покупок ===');
+    console.log(`Всего ингредиентов: ${ingredients.length}`);
+    console.table(ingredients);
+
+    // Детальный вывод каждого ингредиента
+    ingredients.forEach((ingredient, index) => {
+      console.log(`${index + 1}. ${ingredient.name}: ${ingredient.quantity} ${ingredient.unit || 'шт'}`);
+    });
+
+    // Здесь будет логика добавления в список покупок через API
+    // const { useShoppingListApi } = await import('~/composables/useShoppingListApi');
+    // const shoppingListApi = useShoppingListApi();
+    //
+    // for (const ingredient of ingredients) {
+    //   await shoppingListApi.addIngredient({
+    //     name: ingredient.name,
+    //     quantity: ingredient.quantity,
+    //     unit: ingredient.unit
+    //   });
+    // }
+
+    toast.add({
+      title: 'Добавлено в список покупок',
+      description: `${ingredients.length} ингредиент${getIngredientEnding(ingredients.length)} добавлен${getIngredientEndingVerb(ingredients.length)} в список`,
+      color: 'success'
+    });
+  } catch (error) {
+    console.error('Failed to add to shopping list:', error);
+    toast.add({
+      title: 'Ошибка',
+      description: 'Не удалось добавить ингредиенты в список покупок',
+      color: 'error'
+    });
+  }
+}
+
+// Вспомогательные функции для правильных окончаний
+function getIngredientEnding(count: number): string {
+  if (count % 10 === 1 && count % 100 !== 11) return '';
+  if (count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 10 || count % 100 >= 20)) return 'а';
+  return 'ов';
+}
+
+function getIngredientEndingVerb(count: number): string {
+  if (count % 10 === 1 && count % 100 !== 11) return 'о';
+  return 'ы';
+}
+
 // Логика для Days view
 function handleAddRecipeByDay(dayId: string, mealType: MealType) {
   pendingRecipeData.value = {
@@ -290,6 +354,7 @@ async function handleRecipeAdded(recipeId: string) {
     console.error('Failed to add recipe:', error);
   }
 }
+
 // Перемещение рецепта между слотами
 async function handleMoveRecipe(itemId: string, sourceSlotId: string, targetSlotId: string) {
   console.log('Parent move recipe:', { itemId, sourceSlotId, targetSlotId });
@@ -374,8 +439,6 @@ async function handleMoveRecipe(itemId: string, sourceSlotId: string, targetSlot
   }
 }
 
-
-// В menu-planner.vue
 async function handleReorder(slotId: string, items: { id: string; order: number }[]) {
   console.log('Reorder items:', { slotId, items });
   try {
@@ -389,6 +452,7 @@ async function handleReorder(slotId: string, items: { id: string; order: number 
     console.error('Failed to reorder:', error);
   }
 }
+
 async function handleCreateSlot(dayId: string, mealType: MealType, recipeId: string, notes?: string) {
   try {
     // Проверяем, существует ли уже слот с таким же рецептом в этом дне

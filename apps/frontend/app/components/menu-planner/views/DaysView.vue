@@ -12,8 +12,29 @@
           <UIcon name="i-lucide-plus" class="h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-90" />
           <span>Добавить день ({{ days.length }}/30)</span>
         </Button>
+
+        <!-- Кнопка добавления в список покупок -->
+        <Button
+          color="white"
+          @click="addToShoppingList"
+          :disabled="days.length === 0 || isLoading"
+          :loading="isAddingToShoppingList"
+          class="relative transition-all duration-200 hover:scale-[1.02]"
+        >
+          <UIcon name="i-lucide-shopping-cart" class="h-3.5 w-3.5" />
+          <span>В список покупок</span>
+
+          <!-- Бейдж с количеством рецептов -->
+          <span
+            v-if="totalRecipesCount > 0 && !isAddingToShoppingList"
+            class="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-green-500 text-[10px] font-medium text-white"
+          >
+            {{ totalRecipesCount > 9 ? '9+' : totalRecipesCount }}
+          </span>
+        </Button>
       </div>
     </div>
+
     <div class="days-view">
       <!-- Контейнер с днями -->
       <div class="days-grid-wrapper">
@@ -53,8 +74,8 @@ const props = defineProps<{
   slots: MenuSlot[];
   isLoading?: boolean;
 }>();
-const toast = useToast()
 
+const toast = useToast();
 const emit = defineEmits<{
   addRecipe: [dayId: string, mealType: MealType];
   moveRecipe: [itemId: string, sourceSlotId: string, targetDayId: string, targetMealType: MealType];
@@ -65,7 +86,10 @@ const emit = defineEmits<{
   deleteDay: [dayId: string];
   createSlot: [dayId: string, mealType: MealType, recipeId: string, notes?: string];
   reorder: [slotId: string, items: { id: string; order: number }[]];
+  addToShoppingList: [ingredients: Array<{ id: string; name: string; quantity: number; unit: string }>];
 }>();
+
+const isAddingToShoppingList = ref(false);
 
 function getSlotByMeal(mealType: MealType, dayId: string): MenuSlot | undefined {
   return props.slots.find(
@@ -73,13 +97,113 @@ function getSlotByMeal(mealType: MealType, dayId: string): MenuSlot | undefined 
   );
 }
 
+// Собираем все ингредиенты из всех рецептов
+const allIngredients = computed(() => {
+  const ingredientsMap = new Map<string, { id: string; name: string; quantity: number; unit: string }>();
+
+  props.slots.forEach(slot => {
+    if (slot.items && slot.items.length > 0) {
+      slot.items.forEach(item => {
+        if (item.recipe && item.recipe.ingredients) {
+          item.recipe.ingredients.forEach((ingredient: any) => {
+            const key = `${ingredient.name}_${ingredient.unit || ''}`;
+
+            if (ingredientsMap.has(key)) {
+              // Суммируем количество если ингредиент уже есть
+              const existing = ingredientsMap.get(key)!;
+              existing.quantity += ingredient.quantity || 0;
+            } else {
+              ingredientsMap.set(key, {
+                id: ingredient.id,
+                name: ingredient.name,
+                quantity: ingredient.quantity || 0,
+                unit: ingredient.unit || ''
+              });
+            }
+          });
+        }
+      });
+    }
+  });
+
+  return Array.from(ingredientsMap.values());
+});
+
+// Подсчет общего количества рецептов
+const totalRecipesCount = computed(() => {
+  return props.slots.reduce((total, slot) => {
+    return total + (slot.items?.length || 0);
+  }, 0);
+});
+
+// Функция добавления всех ингредиентов в список покупок
+async function addToShoppingList() {
+  if (props.days.length === 0) {
+    toast.add({
+      title: 'Нет дней',
+      description: 'Добавьте хотя бы один день в меню',
+      color: 'warning'
+    });
+    return;
+  }
+
+  if (allIngredients.value.length === 0) {
+    toast.add({
+      title: 'Нет ингредиентов',
+      description: 'В рецептах нет ингредиентов для добавления',
+      color: 'warning'
+    });
+    return;
+  }
+
+  isAddingToShoppingList.value = true;
+
+  try {
+    // Эмитим событие с массивом ингредиентов
+    emit('addToShoppingList', allIngredients.value);
+
+    // Выводим в консоль для проверки
+    console.log('Ингредиенты для добавления в список покупок:', allIngredients.value);
+
+    toast.add({
+      title: 'Успешно!',
+      description: `${allIngredients.value.length} ингредиент${getIngredientEnding(allIngredients.value.length)} добавлен${getIngredientEndingVerb(allIngredients.value.length)} в список покупок`,
+      color: 'success'
+    });
+  } catch (error) {
+    console.error('Failed to add to shopping list:', error);
+    toast.add({
+      title: 'Ошибка',
+      description: 'Не удалось добавить ингредиенты в список покупок',
+      color: 'error'
+    });
+  } finally {
+    isAddingToShoppingList.value = false;
+  }
+}
+
+// Вспомогательные функции для правильных окончаний
+function getIngredientEnding(count: number): string {
+  if (count % 10 === 1 && count % 100 !== 11) return '';
+  if (count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 10 || count % 100 >= 20)) return 'а';
+  return 'ов';
+}
+
+function getIngredientEndingVerb(count: number): string {
+  if (count % 10 === 1 && count % 100 !== 11) return 'о';
+  return 'ы';
+}
+
+// Остальные обработчики
 function handleAddRecipe(dayId: string, mealType: MealType) {
   emit('addRecipe', dayId, mealType);
 }
 
 function handleMoveRecipe(itemId: string, sourceSlotId: string, targetSlotId: string) {
-  console.log('DaysView move recipe:', { itemId, sourceSlotId, targetSlotId });
-  emit('moveRecipe', itemId, sourceSlotId, targetSlotId);
+  const targetSlot = props.slots.find(slot => slot.id === targetSlotId);
+  if (targetSlot) {
+    emit('moveRecipe', itemId, sourceSlotId, targetSlot.dayId!, targetSlot.mealType);
+  }
 }
 
 function handleRemoveRecipe(itemId: string) {
@@ -123,6 +247,7 @@ function addNewDay() {
 }
 </script>
 
+
 <style scoped>
 .days-view {
   width: 100%;
@@ -139,13 +264,12 @@ function addNewDay() {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 280px;
-  gap: 1rem; /* 16px */
+  gap: 1rem;
   width: 100%;
 }
 
-/* Убедимся, что DayColumn не расширяет родителя */
 :deep(.day-column) {
   width: 100%;
-  min-width: 0; /* Важно для правильной работы с grid */
+  min-width: 0;
 }
 </style>
