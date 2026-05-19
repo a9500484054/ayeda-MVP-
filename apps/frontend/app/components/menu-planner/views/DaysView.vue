@@ -13,34 +13,13 @@
           <span>Добавить день ({{ days.length }}/30)</span>
         </Button>
       </div>
-
-      <!-- Навигация -->
-      <div v-if="displayedDays.length > visibleDaysPerPage" class="flex items-center gap-2">
-        <button
-          class="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600"
-          :disabled="scrollIndex === 0"
-          @click="scrollPrev"
-        >
-          <UIcon name="i-lucide-chevron-left" class="h-5 w-5" />
-        </button>
-        <span class="text-sm text-zinc-500">
-          {{ scrollIndex + 1 }} - {{ Math.min(scrollIndex + visibleDaysPerPage, displayedDays.length) }} / {{ displayedDays.length }}
-        </span>
-        <button
-          class="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600"
-          :disabled="scrollIndex + visibleDaysPerPage >= displayedDays.length"
-          @click="scrollNext"
-        >
-          <UIcon name="i-lucide-chevron-right" class="h-5 w-5" />
-        </button>
-      </div>
     </div>
 
     <!-- Контейнер с днями -->
-    <div class="days-scroll-wrapper">
-      <div class="days-flex-wrapper">
+    <div class="days-grid-wrapper">
+      <div class="days-grid">
         <DayColumn
-          v-for="day in paginatedDays"
+          v-for="day in days"
           :key="day.id"
           :day="day"
           :breakfast-slot="getSlotByMeal('breakfast', day.id)"
@@ -86,18 +65,6 @@ const emit = defineEmits<{
   createSlot: [dayId: string, mealType: MealType, recipeId: string, notes?: string];
   reorder: [slotId: string, items: { id: string; order: number }[]];
 }>();
-
-const scrollIndex = ref(0);
-const visibleDaysPerPage = ref(5);
-
-const displayedDays = computed(() => props.days);
-
-// Отображаем только видимые дни
-const paginatedDays = computed(() => {
-  const start = scrollIndex.value;
-  const end = Math.min(scrollIndex.value + visibleDaysPerPage.value, displayedDays.value.length);
-  return displayedDays.value.slice(start, end);
-});
 
 function getSlotByMeal(mealType: MealType, dayId: string): MenuSlot | undefined {
   return props.slots.find(
@@ -153,57 +120,32 @@ function addNewDay() {
     });
   }
 }
-
-function scrollPrev() {
-  scrollIndex.value = Math.max(0, scrollIndex.value - visibleDaysPerPage.value);
-}
-
-function scrollNext() {
-  const maxIndex = Math.max(0, displayedDays.value.length - visibleDaysPerPage.value);
-  scrollIndex.value = Math.min(maxIndex, scrollIndex.value + visibleDaysPerPage.value);
-}
-
-function updateVisibleDaysPerPage() {
-  const width = window.innerWidth;
-  // Ширина колонки 280px + gap 16px = 296px
-  const columnWidth = 296;
-  const availableWidth = width - 64; // Отступы по бокам
-
-  const calculatedDays = Math.floor(availableWidth / columnWidth);
-  visibleDaysPerPage.value = Math.max(1, Math.min(calculatedDays, 5));
-}
-
-onMounted(() => {
-  updateVisibleDaysPerPage();
-  window.addEventListener('resize', updateVisibleDaysPerPage);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('resize', updateVisibleDaysPerPage);
-});
 </script>
 
 <style scoped>
 .days-view {
   width: 100%;
-  overflow-x: hidden;
+  overflow-x: auto;
 }
 
-.days-scroll-wrapper {
+.days-grid-wrapper {
+  max-width: 60vw;
   width: 100%;
   overflow-x: visible;
+
 }
 
-.days-flex-wrapper {
-  display: flex;
+.days-grid {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 280px;
   gap: 1rem; /* 16px */
   width: 100%;
-  flex-wrap: nowrap;
 }
 
 /* Убедимся, что DayColumn не расширяет родителя */
 :deep(.day-column) {
-  flex-shrink: 0;
-  width: 280px;
+  width: 100%;
+  min-width: 0; /* Важно для правильной работы с grid */
 }
 </style>
