@@ -8,13 +8,13 @@
     <!-- Список карточек -->
     <div class="flex flex-wrap gap-3">
       <button
-        v-for="list in lists"
+        v-for="list in sortedLists"
         :key="list.id"
         class="menu-list-card group relative flex items-center gap-2 rounded-xl px-4 py-2.5 transition-all cursor-pointer"
         :class="[
           isActive(list.id)
             ? 'bg-green-50 border border-green-200 shadow-sm'
-            : 'bg-white border border-transparent hover:border-zinc-200 hover:zinc-200'
+            : 'bg-white border border-transparent hover:border-zinc-200 hover:bg-zinc-50/50'
         ]"
         @click="emit('select', list.id)"
       >
@@ -84,7 +84,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import type { MenuList } from '~/composables/useMenuPlannerApi';
 
 const props = defineProps<{
@@ -99,6 +99,33 @@ const emit = defineEmits<{
   delete: [list: MenuList];
   create: [];
 }>();
+
+// Сортировка списков: старые в начале, новые в конце
+const sortedLists = computed(() => {
+  return [...props.lists].sort((a, b) => {
+    // Если есть поле createdAt, сортируем по дате создания
+    if (a.createdAt && b.createdAt) {
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    }
+
+    // Если нет createdAt, но есть updatedAt
+    if (a.updatedAt && b.updatedAt) {
+      return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
+    }
+
+    // Если есть поле order (порядок)
+    if (a.order !== undefined && b.order !== undefined) {
+      return a.order - b.order;
+    }
+
+    // Fallback: сортируем по ID (предполагая, что ID генерируются в порядке возрастания)
+    if (a.id && b.id) {
+      return a.id.localeCompare(b.id);
+    }
+
+    return 0;
+  });
+});
 
 // Context menu state
 const contextMenu = ref<{
@@ -123,10 +150,22 @@ function openMenu(event: MouseEvent, list: MenuList) {
   event.preventDefault();
   event.stopPropagation();
 
+  // Корректируем позицию, чтобы меню не выходило за пределы экрана
+  let x = event.clientX;
+  let y = event.clientY;
+
+  if (x + 160 > window.innerWidth) {
+    x = window.innerWidth - 160 - 10;
+  }
+
+  if (y + 100 > window.innerHeight) {
+    y = window.innerHeight - 100 - 10;
+  }
+
   contextMenu.value = {
     visible: true,
-    x: event.clientX,
-    y: event.clientY,
+    x,
+    y,
     list,
   };
 }

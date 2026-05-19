@@ -2,22 +2,31 @@
 <template>
   <div class="day-column  flex-shrink-0 rounded-xl border border-zinc-200 bg-white shadow-sm">
     <!-- Заголовок дня -->
-    <div class="border-b border-zinc-100 p-3 text-center">
-      <div class="flex items-center justify-center gap-2">
-        <h3 class="font-medium text-zinc-800">{{ day.title }}</h3>
-        <button
-          class="rounded p-0.5 text-zinc-400 opacity-0 transition-all hover:bg-zinc-100 hover:text-green-600 group-hover:opacity-100"
+    <div class="border-b border-zinc-100/80 bg-white/50 p-4 text-center backdrop-blur-sm">
+      <div class="flex items-center justify-center gap-1.5">
+        <h3 class="text-sm font-medium text-zinc-900">
+          {{ day.title }}
+        </h3>
+
+        <Button
+          color="white"
+          variant=""
+          size="xs"
           @click="openRenameModal"
         >
-          <UIcon name="i-lucide-pencil" class="h-3 w-3" />
-        </button>
-        <button
+          <UIcon name="i-lucide-pencil" class="h-3.5 w-3.5" />
+        </Button>
+
+        <Button
+          color="danger"
+          variant="ghost"
+          size="xs"
+          class="ml-auto"
           v-if="canDelete"
-          class="rounded p-0.5 text-zinc-400 opacity-0 transition-all hover:bg-zinc-100 hover:text-red-500 group-hover:opacity-100"
           @click="openDeleteModal"
         >
-          <UIcon name="i-lucide-trash-2" class="h-3 w-3" />
-        </button>
+          <UIcon name="i-lucide-trash-2" class="h-3.5 w-3.5" />
+        </Button>
       </div>
     </div>
 
@@ -145,6 +154,7 @@
 <script setup lang="ts">
 import type { MenuDay, MenuSlot, MealType } from '~/composables/useMenuPlannerApi';
 import MealSlot from './MealSlot.vue';
+import Button from '~/shared/ui/button/Button.vue';
 
 const props = defineProps<{
   day: MenuDay;

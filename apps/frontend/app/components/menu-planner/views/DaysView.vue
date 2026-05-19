@@ -132,7 +132,6 @@ function addNewDay() {
   max-width: 60vw;
   width: 100%;
   overflow-x: visible;
-
 }
 
 .days-grid {
