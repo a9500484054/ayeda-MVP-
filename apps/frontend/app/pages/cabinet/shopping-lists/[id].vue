@@ -64,7 +64,6 @@
     <DeleteConfirmationModal
       :open="isDeleteModalOpen"
       title="Удалить список?"
-      :description="`Вы уверены, что хотите удалить список "${store.currentList?.title}"?`"
       @update:open="isDeleteModalOpen = $event"
       @confirm="handleConfirmDelete"
     />

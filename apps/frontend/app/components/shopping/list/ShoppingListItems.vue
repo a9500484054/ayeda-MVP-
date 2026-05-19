@@ -4,10 +4,10 @@
       v-for="item in filteredItems"
       :key="item.id"
       :item="item"
-      @click="(item) => emit('editItem', item)"
-      @edit="() => emit('editItem', item)"
-      @delete="() => emit('deleteItem', item.id)"
-      @toggle="() => emit('toggleItem', item.id)"
+      @click="emit('editItem', item)"
+      @edit="emit('editItem', item)"
+      @delete="emit('deleteItem', item.id)"
+      @toggle="emit('toggleItem', item.id)"
     />
 
     <!-- Пустое состояние -->
@@ -27,23 +27,23 @@
 </template>
 
 <script setup lang="ts">
-import type { ShoppingListItem } from '~/shared/types/shopping.types';
+import type { ShoppingListItem as ShoppingListItemType } from '~/shared/types/shopping.types';
 import ShoppingListItem from './ShoppingListItem.vue';
 
 const props = defineProps<{
-  items: ShoppingListItem[];
+  items: ShoppingListItemType[];
   filterType: 'all' | 'checked' | 'unchecked';
   sortBy: 'name' | 'category' | 'status' | 'order';
   searchQuery: string;
 }>();
 
 const emit = defineEmits<{
-  editItem: [item: ShoppingListItem];
+  editItem: [item: ShoppingListItemType];
   deleteItem: [itemId: string];
   toggleItem: [itemId: string];
 }>();
-
-function getFilteredItems() {
+// Используем computed напрямую с доступом к props
+const filteredItems = computed(() => {
   let result = [...props.items];
 
   // Поиск
@@ -80,7 +80,5 @@ function getFilteredItems() {
   }
 
   return result;
-}
-
-const filteredItems = computed(() => getFilteredItems());
+});
 </script>
