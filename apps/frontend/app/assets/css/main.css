@@ -64,11 +64,11 @@ body {
   transition: all 0.2s ease;
 }
 
-* {
+/* * {
   user-select: none;
 }
 
 [draggable="true"] {
   user-select: none;
   -webkit-user-drag: element;
-}
+} */

@@ -1,6 +1,6 @@
 <!-- DayColumn.vue - обновленная версия -->
 <template>
-  <div class="day-column w-[280px] flex-shrink-0 rounded-xl border border-zinc-200 bg-white shadow-sm">
+  <div class="day-column  flex-shrink-0 rounded-xl border border-zinc-200 bg-white shadow-sm">
     <!-- Заголовок дня -->
     <div class="border-b border-zinc-100 p-3 text-center">
       <div class="flex items-center justify-center gap-2">

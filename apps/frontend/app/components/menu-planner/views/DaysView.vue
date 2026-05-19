@@ -36,30 +36,28 @@
       </div>
     </div>
 
-    <!-- Контейнер с днями - исправленные стили -->
+    <!-- Контейнер с днями -->
     <div class="days-scroll-wrapper">
-      <div class="days-scroll-container">
-        <div class="days-flex-wrapper">
-          <DayColumn
-            v-for="day in displayedDays"
-            :key="day.id"
-            :day="day"
-            :breakfast-slot="getSlotByMeal('breakfast', day.id)"
-            :lunch-slot="getSlotByMeal('lunch', day.id)"
-            :dinner-slot="getSlotByMeal('dinner', day.id)"
-            :snack-slot="getSlotByMeal('snack', day.id)"
-            :is-loading="isLoading"
-            :can-delete="days.length > 1"
-            @add-recipe="handleAddRecipe"
-            @move-recipe="handleMoveRecipe"
-            @remove-recipe="handleRemoveRecipe"
-            @edit-notes="handleEditNotes"
-            @rename-day="handleRenameDay"
-            @delete-day="handleDeleteDay"
-            @reorder="handleReorder"
-            @create-slot="handleCreateSlot"
-          />
-        </div>
+      <div class="days-flex-wrapper">
+        <DayColumn
+          v-for="day in paginatedDays"
+          :key="day.id"
+          :day="day"
+          :breakfast-slot="getSlotByMeal('breakfast', day.id)"
+          :lunch-slot="getSlotByMeal('lunch', day.id)"
+          :dinner-slot="getSlotByMeal('dinner', day.id)"
+          :snack-slot="getSlotByMeal('snack', day.id)"
+          :is-loading="isLoading"
+          :can-delete="days.length > 1"
+          @add-recipe="handleAddRecipe"
+          @move-recipe="handleMoveRecipe"
+          @remove-recipe="handleRemoveRecipe"
+          @edit-notes="handleEditNotes"
+          @rename-day="handleRenameDay"
+          @delete-day="handleDeleteDay"
+          @reorder="handleReorder"
+          @create-slot="handleCreateSlot"
+        />
       </div>
     </div>
   </div>
@@ -85,22 +83,20 @@ const emit = defineEmits<{
   renameDay: [dayId: string, newTitle: string];
   deleteDay: [dayId: string];
   createSlot: [dayId: string, mealType: MealType, recipeId: string, notes?: string];
-
+  reorder: [slotId: string, items: { id: string; order: number }[]];
 }>();
-
-function handleMoveRecipe(itemId: string, sourceSlotId: string, targetSlotId: string) {
-  console.log('DaysView move recipe:', { itemId, sourceSlotId, targetSlotId });
-  emit('moveRecipe', itemId, sourceSlotId, targetSlotId);
-}
-
-function handleReorder(slotId: string, items: { id: string; order: number }[]) {
-  emit('reorder', slotId, items);
-}
 
 const scrollIndex = ref(0);
 const visibleDaysPerPage = ref(5);
 
 const displayedDays = computed(() => props.days);
+
+// Отображаем только видимые дни
+const paginatedDays = computed(() => {
+  const start = scrollIndex.value;
+  const end = Math.min(scrollIndex.value + visibleDaysPerPage.value, displayedDays.value.length);
+  return displayedDays.value.slice(start, end);
+});
 
 function getSlotByMeal(mealType: MealType, dayId: string): MenuSlot | undefined {
   return props.slots.find(
@@ -110,6 +106,11 @@ function getSlotByMeal(mealType: MealType, dayId: string): MenuSlot | undefined 
 
 function handleAddRecipe(dayId: string, mealType: MealType) {
   emit('addRecipe', dayId, mealType);
+}
+
+function handleMoveRecipe(itemId: string, sourceSlotId: string, targetSlotId: string) {
+  console.log('DaysView move recipe:', { itemId, sourceSlotId, targetSlotId });
+  emit('moveRecipe', itemId, sourceSlotId, targetSlotId);
 }
 
 function handleRemoveRecipe(itemId: string) {
@@ -132,12 +133,13 @@ function handleCreateSlot(dayId: string, mealType: MealType, recipeId: string, n
   emit('createSlot', dayId, mealType, recipeId, notes);
 }
 
+function handleReorder(slotId: string, items: { id: string; order: number }[]) {
+  emit('reorder', slotId, items);
+}
+
 function addNewDay() {
-  // Находим максимальный существующий dayOrder
   const existingOrders = props.days.map(d => d.dayOrder);
   const maxOrder = existingOrders.length > 0 ? Math.max(...existingOrders) : 0;
-
-  // Новый порядковый номер = максимальный + 1
   const nextOrder = maxOrder + 1;
 
   if (nextOrder <= 30) {
@@ -156,19 +158,18 @@ function scrollPrev() {
 }
 
 function scrollNext() {
-  scrollIndex.value = Math.min(
-    displayedDays.value.length - visibleDaysPerPage.value,
-    scrollIndex.value + visibleDaysPerPage.value
-  );
+  const maxIndex = Math.max(0, displayedDays.value.length - visibleDaysPerPage.value);
+  scrollIndex.value = Math.min(maxIndex, scrollIndex.value + visibleDaysPerPage.value);
 }
 
 function updateVisibleDaysPerPage() {
   const width = window.innerWidth;
-  if (width < 640) visibleDaysPerPage.value = 1;
-  else if (width < 768) visibleDaysPerPage.value = 2;
-  else if (width < 1024) visibleDaysPerPage.value = 3;
-  else if (width < 1280) visibleDaysPerPage.value = 4;
-  else visibleDaysPerPage.value = 5;
+  // Ширина колонки 280px + gap 16px = 296px
+  const columnWidth = 296;
+  const availableWidth = width - 64; // Отступы по бокам
+
+  const calculatedDays = Math.floor(availableWidth / columnWidth);
+  visibleDaysPerPage.value = Math.max(1, Math.min(calculatedDays, 5));
 }
 
 onMounted(() => {
@@ -182,39 +183,26 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.days-scroll-wrapper {
-  overflow-x: auto;
-  overflow-y: visible;
-  position: relative;
+.days-view {
+  width: 100%;
+  overflow-x: hidden;
 }
 
-.days-scroll-container {
-  min-width: min-content;
+.days-scroll-wrapper {
   width: 100%;
+  overflow-x: visible;
 }
 
 .days-flex-wrapper {
   display: flex;
-  gap: 1rem; /* 16px gap-4 */
-  width: fit-content;
+  gap: 1rem; /* 16px */
+  width: 100%;
+  flex-wrap: nowrap;
 }
 
-/* Стили для скроллбара (опционально) */
-.days-scroll-wrapper::-webkit-scrollbar {
-  height: 8px;
-}
-
-.days-scroll-wrapper::-webkit-scrollbar-track {
-  background: #f4f4f5;
-  border-radius: 4px;
-}
-
-.days-scroll-wrapper::-webkit-scrollbar-thumb {
-  background: #a1a1aa;
-  border-radius: 4px;
-}
-
-.days-scroll-wrapper::-webkit-scrollbar-thumb:hover {
-  background: #71717a;
+/* Убедимся, что DayColumn не расширяет родителя */
+:deep(.day-column) {
+  flex-shrink: 0;
+  width: 280px;
 }
 </style>
