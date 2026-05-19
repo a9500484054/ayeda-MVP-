@@ -1,5 +1,5 @@
 <template>
-  <div class="days-view">
+  <div>
     <!-- Управление днями -->
     <div class="mb-4 flex items-center justify-between">
       <div class="flex items-center gap-3">
@@ -14,29 +14,30 @@
         </Button>
       </div>
     </div>
-
-    <!-- Контейнер с днями -->
-    <div class="days-grid-wrapper">
-      <div class="days-grid">
-        <DayColumn
-          v-for="day in days"
-          :key="day.id"
-          :day="day"
-          :breakfast-slot="getSlotByMeal('breakfast', day.id)"
-          :lunch-slot="getSlotByMeal('lunch', day.id)"
-          :dinner-slot="getSlotByMeal('dinner', day.id)"
-          :snack-slot="getSlotByMeal('snack', day.id)"
-          :is-loading="isLoading"
-          :can-delete="days.length > 1"
-          @add-recipe="handleAddRecipe"
-          @move-recipe="handleMoveRecipe"
-          @remove-recipe="handleRemoveRecipe"
-          @edit-notes="handleEditNotes"
-          @rename-day="handleRenameDay"
-          @delete-day="handleDeleteDay"
-          @reorder="handleReorder"
-          @create-slot="handleCreateSlot"
-        />
+    <div class="days-view">
+      <!-- Контейнер с днями -->
+      <div class="days-grid-wrapper">
+        <div class="days-grid">
+          <DayColumn
+            v-for="day in days"
+            :key="day.id"
+            :day="day"
+            :breakfast-slot="getSlotByMeal('breakfast', day.id)"
+            :lunch-slot="getSlotByMeal('lunch', day.id)"
+            :dinner-slot="getSlotByMeal('dinner', day.id)"
+            :snack-slot="getSlotByMeal('snack', day.id)"
+            :is-loading="isLoading"
+            :can-delete="days.length > 1"
+            @add-recipe="handleAddRecipe"
+            @move-recipe="handleMoveRecipe"
+            @remove-recipe="handleRemoveRecipe"
+            @edit-notes="handleEditNotes"
+            @rename-day="handleRenameDay"
+            @delete-day="handleDeleteDay"
+            @reorder="handleReorder"
+            @create-slot="handleCreateSlot"
+          />
+        </div>
       </div>
     </div>
   </div>
