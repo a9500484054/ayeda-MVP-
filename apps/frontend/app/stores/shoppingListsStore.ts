@@ -104,23 +104,42 @@ export const useShoppingListsStore = defineStore('shoppingLists', () => {
   async function updateList(id: string, dto: UpdateShoppingListDto) {
     isLoading.value = true;
     try {
-      const updated = await api<ShoppingList>(`/shopping-lists/${id}`, {
+      const updated = await api<{ id: string; title: string; shareToken: string | null; sortOrder: number; updatedAt: string }>(`/shopping-lists/${id}`, {
         method: 'PATCH',
         body: dto,
       });
+
+      // Обновляем в массиве lists, сохраняя существующие items
       const index = lists.value.findIndex(l => l.id === id);
       if (index !== -1) {
-        lists.value[index] = updated;
+        lists.value[index] = {
+          ...lists.value[index],
+          title: updated.title,
+          shareToken: updated.shareToken,
+          sortOrder: updated.sortOrder,
+          updatedAt: updated.updatedAt,
+        };
       }
+
+      // Обновляем текущий список, сохраняя items
       if (currentList.value?.id === id) {
-        currentList.value = updated;
+        currentList.value = {
+          ...currentList.value,
+          title: updated.title,
+          shareToken: updated.shareToken,
+          sortOrder: updated.sortOrder,
+          updatedAt: updated.updatedAt,
+          // Важно: сохраняем существующие items
+          items: currentList.value.items,
+        };
       }
+
       toast.add({
         title: 'Успех',
         description: 'Список обновлен',
         color: 'success',
       });
-      return updated;
+      return updated as ShoppingList;
     } catch (err: any) {
       toast.add({
         title: 'Ошибка',
