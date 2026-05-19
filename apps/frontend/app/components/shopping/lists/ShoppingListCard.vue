@@ -1,21 +1,51 @@
 <template>
   <div class="group relative">
-    <!-- Кликабельная область для перехода -->
+    <!-- Основная карточка -->
     <div
-      class="flex flex-col items-stretch justify-center rounded-lg border border-gray-200 bg-white p-6 pt-2.5 transition-all hover:border-primary-200 hover:shadow-md dark:border-darkMode-400 dark:bg-darkMode-50 dark:hover:bg-darkMode-100 pb-4.5 cursor-pointer"
+      class="relative overflow-hidden rounded-3xl border border-gray-200/70 bg-white/90 p-5 backdrop-blur-xl transition-all duration-300  hover:border-primary-300 hover:shadow-2xl hover:shadow-primary-100/40 dark:border-darkMode-400/60 dark:bg-darkMode-50/90 dark:hover:border-primary-500/40 dark:hover:bg-darkMode-100 cursor-pointer"
       @click="emit('click', list.id)"
     >
-      <div class="mb-1.5 flex w-auto flex-row items-center justify-between">
-        <h5 class="truncate text-lg font-bold tracking-tight text-gray-900 dark:text-darkMode-900">
-          {{ list.title }}
-        </h5>
+      <!-- Свечение -->
+      <div
+        class="absolute inset-0 bg-gradient-to-br from-primary-50/40 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-primary-500/10"
+      />
 
-        <div class="ml-2 flex w-auto flex-row items-center justify-between gap-2">
-          <p class="text-xs font-medium text-gray-500">
-            {{ checkedCount }}/{{ totalCount }}
-          </p>
+      <!-- Верхняя часть -->
+      <div class="relative z-10 flex items-start justify-between gap-3">
+        <div class="min-w-0 flex-1">
+          <div class="mb-2 flex items-center gap-2">
+            <div
+              class="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary-100 text-primary-600 shadow-sm dark:bg-primary-500/15 dark:text-primary-400"
+            >
+              <UIcon name="i-lucide-shopping-cart" class="h-5 w-5" />
+            </div>
 
-          <!-- Меню не должно триггерить переход -->
+            <div class="min-w-0">
+              <h5
+                class="truncate text-lg font-semibold tracking-tight text-gray-900 dark:text-white"
+              >
+                {{ list.title }}
+              </h5>
+
+              <p class="text-xs text-gray-500 dark:text-darkMode-700">
+                Список покупок
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Правая часть с действиями -->
+        <div class="flex items-center gap-3">
+          <!-- Бейдж прогресса -->
+          <div
+            class="rounded-2xl border border-gray-200 bg-gray-50 px-3 py-1.5 text-center shadow-sm dark:border-darkMode-300 dark:bg-darkMode-100"
+          >
+            <p class="text-xs font-semibold text-gray-700 dark:text-darkMode-900">
+              {{ checkedCount }}/{{ totalCount }}
+            </p>
+          </div>
+
+          <!-- Меню -->
           <div @click.stop>
             <ShoppingListCardMenu
               :list="list"
@@ -28,24 +58,40 @@
         </div>
       </div>
 
-      <ProgressBar :progress="progress" />
-    </div>
+      <!-- Прогресс -->
+      <div class="relative z-10 mt-5">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-medium text-gray-500 dark:text-darkMode-700">
+            Прогресс
+          </span>
 
-    <!-- Область для захвата drag (ручка с тремя полосками) -->
-    <div
-      class="drag-handle absolute left-2 top-1/2 -translate-y-1/2 cursor-grab opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing"
-      draggable="true"
-      @dragstart="handleDragStart"
-      @dragend="handleDragEnd"
-    >
-      <UIcon name="i-lucide-grip-vertical" class="h-5 w-5 text-gray-400" />
+          <span
+            class="text-xs font-semibold text-primary-600 dark:text-primary-400"
+          >
+            {{ Math.round(progress) }}%
+          </span>
+        </div>
+
+        <div
+          class="h-3 overflow-hidden rounded-full bg-gray-100 dark:bg-darkMode-200"
+        >
+          <div
+            class="h-full rounded-full bg-gradient-to-r from-primary-400 via-primary-500 to-primary-600 transition-all duration-500"
+            :style="{ width: `${progress}%` }"
+          />
+        </div>
+      </div>
+
+      <!-- Нижнее декоративное размытие -->
+      <div
+        class="absolute -bottom-10 -right-10 h-32 w-32 rounded-full bg-primary-100/40 blur-3xl dark:bg-primary-500/10"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { ShoppingList } from '~/shared/types/shopping.types';
-import ProgressBar from '../list/shared/ProgressBar.vue';
 import ShoppingListCardMenu from './ShoppingListCardMenu.vue';
 
 const props = defineProps<{
@@ -64,7 +110,11 @@ const emit = defineEmits<{
 }>();
 
 const totalCount = computed(() => props.list.items?.length || 0);
-const checkedCount = computed(() => props.list.items?.filter(i => i.isChecked).length || 0);
+
+const checkedCount = computed(
+  () => props.list.items?.filter(i => i.isChecked).length || 0,
+);
+
 const progress = computed(() => {
   if (totalCount.value === 0) return 0;
   return (checkedCount.value / totalCount.value) * 100;
@@ -73,26 +123,33 @@ const progress = computed(() => {
 function handleDragStart(event: DragEvent) {
   if (!event.dataTransfer) return;
 
-  // Убираем ghost-копию
-  event.dataTransfer.setData('text/plain', JSON.stringify({
-    type: 'shoppingList',
-    index: props.index,
-    id: props.list.id,
-  }));
+  event.dataTransfer.setData(
+    'text/plain',
+    JSON.stringify({
+      type: 'shoppingList',
+      index: props.index,
+      id: props.list.id,
+    }),
+  );
+
   event.dataTransfer.effectAllowed = 'move';
 
-  // Скрываем ghost-изображение
+  // Скрываем призрачное изображение
   const dragImage = document.createElement('div');
   dragImage.style.opacity = '0';
+
   document.body.appendChild(dragImage);
+
   event.dataTransfer.setDragImage(dragImage, 0, 0);
+
   setTimeout(() => {
     document.body.removeChild(dragImage);
   }, 0);
 
-  // Добавляем класс для скрытия оригинальной карточки
+  // Затемняем оригинальную карточку
   const target = event.target as HTMLElement;
   const card = target.closest('.group');
+
   if (card) {
     card.classList.add('dragging-original');
   }
@@ -101,8 +158,8 @@ function handleDragStart(event: DragEvent) {
 }
 
 function handleDragEnd() {
-  // Убираем класс скрытия
   const draggingElements = document.querySelectorAll('.dragging-original');
+
   draggingElements.forEach(el => {
     el.classList.remove('dragging-original');
   });
@@ -120,9 +177,9 @@ function handleDragEnd() {
   cursor: grabbing;
 }
 
-/* Скрываем оригинальную карточку при перетаскивании */
 .dragging-original {
-  opacity: 0.3;
-  transition: opacity 0.2s ease;
+  opacity: 0.35;
+  transform: scale(0.98);
+  transition: all 0.2s ease;
 }
 </style>

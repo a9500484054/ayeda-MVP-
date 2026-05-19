@@ -1,9 +1,10 @@
 <template>
   <UDropdownMenu :items="menuItems" :ui="{ content: 'w-48' }">
     <button
-      class="rounded-full p-2 transition-colors hover:bg-gray-200 dark:text-darkMode-900 dark:hover:bg-darkMode-200"
+      class="inline-flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-gray-200 dark:text-darkMode-900 dark:hover:bg-darkMode-200 cursor-pointer flex-shrink-0"
+      @click.stop
     >
-      <UIcon name="i-lucide-more-vertical" class="h-5 w-5" />
+      <UIcon name="i-lucide-more-vertical" class="h-4 w-4" />
     </button>
   </UDropdownMenu>
 </template>
