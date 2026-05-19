@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto w-full max-w-3xl px-4 py-6 md:px-6">
+  <div class="mx-auto w-full max-w-5xl px-4 py-6 md:px-6">
     <!-- Loading -->
     <div v-if="store.isLoading" class="flex flex-col items-center justify-center py-20">
       <div class="h-10 w-10 animate-spin rounded-full border-2 border-gray-200 border-t-gray-900" />
@@ -7,45 +7,113 @@
     </div>
 
     <template v-else-if="store.currentList">
-      <UCard>
-        <!-- Хедер -->
-        <ShoppingListHeader
-          :title="store.currentList.title"
-          :total-count="store.totalItemsCount"
-          :checked-count="store.checkedItemsCount"
-          :progress="store.progressPercentage"
-          :filter-type="filterType"
-          :sort-by="sortBy"
-          :search-query="searchQuery"
-          @rename="handleRename"
-          @share="openShareModal"
-          @delete="openDeleteModal"
-          @print="handlePrint"
-          @uncheck-all="handleUncheckAll"
-          @filter-change="filterType = $event"
-          @sort-change="sortBy = $event"
-          @search-change="searchQuery = $event"
-        />
+      <!-- Desktop: 2 колонки (75/25) -->
+      <div class="hidden lg:grid lg:grid-cols-20 lg:gap-6">
+        <!-- Левая колонка: список покупок (75% = 3/4) -->
+        <div class="lg:col-span-13">
+          <UCard>
+            <ShoppingListHeader
+              :title="store.currentList.title"
+              :total-count="store.totalItemsCount"
+              :checked-count="store.checkedItemsCount"
+              :progress="store.progressPercentage"
+              :filter-type="filterType"
+              :sort-by="sortBy"
+              :search-query="searchQuery"
+              @rename="handleRename"
+              @share="openShareModal"
+              @delete="openDeleteModal"
+              @print="handlePrint"
+              @uncheck-all="handleUncheckAll"
+              @filter-change="filterType = $event"
+              @sort-change="sortBy = $event"
+              @search-change="searchQuery = $event"
+            />
 
-        <!-- Список позиций -->
-        <ShoppingListItems
-          :items="store.currentItems"
-          :filter-type="filterType"
-          :sort-by="sortBy"
-          :search-query="searchQuery"
-          @edit-item="openItemModal"
-          @delete-item="handleDeleteItem"
-          @toggle-item="handleToggleItem"
-        />
-      </UCard>
+            <ShoppingListItems
+              :items="store.currentItems"
+              :filter-type="filterType"
+              :sort-by="sortBy"
+              :search-query="searchQuery"
+              @edit-item="openItemModal"
+              @delete-item="handleDeleteItem"
+              @toggle-item="handleToggleItem"
+            />
+          </UCard>
+        </div>
 
-      <!-- Блок добавления -->
-      <AddItemBlock
-        :popular-items="popularItems"
-        @quick-add="handleQuickAdd"
-        @add-popular="handleAddPopular"
-      />
+        <!-- Правая колонка: добавление продуктов (25% = 1/4) -->
+        <div class="lg:col-span-7">
+          <div class="sticky top-6">
+            <AddItemBlock
+              :popular-items="popularItems"
+              @quick-add="handleQuickAdd"
+              @add-popular="handleAddPopular"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile/Tablet: одна колонка + плавающая кнопка -->
+      <div class="lg:hidden">
+        <UCard>
+          <ShoppingListHeader
+            :title="store.currentList.title"
+            :total-count="store.totalItemsCount"
+            :checked-count="store.checkedItemsCount"
+            :progress="store.progressPercentage"
+            :filter-type="filterType"
+            :sort-by="sortBy"
+            :search-query="searchQuery"
+            @rename="handleRename"
+            @share="openShareModal"
+            @delete="openDeleteModal"
+            @print="handlePrint"
+            @uncheck-all="handleUncheckAll"
+            @filter-change="filterType = $event"
+            @sort-change="sortBy = $event"
+            @search-change="searchQuery = $event"
+          />
+
+          <ShoppingListItems
+            :items="store.currentItems"
+            :filter-type="filterType"
+            :sort-by="sortBy"
+            :search-query="searchQuery"
+            @edit-item="openItemModal"
+            @delete-item="handleDeleteItem"
+            @toggle-item="handleToggleItem"
+          />
+        </UCard>
+      </div>
     </template>
+
+    <!-- Модалка для добавления продуктов (Mobile/Tablet) -->
+    <UModal v-model:open="isAddItemModalOpen">
+      <template #title>
+        Добавить продукты
+      </template>
+      <template #body>
+        <AddItemBlock
+          :popular-items="popularItems"
+          @quick-add="handleQuickAddMobile"
+          @add-popular="handleAddPopularMobile"
+        />
+      </template>
+      <template #footer>
+        <UButton variant="ghost" @click="isAddItemModalOpen = false">
+          Закрыть
+        </UButton>
+      </template>
+    </UModal>
+
+    <!-- Плавающая кнопка добавления (Mobile/Tablet) -->
+    <button
+      class="lg:hidden fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-primary-500 to-primary-600 shadow-lg transition-all hover:scale-110 hover:shadow-xl active:scale-95"
+      @click="isAddItemModalOpen = true"
+    >
+      <UIcon name="i-lucide-plus" class="h-6 w-6 text-white" />
+    </button>
 
     <!-- Модалки -->
     <ShoppingListItemModal
@@ -103,12 +171,13 @@ const searchQuery = ref('');
 const isItemModalOpen = ref(false);
 const isShareModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
+const isAddItemModalOpen = ref(false);
 const editingItem = ref<ShoppingListItem | null>(null);
 
 // Категории для выбора
 const categories = ref<ShoppingCategory[]>([]);
 
-// Популярные ингредиенты (можно расширить позже)
+// Популярные ингредиенты
 const popularItems = ref([
   { name: 'Молоко', unit: 'л' },
   { name: 'Хлеб', unit: 'шт' },
@@ -184,10 +253,8 @@ async function handleSaveItem(data: {
   note?: string | null;
 }) {
   if (editingItem.value) {
-    // Редактирование
     await store.updateItem(listId.value, editingItem.value.id, data);
   } else {
-    // Создание
     await store.addItem(listId.value, data);
   }
   isItemModalOpen.value = false;
@@ -210,6 +277,7 @@ async function handleToggleItem(itemId: string) {
   await store.toggleItem(listId.value, itemId);
 }
 
+// Desktop добавление
 async function handleQuickAdd(name: string) {
   await store.addItem(listId.value, { name, quantity: 1, unit: 'шт' });
 }
@@ -222,4 +290,38 @@ async function handleAddPopular(item: { name: string; categoryId?: string; unit?
     unit: item.unit || 'шт',
   });
 }
+
+// Mobile добавление (закрываем модалку после добавления)
+async function handleQuickAddMobile(name: string) {
+  await store.addItem(listId.value, { name, quantity: 1, unit: 'шт' });
+  isAddItemModalOpen.value = false;
+}
+
+async function handleAddPopularMobile(item: { name: string; categoryId?: string; unit?: string }) {
+  await store.addItem(listId.value, {
+    name: item.name,
+    categoryId: item.categoryId,
+    quantity: 1,
+    unit: item.unit || 'шт',
+  });
+  isAddItemModalOpen.value = false;
+}
 </script>
+
+<style scoped>
+/* Анимация для плавающей кнопки */
+.fixed {
+  animation: fade-in-up 0.3s ease-out;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>

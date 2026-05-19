@@ -1,5 +1,5 @@
 <template>
-  <div class="mt-6 rounded-xl border border-gray-200 bg-white p-4 dark:border-darkMode-400 dark:bg-darkMode-50">
+  <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-darkMode-400 dark:bg-darkMode-50">
     <h3 class="mb-3 text-sm font-medium text-gray-900 dark:text-white">
       Добавить продукты
     </h3>
