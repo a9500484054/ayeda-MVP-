@@ -78,12 +78,22 @@ export function useAuth() {
     }
 
     try {
-      const response = await api<Pick<AuthResponse, "accessToken">>("/auth/refresh", {
+      // Меняем тип: ожидаем оба токена
+      const response = await api<{ accessToken: string; refreshToken: string }>("/auth/refresh", {
         method: "POST",
         body: { refreshToken: refreshToken.value },
       });
-      accessToken.value = response.accessToken;
-      return response.accessToken;
+
+      if (response?.accessToken) {
+        accessToken.value = response.accessToken;
+        // 👇 Добавляем обновление refresh token
+        if (response.refreshToken) {
+          refreshToken.value = response.refreshToken;
+        }
+        return response.accessToken;
+      }
+
+      return null;
     } catch (error) {
       console.error("Refresh error:", error);
       return null;

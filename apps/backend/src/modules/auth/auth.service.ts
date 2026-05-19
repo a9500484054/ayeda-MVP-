@@ -6,7 +6,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan, IsNull, Not } from 'typeorm';
+import { Repository, LessThan, IsNull, Not, MoreThan } from 'typeorm';
 import * as argon2 from 'argon2';
 import { UsersService } from '../users/users.service';
 import { RefreshToken } from './entities/refresh-token.entity';
@@ -88,42 +88,70 @@ export class AuthService {
 
   // ========== ОБНОВЛЕНИЕ ТОКЕНОВ ==========
   async refresh(refreshToken: string) {
-    // Находим токен в БД
-    const tokenRecord = await this.refreshTokenRepository.findOne({
-      where: { tokenHash: await this.hashToken(refreshToken) },
+    // Находим все НЕ отозванные и НЕ просроченные токены
+    const tokenRecords = await this.refreshTokenRepository.find({
+      where: {
+        revokedAt: IsNull(),
+        expiresAt: MoreThan(new Date())
+      },
       relations: ['user'],
     });
 
-    if (
-      !tokenRecord ||
-      tokenRecord.revokedAt ||
-      tokenRecord.expiresAt < new Date()
-    ) {
+    // Ищем совпадение через argon2.verify
+    let validTokenRecord: RefreshToken | null = null;
+
+    for (const record of tokenRecords) {
+      try {
+        const isValid = await argon2.verify(record.tokenHash, refreshToken);
+        if (isValid) {
+          validTokenRecord = record;
+          break;
+        }
+      } catch (error) {
+        continue;
+      }
+    }
+
+    if (!validTokenRecord) {
       throw new UnauthorizedException('Недействительный refresh токен');
     }
 
     // Отзываем старый токен
-    tokenRecord.revokedAt = new Date();
-    await this.refreshTokenRepository.save(tokenRecord);
+    validTokenRecord.revokedAt = new Date();
+    await this.refreshTokenRepository.save(validTokenRecord);
 
     // Генерируем новые токены
-    return this.generateTokens(tokenRecord.user);
+    return this.generateTokens(validTokenRecord.user);
   }
 
   // ========== ВЫХОД ==========
   async logout(userId: string, refreshToken: string) {
-    // Отзываем конкретный refresh токен
-    const tokenRecord = await this.refreshTokenRepository.findOne({
+    // Находим ВСЕ активные токены пользователя
+    const tokenRecords = await this.refreshTokenRepository.find({
       where: {
         userId,
-        tokenHash: await this.hashToken(refreshToken),
         revokedAt: IsNull(),
       },
     });
 
-    if (tokenRecord) {
-      tokenRecord.revokedAt = new Date();
-      await this.refreshTokenRepository.save(tokenRecord);
+    // Ищем нужный токен через verify
+    let tokenToRevoke: RefreshToken | null = null;
+
+    for (const record of tokenRecords) {
+      try {
+        const isValid = await argon2.verify(record.tokenHash, refreshToken);
+        if (isValid) {
+          tokenToRevoke = record;
+          break;
+        }
+      } catch (error) {
+        continue;
+      }
+    }
+
+    if (tokenToRevoke) {
+      tokenToRevoke.revokedAt = new Date();
+      await this.refreshTokenRepository.save(tokenToRevoke);
     }
 
     return { success: true };
