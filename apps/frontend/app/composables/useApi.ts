@@ -78,6 +78,29 @@ export function useApi() {
     return refreshPromise;
   };
 
+  // Функция для построения URL с параметрами
+  const buildUrl = (endpoint: string, params?: Record<string, any>): string => {
+    if (!params || Object.keys(params).length === 0) {
+      return endpoint;
+    }
+
+    // Фильтруем undefined и null значения
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        searchParams.append(key, String(value));
+      }
+    });
+
+    const queryString = searchParams.toString();
+    if (!queryString) {
+      return endpoint;
+    }
+
+    const separator = endpoint.includes('?') ? '&' : '?';
+    return `${endpoint}${separator}${queryString}`;
+  };
+
   // Функция для выполнения запроса с автоматическим ретраем при 401
   const fetchWithRetry = async (url: string, options: any = {}, retryCount = 0): Promise<any> => {
     const maxRetries = 1;
@@ -96,12 +119,17 @@ export function useApi() {
       headers,
     };
 
+    // Удаляем params из options, так как мы уже обработали их в URL
+    delete fetchOptions.params;
+
     // Если body не FormData и не строка - преобразуем в JSON
     if (fetchOptions.body && typeof fetchOptions.body === "object" && !(fetchOptions.body instanceof FormData)) {
       fetchOptions.body = JSON.stringify(fetchOptions.body);
     }
 
     try {
+      console.log(`📡 API Request: ${fetchOptions.method || 'GET'} ${url}`);
+
       const response = await fetch(url, fetchOptions);
 
       // Если 401 и есть ретраи
@@ -118,6 +146,7 @@ export function useApi() {
             ...options,
             headers,
           };
+          delete retryOptions.params;
 
           if (retryOptions.body && typeof retryOptions.body === "object" && !(retryOptions.body instanceof FormData)) {
             retryOptions.body = JSON.stringify(retryOptions.body);
@@ -159,11 +188,14 @@ export function useApi() {
 
   // Создаем обертку с методами
   const api = async (endpoint: string, options: any = {}) => {
-    const url = endpoint.startsWith("http")
-      ? endpoint
-      : `${config.public.apiBase}${endpoint}`;
+    // Обрабатываем params и строим полный URL
+    const { params, ...restOptions } = options;
+    const urlWithParams = buildUrl(endpoint, params);
+    const fullUrl = urlWithParams.startsWith("http")
+      ? urlWithParams
+      : `${config.public.apiBase}${urlWithParams}`;
 
-    return fetchWithRetry(url, options);
+    return fetchWithRetry(fullUrl, restOptions);
   };
 
   // Добавляем удобные методы
