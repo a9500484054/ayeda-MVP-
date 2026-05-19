@@ -19,7 +19,7 @@
     <!-- Пустой слот -->
     <div v-if="isEmpty" class="flex min-h-[60px] flex-col items-center justify-center">
       <button
-        class="flex flex-col items-center gap-1 text-zinc-400 transition-colors hover:text-green-600"
+        class="flex flex-col items-center gap-1 text-zinc-400 transition-colors hover:text-green-600 cursor-pointer"
         @click="emit('addRecipe')"
       >
         <UIcon name="i-lucide-plus-circle" class="h-6 w-6" />
@@ -53,7 +53,7 @@
     <!-- Кнопка добавления (для непустого слота) -->
     <button
       v-if="!isEmpty && itemsLength < 10"
-      class="mt-2 flex w-full items-center justify-center gap-1 rounded-lg py-1.5 text-xs text-zinc-400 transition-colors hover:bg-zinc-50 hover:text-zinc-600"
+      class="mt-2 flex w-full items-center justify-center gap-1 rounded-lg py-1.5 text-xs text-zinc-400 transition-colors hover:bg-zinc-50 hover:text-zinc-600 cursor-pointer"
       @click="emit('addRecipe')"
     >
       <UIcon name="i-lucide-plus" class="h-3 w-3" />

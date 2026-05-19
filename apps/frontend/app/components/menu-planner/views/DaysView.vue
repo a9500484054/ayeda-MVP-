@@ -4,14 +4,14 @@
     <div class="mb-4 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <!-- Кнопка добавления нового дня -->
-        <button
+        <Button
+          color="white"
           v-if="days.length < 30"
-          class="flex items-center gap-1 rounded-xl border border-dashed border-zinc-300 px-3 py-1.5 text-sm text-zinc-500 transition-all hover:border-green-400 hover:text-green-600"
           @click="addNewDay"
         >
-          <UIcon name="i-lucide-plus" class="h-4 w-4" />
-          Добавить день ({{ days.length }}/30)
-        </button>
+          <UIcon name="i-lucide-plus" class="h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-90" />
+          <span>Добавить день ({{ days.length }}/30)</span>
+        </Button>
       </div>
 
       <!-- Навигация -->
@@ -66,6 +66,7 @@
 <script setup lang="ts">
 import type { MenuDay, MenuSlot, MealType } from '~/composables/useMenuPlannerApi';
 import DayColumn from '../common/DayColumn.vue';
+import Button from '~/shared/ui/button/Button.vue';
 
 const props = defineProps<{
   days: MenuDay[];

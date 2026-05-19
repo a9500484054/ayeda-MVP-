@@ -83,7 +83,7 @@
               v-for="preset in dayPresets"
               :key="preset.days"
               type="button"
-              class="rounded-xl border-2 px-4 py-2 text-center transition-all duration-200 hover:scale-[0.98] whitespace-nowrap flex-shrink-0 cursor-pointer"
+              class="rounded-lg border px-2.5 py-1.5 text-center text-sm transition-all duration-200 hover:scale-[0.98] whitespace-nowrap flex-shrink-0 cursor-pointer"
               :class="selectedPreset === preset.days
                 ? 'border-emerald-500 bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/30 dark:to-emerald-900/20 text-emerald-700 dark:text-emerald-400'
                 : 'border-gray-200 dark:border-zinc-700 hover:border-emerald-300 dark:hover:border-emerald-700 bg-white dark:bg-zinc-800/50'"
@@ -171,7 +171,7 @@ const emojiList = [
 
 const dayPresets = [
   { days: 1, label: '1 день' },
-  // { days: 3, label: '3 дня' },
+  { days: 3, label: '3 дня' },
   { days: 7, label: 'Неделя' },
   { days: 14, label: '2 недели' },
   { days: 30, label: 'Месяц' },

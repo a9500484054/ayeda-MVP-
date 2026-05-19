@@ -10,11 +10,11 @@
       <button
         v-for="list in lists"
         :key="list.id"
-        class="menu-list-card group relative flex items-center gap-2 rounded-xl px-4 py-2.5 transition-all"
+        class="menu-list-card group relative flex items-center gap-2 rounded-xl px-4 py-2.5 transition-all cursor-pointer"
         :class="[
           isActive(list.id)
             ? 'bg-green-50 border border-green-200 shadow-sm'
-            : 'bg-zinc-50 border border-transparent hover:border-zinc-200 hover:bg-white'
+            : 'bg-white border border-transparent hover:border-zinc-200 hover:zinc-200'
         ]"
         @click="emit('select', list.id)"
       >
@@ -40,7 +40,7 @@
 
         <!-- Кнопка меню (редактировать/удалить) -->
         <button
-          class="absolute -top-2 -right-2 hidden rounded-full bg-white p-1 shadow-md transition-all group-hover:flex"
+          class="absolute -top-2 -right-2 hidden rounded-full bg-white p-1 shadow-md transition-all group-hover:flex cursor-pointer"
           @click.stop="openMenu($event, list)"
         >
           <UIcon name="i-lucide-more-vertical" class="h-3.5 w-3.5 text-zinc-500" />
@@ -66,14 +66,14 @@
       :style="{ top: contextMenu.y + 'px', left: contextMenu.x + 'px' }"
     >
       <button
-        class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-zinc-700 transition-colors hover:bg-zinc-50"
+        class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-zinc-700 transition-colors hover:bg-zinc-50 cursor-pointer"
         @click="handleEdit"
       >
         <UIcon name="i-lucide-pencil" class="h-4 w-4" />
         Редактировать
       </button>
       <button
-        class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-600 transition-colors hover:bg-red-50"
+        class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-600 transition-colors hover:bg-red-50 cursor-pointer"
         @click="handleDelete"
       >
         <UIcon name="i-lucide-trash-2" class="h-4 w-4" />

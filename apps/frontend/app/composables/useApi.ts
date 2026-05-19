@@ -18,6 +18,7 @@ export function useApi() {
     }
 
     if (!refreshToken.value) {
+      console.log("No refresh token available");
       return null;
     }
 
@@ -25,6 +26,8 @@ export function useApi() {
 
     refreshPromise = (async () => {
       try {
+        console.log("🔄 Attempting to refresh tokens...");
+
         const response = await fetch(`${config.public.apiBase}/auth/refresh`, {
           method: "POST",
           headers: {
@@ -34,10 +37,14 @@ export function useApi() {
         });
 
         if (!response.ok) {
+          const errorText = await response.text();
+          console.error("Refresh failed:", response.status, errorText);
           throw new Error("Refresh failed");
         }
 
         const data = await response.json();
+        console.log("✅ Refresh response:", { hasAccessToken: !!data.accessToken, hasRefreshToken: !!data.refreshToken });
+
         const newAccessToken = data.accessToken;
         const newRefreshToken = data.refreshToken;
 
@@ -46,12 +53,13 @@ export function useApi() {
           if (newRefreshToken) {
             refreshToken.value = newRefreshToken;
           }
+          console.log("✅ Tokens updated successfully");
           return newAccessToken;
         }
 
         return null;
       } catch (error) {
-        console.error("Refresh token error:", error);
+        console.error("❌ Refresh token error:", error);
         accessToken.value = null;
         refreshToken.value = null;
         userStore.setUser(null);
@@ -70,29 +78,100 @@ export function useApi() {
     return refreshPromise;
   };
 
-  // Создаем экземпляр $fetch с перехватчиками
-  const api = $fetch.create({
-    baseURL: config.public.apiBase,
-    onRequest({ options }) {
-      if (accessToken.value) {
-        options.headers = new Headers(options.headers);
-        options.headers.set("Authorization", `Bearer ${accessToken.value}`);
-      }
-    },
-    async onResponseError({ request, options, response }) {
-      if (response.status === 401) {
+  // Функция для выполнения запроса с автоматическим ретраем при 401
+  const fetchWithRetry = async (url: string, options: any = {}, retryCount = 0): Promise<any> => {
+    const maxRetries = 1;
+
+    // Подготавливаем headers
+    const headers = new Headers(options.headers || {});
+    if (accessToken.value && !headers.has("Authorization")) {
+      headers.set("Authorization", `Bearer ${accessToken.value}`);
+    }
+    if (!headers.has("Content-Type") && !(options.body instanceof FormData)) {
+      headers.set("Content-Type", "application/json");
+    }
+
+    const fetchOptions = {
+      ...options,
+      headers,
+    };
+
+    // Если body не FormData и не строка - преобразуем в JSON
+    if (fetchOptions.body && typeof fetchOptions.body === "object" && !(fetchOptions.body instanceof FormData)) {
+      fetchOptions.body = JSON.stringify(fetchOptions.body);
+    }
+
+    try {
+      const response = await fetch(url, fetchOptions);
+
+      // Если 401 и есть ретраи
+      if (response.status === 401 && retryCount < maxRetries) {
+        console.log(`⚠️ Got 401, attempting refresh (attempt ${retryCount + 1})...`);
+
         const newToken = await attemptRefresh();
 
         if (newToken) {
-          options.headers = new Headers(options.headers);
-          options.headers.set("Authorization", `Bearer ${newToken}`);
-          return $fetch(request.toString(), options);
+          console.log("✅ Token refreshed, retrying original request...");
+          // Обновляем headers с новым токеном
+          headers.set("Authorization", `Bearer ${newToken}`);
+          const retryOptions = {
+            ...options,
+            headers,
+          };
+
+          if (retryOptions.body && typeof retryOptions.body === "object" && !(retryOptions.body instanceof FormData)) {
+            retryOptions.body = JSON.stringify(retryOptions.body);
+          }
+
+          const retryResponse = await fetch(url, retryOptions);
+
+          if (!retryResponse.ok) {
+            throw new Error(`HTTP error! status: ${retryResponse.status}`);
+          }
+
+          // Парсим ответ в зависимости от Content-Type
+          const contentType = retryResponse.headers.get("content-type");
+          if (contentType?.includes("application/json")) {
+            return await retryResponse.json();
+          }
+          return retryResponse;
         }
       }
 
-      throw response;
-    },
-  });
+      // Если не 401 или ретраи закончились
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `HTTP error! status: ${response.status}`);
+      }
+
+      // Парсим ответ
+      const contentType = response.headers.get("content-type");
+      if (contentType?.includes("application/json")) {
+        return await response.json();
+      }
+
+      return response;
+    } catch (error) {
+      console.error("❌ API request failed:", error);
+      throw error;
+    }
+  };
+
+  // Создаем обертку с методами
+  const api = async (endpoint: string, options: any = {}) => {
+    const url = endpoint.startsWith("http")
+      ? endpoint
+      : `${config.public.apiBase}${endpoint}`;
+
+    return fetchWithRetry(url, options);
+  };
+
+  // Добавляем удобные методы
+  api.get = (endpoint: string, options?: any) => api(endpoint, { ...options, method: "GET" });
+  api.post = (endpoint: string, body?: any, options?: any) => api(endpoint, { ...options, method: "POST", body });
+  api.put = (endpoint: string, body?: any, options?: any) => api(endpoint, { ...options, method: "PUT", body });
+  api.patch = (endpoint: string, body?: any, options?: any) => api(endpoint, { ...options, method: "PATCH", body });
+  api.delete = (endpoint: string, options?: any) => api(endpoint, { ...options, method: "DELETE" });
 
   return api;
 }

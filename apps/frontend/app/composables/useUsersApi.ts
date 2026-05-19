@@ -35,9 +35,9 @@ export function useUsersApi() {
       ...options.headers,
     };
 
-    // if (accessToken.value) {
-    //   headers['Authorization'] = `Bearer ${accessToken.value}`;
-    // }
+    if (accessToken.value) {
+      headers['Authorization'] = `Bearer ${accessToken.value}`;
+    }
 
     const response = await fetch(`${config.public.apiBase}${endpoint}`, {
       ...options,
