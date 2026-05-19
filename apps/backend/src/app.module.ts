@@ -15,6 +15,8 @@ import { FavoritesModule } from './modules/favorites/favorites.module';
 import { CommentsModule } from './modules/comments/comments.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
 import { MenuPlannerModule } from './modules/menu-planner/menu-planner.module';
+import { ShoppingCategoriesModule } from './modules/shopping-categories/shopping-categories.module';
+import { ShoppingListsModule } from './modules/shopping-lists/shopping-lists.module';
 
 @Module({
   imports: [
@@ -53,6 +55,8 @@ import { MenuPlannerModule } from './modules/menu-planner/menu-planner.module';
     CommentsModule,
     UploadsModule,
     MenuPlannerModule,
+    ShoppingCategoriesModule,
+    ShoppingListsModule,
   ],
   controllers: [],
   providers: [],
