@@ -7,11 +7,12 @@
     </div>
 
     <template v-else-if="store.currentList">
-      <!-- Desktop: 2 колонки (75/25) -->
+      <!-- Desktop: 2 колонки -->
       <div class="hidden lg:grid lg:grid-cols-20 lg:gap-6">
-        <!-- Левая колонка: список покупок (75% = 3/4) -->
-        <div class="lg:col-span-13">
-          <UCard>
+        <!-- Левая колонка: список покупок (65% = 13/20) -->
+        <UCard class="lg:col-span-13">
+          <!-- Хедер списка (sticky) - без UCard, просто sticky элемент -->
+          <div class=" bg-white pb-4 dark:bg-darkMode-900">
             <ShoppingListHeader
               :title="store.currentList.title"
               :total-count="store.totalItemsCount"
@@ -29,20 +30,21 @@
               @sort-change="sortBy = $event"
               @search-change="searchQuery = $event"
             />
+          </div>
 
-            <ShoppingListItems
-              :items="store.currentItems"
-              :filter-type="filterType"
-              :sort-by="sortBy"
-              :search-query="searchQuery"
-              @edit-item="openItemModal"
-              @delete-item="handleDeleteItem"
-              @toggle-item="handleToggleItem"
-            />
-          </UCard>
-        </div>
+          <!-- Список позиций -->
+          <ShoppingListItems
+            :items="store.currentItems"
+            :filter-type="filterType"
+            :sort-by="sortBy"
+            :search-query="searchQuery"
+            @edit-item="openItemModal"
+            @delete-item="handleDeleteItem"
+            @toggle-item="handleToggleItem"
+          />
+        </UCard>
 
-        <!-- Правая колонка: добавление продуктов (25% = 1/4) -->
+        <!-- Правая колонка: добавление продуктов (35% = 7/20) -->
         <div class="lg:col-span-7">
           <div class="sticky top-6">
             <AddItemBlock
@@ -56,64 +58,35 @@
 
       <!-- Mobile/Tablet: одна колонка + плавающая кнопка -->
       <div class="lg:hidden">
-        <UCard>
-          <ShoppingListHeader
-            :title="store.currentList.title"
-            :total-count="store.totalItemsCount"
-            :checked-count="store.checkedItemsCount"
-            :progress="store.progressPercentage"
-            :filter-type="filterType"
-            :sort-by="sortBy"
-            :search-query="searchQuery"
-            @rename="handleRename"
-            @share="openShareModal"
-            @delete="openDeleteModal"
-            @print="handlePrint"
-            @uncheck-all="handleUncheckAll"
-            @filter-change="filterType = $event"
-            @sort-change="sortBy = $event"
-            @search-change="searchQuery = $event"
-          />
+        <ShoppingListHeader
+          :title="store.currentList.title"
+          :total-count="store.totalItemsCount"
+          :checked-count="store.checkedItemsCount"
+          :progress="store.progressPercentage"
+          :filter-type="filterType"
+          :sort-by="sortBy"
+          :search-query="searchQuery"
+          @rename="handleRename"
+          @share="openShareModal"
+          @delete="openDeleteModal"
+          @print="handlePrint"
+          @uncheck-all="handleUncheckAll"
+          @filter-change="filterType = $event"
+          @sort-change="sortBy = $event"
+          @search-change="searchQuery = $event"
+        />
 
-          <ShoppingListItems
-            :items="store.currentItems"
-            :filter-type="filterType"
-            :sort-by="sortBy"
-            :search-query="searchQuery"
-            @edit-item="openItemModal"
-            @delete-item="handleDeleteItem"
-            @toggle-item="handleToggleItem"
-          />
-        </UCard>
+        <ShoppingListItems
+          :items="store.currentItems"
+          :filter-type="filterType"
+          :sort-by="sortBy"
+          :search-query="searchQuery"
+          @edit-item="openItemModal"
+          @delete-item="handleDeleteItem"
+          @toggle-item="handleToggleItem"
+        />
       </div>
     </template>
-
-    <!-- Модалка для добавления продуктов (Mobile/Tablet) -->
-    <UModal v-model:open="isAddItemModalOpen">
-      <template #title>
-        Добавить продукты
-      </template>
-      <template #body>
-        <AddItemBlock
-          :popular-items="popularItems"
-          @quick-add="handleQuickAddMobile"
-          @add-popular="handleAddPopularMobile"
-        />
-      </template>
-      <template #footer>
-        <UButton variant="ghost" @click="isAddItemModalOpen = false">
-          Закрыть
-        </UButton>
-      </template>
-    </UModal>
-
-    <!-- Плавающая кнопка добавления (Mobile/Tablet) -->
-    <button
-      class="lg:hidden fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-primary-500 to-primary-600 shadow-lg transition-all hover:scale-110 hover:shadow-xl active:scale-95"
-      @click="isAddItemModalOpen = true"
-    >
-      <UIcon name="i-lucide-plus" class="h-6 w-6 text-white" />
-    </button>
 
     <!-- Модалки -->
     <ShoppingListItemModal
@@ -137,6 +110,33 @@
       @update:open="isDeleteModalOpen = $event"
       @confirm="handleConfirmDelete"
     />
+
+    <!-- Модалка для добавления продуктов (Mobile/Tablet) -->
+    <UModal v-model:open="isAddItemModalOpen">
+      <!-- <template #title>
+        Добавить продукты
+      </template> -->
+      <template #body>
+        <AddItemBlock
+          :popular-items="popularItems"
+          @quick-add="handleQuickAddMobile"
+          @add-popular="handleAddPopularMobile"
+        />
+      </template>
+      <template #footer>
+        <UButton variant="ghost" @click="isAddItemModalOpen = false">
+          Закрыть
+        </UButton>
+      </template>
+    </UModal>
+
+    <!-- Плавающая кнопка добавления (Mobile/Tablet) -->
+    <button
+      class="lg:hidden fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-primary-500 to-primary-600 shadow-lg transition-all hover:scale-110 hover:shadow-xl active:scale-95"
+      @click="isAddItemModalOpen = true"
+    >
+      <UIcon name="i-lucide-plus" class="h-6 w-6 text-white" />
+    </button>
   </div>
 </template>
 

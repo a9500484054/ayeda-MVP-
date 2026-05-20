@@ -3,12 +3,22 @@
     class="group flex cursor-pointer items-center gap-3 rounded-lg p-3 transition-colors hover:bg-gray-50 dark:hover:bg-darkMode-100"
     @click="emit('click', item)"
   >
-    <!-- Чекбокс -->
-    <UCheckbox
-      :model-value="item.isChecked"
-      @update:model-value="emit('toggle')"
-      @click.stop
-    />
+    <!-- Круглый чекбокс -->
+    <button
+      class="relative flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full transition-all duration-200"
+      :class="[
+        item.isChecked
+          ? 'bg-primary-500 ring-2 ring-primary-200 dark:ring-primary-900/50'
+          : 'border-2 border-gray-300 bg-white hover:border-primary-400 dark:border-darkMode-600 dark:bg-darkMode-800'
+      ]"
+      @click.stop="emit('toggle')"
+    >
+      <UIcon
+        v-if="item.isChecked"
+        name="i-lucide-check"
+        class="h-3.5 w-3.5 text-white"
+      />
+    </button>
 
     <!-- Иконка категории -->
     <CategoryIcon :category="item.category" />

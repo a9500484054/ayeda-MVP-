@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-1">
+  <div class="space-y-1 max-h-[60vh] overflow-y-auto">
     <ShoppingListItem
       v-for="item in filteredItems"
       :key="item.id"
@@ -42,24 +42,21 @@ const emit = defineEmits<{
   deleteItem: [itemId: string];
   toggleItem: [itemId: string];
 }>();
-// Используем computed напрямую с доступом к props
+
 const filteredItems = computed(() => {
   let result = [...props.items];
 
-  // Поиск
   if (props.searchQuery) {
     const query = props.searchQuery.toLowerCase();
     result = result.filter(item => item.name.toLowerCase().includes(query));
   }
 
-  // Фильтр по статусу
   if (props.filterType === 'checked') {
     result = result.filter(item => item.isChecked);
   } else if (props.filterType === 'unchecked') {
     result = result.filter(item => !item.isChecked);
   }
 
-  // Сортировка
   switch (props.sortBy) {
     case 'name':
       result.sort((a, b) => a.name.localeCompare(b.name));

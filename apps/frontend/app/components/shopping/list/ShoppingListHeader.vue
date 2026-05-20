@@ -1,7 +1,7 @@
 <template>
   <div class="mb-8">
-    <!-- Верхняя панель с действиями -->
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <!-- Верхняя панель с названием -->
+    <div class="flex flex-col gap-4">
       <!-- Левая часть: название и статистика -->
       <div class="min-w-0 flex-1">
         <div class="flex items-center gap-3">
@@ -14,7 +14,7 @@
           <div class="min-w-0 flex-1">
             <div v-if="!isEditing" class="group flex items-center gap-2">
               <h1
-                class="cursor-text text-2xl font-bold tracking-tight text-gray-900 transition-colors hover:text-primary-600 dark:text-white dark:hover:text-primary-400"
+                class="cursor-text text-2xl font-bold tracking-tight text-gray-900 transition-colors hover:text-primary-600 dark:text-white dark:hover:text-primary-400 truncate max-w-[300px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[600px]"
                 @click="startEditing"
               >
                 {{ title }}
@@ -56,45 +56,58 @@
             </div>
 
             <!-- Статистика -->
-            <div class="mt-1.5 flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
-              <div class="flex items-center gap-1">
-                <UIcon name="i-lucide-package" class="h-3.5 w-3.5" />
-                <span>{{ totalCount }}</span>
+            <div class="mt-1.5 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+              <div class="flex items-center gap-1.5">
+                <div class="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 dark:bg-darkMode-100">
+                  <UIcon name="i-lucide-package" class="h-3.5 w-3.5" />
+                </div>
+                <span class="font-medium">{{ totalCount }} {{ getCountText(totalCount) }}</span>
               </div>
-              <div class="flex items-center gap-1">
-                <UIcon name="i-lucide-check-circle" class="h-3.5 w-3.5" />
-                <span>{{ checkedCount }} куплено</span>
+              <div class="flex items-center gap-1.5">
+                <div class="flex h-6 w-6 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
+                  <UIcon name="i-lucide-check-circle" class="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+                </div>
+                <span class="font-medium">{{ checkedCount }} куплено</span>
               </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Правая часть: действия -->
-      <div class="flex items-center gap-2">
-        <!-- Поиск -->
+    <!-- Отдельная строка: поиск и кнопки действий -->
+    <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <!-- Поиск -->
+      <div class="flex-1">
         <div class="relative">
+          <UIcon
+            name="i-lucide-search"
+            class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+          />
           <UInput
             v-model="searchValue"
-            placeholder="Поиск..."
-            icon="i-lucide-search"
-            class="w-48 sm:w-64"
-            size="sm"
+            placeholder="Поиск по списку..."
+            class="w-full"
+            size="md"
             :ui="{
-              input: 'pl-9 pr-3 py-2 rounded-xl border-gray-200 focus:border-primary-400 focus:ring-primary-400/20'
+              input: 'pl-9 pr-4 py-2.5 rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:border-primary-400 focus:ring-primary-400/20 dark:bg-darkMode-100 dark:border-darkMode-300'
             }"
           />
         </div>
+      </div>
 
+      <!-- Кнопки действий -->
+      <div class="flex items-center gap-2">
         <!-- Кнопка поделиться -->
         <UTooltip text="Поделиться">
           <UButton
             variant="ghost"
-            size="sm"
-            class="!p-2 rounded-xl"
+            size="md"
+            class="!rounded-xl !px-3 !py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-darkMode-100 dark:text-darkMode-700 dark:hover:bg-darkMode-200"
             @click="emit('share')"
           >
             <UIcon name="i-lucide-share-2" class="h-4 w-4" />
+            <!-- <span class="ml-1.5 hidden sm:inline">Поделиться</span> -->
           </UButton>
         </UTooltip>
 
@@ -121,7 +134,7 @@
           {{ Math.round(progress) }}%
         </span>
       </div>
-      <div class="h-2.5 overflow-hidden rounded-full bg-gray-100 dark:bg-darkMode-200">
+      <div class="h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-darkMode-200">
         <div
           class="h-full rounded-full bg-gradient-to-r from-primary-500 to-primary-600 transition-all duration-500 ease-out"
           :style="{ width: `${progress}%` }"
@@ -133,7 +146,6 @@
 
 <script setup lang="ts">
 import Button from '~/shared/ui/button/Button.vue';
-import ProgressBar from './shared/ProgressBar.vue';
 import ShoppingListHeaderMenu from './ShoppingListHeaderMenu.vue';
 
 const props = defineProps<{
@@ -169,10 +181,10 @@ const searchValue = computed({
 const hasCheckedItems = computed(() => props.checkedCount > 0);
 
 function getCountText(count: number): string {
-  if (count === 0) return 'нет позиций';
-  if (count === 1) return '1 позиция';
-  if (count >= 2 && count <= 4) return `${count} позиции`;
-  return `${count} позиций`;
+  if (count === 0) return 'позиций';
+  if (count === 1) return 'позиция';
+  if (count >= 2 && count <= 4) return 'позиции';
+  return 'позиций';
 }
 
 function startEditing() {
