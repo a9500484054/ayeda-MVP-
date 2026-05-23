@@ -20,6 +20,15 @@ export class ShoppingListResponseDto {
   @ApiProperty()
   updatedAt: Date;
 
+  @ApiProperty({ description: 'Общее количество позиций в списке' })
+  totalItems: number;
+
+  @ApiProperty({ description: 'Количество отмеченных позиций' })
+  checkedItems: number;
+
+  @ApiProperty({ description: 'Прогресс выполнения в процентах', required: false })
+  progress?: number;
+
   @ApiProperty({ type: [ShoppingItemResponseDto], required: false })
   items?: ShoppingItemResponseDto[];
 }

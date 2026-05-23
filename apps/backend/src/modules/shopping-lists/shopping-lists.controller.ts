@@ -22,7 +22,7 @@ import { ShoppingListsService } from './shopping-lists.service';
 import { CreateShoppingListDto } from './dto/requests/create-shopping-list.dto';
 import { UpdateShoppingListDto } from './dto/requests/update-shopping-list.dto';
 import { ReorderShoppingListsDto } from './dto/requests/reorder-shopping-lists.dto';
-import { CreateShoppingItemDto } from './dto/requests/create-shopping-item.dto';
+import { BulkCreateShoppingItemsDto, CreateShoppingItemDto } from './dto/requests/create-shopping-item.dto';
 import { UpdateShoppingItemDto } from './dto/requests/update-shopping-item.dto';
 import { ReorderShoppingItemsDto } from './dto/requests/reorder-shopping-items.dto';
 import { ShareListResponseDto } from './dto/requests/share-list.dto';
@@ -220,5 +220,17 @@ export class ShoppingListsController {
     @Body() dto: ReorderShoppingItemsDto,
   ): Promise<ShoppingItemResponseDto[]> {
     return this.shoppingListsService.reorderItems(req.user.id, id, dto.items);
+  }
+
+  @Post(':id/items/bulk')
+  @ApiOperation({ summary: 'Добавить несколько позиций в список' })
+  @ApiParam({ name: 'id', description: 'UUID списка покупок' })
+  @ApiResponse({ status: HttpStatus.CREATED, type: [ShoppingItemResponseDto] })
+  async addItemsBulk(
+    @Req() req: RequestWithUser,
+    @Param('id') id: string,
+    @Body() dto: BulkCreateShoppingItemsDto,
+  ): Promise<ShoppingItemResponseDto[]> {
+    return this.shoppingListsService.addItemsBulk(req.user.id, id, dto.items);
   }
 }

@@ -7,6 +7,8 @@ import {
   Min,
   MaxLength,
   IsDecimal,
+  IsArray,
+  ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -45,4 +47,20 @@ export class CreateShoppingItemDto {
   @IsOptional()
   @IsString()
   note?: string;
+}
+
+// DTO для массового создания позиций
+export class BulkCreateShoppingItemsDto {
+  @ApiProperty({
+    description: 'Массив позиций для добавления',
+    type: [CreateShoppingItemDto],
+    example: [
+      { name: 'Молоко', quantity: 2, unit: 'л' },
+      { name: 'Хлеб', quantity: 1, unit: 'шт' }
+    ]
+  })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateShoppingItemDto)
+  items: CreateShoppingItemDto[];
 }
