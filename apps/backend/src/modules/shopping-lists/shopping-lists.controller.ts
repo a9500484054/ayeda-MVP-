@@ -29,6 +29,7 @@ import { ShareListResponseDto } from './dto/requests/share-list.dto';
 import { ShoppingListResponseDto } from './dto/responses/shopping-list-response.dto';
 import { ShoppingItemResponseDto } from './dto/responses/shopping-item-response.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CopyShoppingListDto } from './dto/requests/copy-shopping-list.dto';
 
 interface RequestWithUser extends Request {
   user: {
@@ -232,5 +233,17 @@ export class ShoppingListsController {
     @Body() dto: BulkCreateShoppingItemsDto,
   ): Promise<ShoppingItemResponseDto[]> {
     return this.shoppingListsService.addItemsBulk(req.user.id, id, dto.items);
+  }
+
+  @Post(':id/copy')
+  @ApiOperation({ summary: 'Создать копию списка покупок' })
+  @ApiParam({ name: 'id', description: 'UUID списка покупок для копирования' })
+  @ApiResponse({ status: HttpStatus.CREATED, type: ShoppingListResponseDto })
+  async copy(
+    @Req() req: RequestWithUser,
+    @Param('id') id: string,
+    @Body() dto: CopyShoppingListDto,
+  ): Promise<ShoppingListResponseDto> {
+    return this.shoppingListsService.copy(req.user.id, id, dto);
   }
 }

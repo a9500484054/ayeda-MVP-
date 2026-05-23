@@ -18,6 +18,7 @@ import { ShoppingItemResponseDto } from './dto/responses/shopping-item-response.
 import { ShoppingCategoriesService } from '../shopping-categories/shopping-categories.service';
 import { CategoryResponseDto } from '../shopping-categories/dto/category-response.dto';
 import crypto from 'crypto';
+import { CopyShoppingListDto } from './dto/requests/copy-shopping-list.dto';
 
 @Injectable()
 export class ShoppingListsService {
@@ -661,5 +662,83 @@ export class ShoppingListsService {
     });
 
     return itemsWithCategories.map((item) => this.toItemResponseDto(item));
+  }
+
+  async copy(
+    userId: string,
+    id: string,
+    dto: CopyShoppingListDto,
+  ): Promise<ShoppingListResponseDto> {
+    // Проверяем лимит списков
+    const count = await this.shoppingListRepository.count({
+      where: { userId },
+    });
+
+    if (count >= this.MAX_LISTS_PER_USER) {
+      throw new BadRequestException(
+        `Превышен максимальный лимит списков (${this.MAX_LISTS_PER_USER})`,
+      );
+    }
+
+    // Находим исходный список с позициями
+    const originalList = await this.findOneList(userId, id, true);
+
+    // Получаем максимальный sort_order для нового списка
+    const maxOrderResult = await this.shoppingListRepository
+      .createQueryBuilder('list')
+      .select('MAX(list.sortOrder)', 'max')
+      .where('list.userId = :userId', { userId })
+      .getRawOne();
+
+    const sortOrder = (maxOrderResult?.max || 0) + 1000;
+
+    // Формируем название для копии
+    const newTitle = dto.title || `${originalList.title} (копия)`;
+
+    // Используем транзакцию для создания копии
+    return await this.dataSource.transaction(async (manager) => {
+      // 1. Создаем новый список
+      const newList = manager.create(ShoppingList, {
+        userId,
+        title: newTitle,
+        sortOrder,
+        shareToken: null, // Копия не имеет share token
+      });
+
+      const savedList = await manager.save(newList);
+
+      // 2. Копируем все позиции из исходного списка
+      if (originalList.items && originalList.items.length > 0) {
+        let currentSortOrder = 1000;
+        const itemsToCreate = originalList.items.map((originalItem) => {
+          const newItem = manager.create(ShoppingListItem, {
+            shoppingListId: savedList.id,
+            name: originalItem.name,
+            categoryId: originalItem.categoryId,
+            quantity: originalItem.quantity,
+            unit: originalItem.unit,
+            price: originalItem.price,
+            note: originalItem.note,
+            isChecked: false, // Копия всегда с непроверенными позициями
+            sortOrder: currentSortOrder,
+          });
+          currentSortOrder += 1000;
+          return newItem;
+        });
+
+        await manager.save(itemsToCreate);
+      }
+
+      // 3. Загружаем созданный список с позициями для ответа
+      const listWithItems = await manager.findOne(ShoppingList, {
+        where: { id: savedList.id },
+        relations: ['items', 'items.category'],
+      });
+
+      // 4. Получаем статистику
+      const stats = await this.getListStats(manager, savedList.id);
+
+      return this.toListResponseDto(listWithItems!, stats, true);
+    });
   }
 }
