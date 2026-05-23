@@ -34,6 +34,7 @@ export interface ShoppingList {
   createdAt: string;
   updatedAt: string;
   items?: ShoppingListItem[];
+  checkedItems?: string | number
 }
 
 // DTOs

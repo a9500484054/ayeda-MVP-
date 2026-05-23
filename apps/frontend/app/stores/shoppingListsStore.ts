@@ -160,11 +160,11 @@ export const useShoppingListsStore = defineStore('shoppingLists', () => {
       if (currentList.value?.id === id) {
         currentList.value = null;
       }
-      toast.add({
-        title: 'Успех',
-        description: 'Список удален',
-        color: 'success',
-      });
+      // toast.add({
+      //   title: 'Успех',
+      //   description: 'Список удален',
+      //   color: 'success',
+      // });
     } catch (err: any) {
       toast.add({
         title: 'Ошибка',

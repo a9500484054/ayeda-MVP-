@@ -72,10 +72,10 @@
         </div>
 
         <div
-          class="h-3 overflow-hidden rounded-full bg-gray-100 dark:bg-darkMode-200"
+          class="h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-darkMode-200"
         >
           <div
-            class="h-full rounded-full bg-gradient-to-r from-primary-400 via-primary-500 to-primary-600 transition-all duration-500"
+            class="h-full rounded-full bg-gradient-to-r from-emerald-600 to-teal-700 transition-all duration-500"
             :style="{ width: `${progress}%` }"
           />
         </div>
@@ -108,17 +108,15 @@ const emit = defineEmits<{
   delete: [list: ShoppingList];
 }>();
 
-const totalCount = computed(() => props.list.items?.length || 0);
+const totalCount = computed(() => props.list.totalItems || 0);
 
-const checkedCount = computed(
-  () => props.list.items?.filter(i => i.isChecked).length || 0,
-);
+const checkedCount = computed(() => props.list.checkedItems || 0);
 
 const progress = computed(() => {
-  if (totalCount.value === 0) return 0;
-  return (checkedCount.value / totalCount.value) * 100;
+  if (+props.list.totalItems === 0) return 0;
+  return (+props.list.checkedItems / +props.list.totalItems) * 100;
 });
-
+// checkedItems
 function handleDragStart(event: DragEvent) {
   if (!event.dataTransfer) return;
 

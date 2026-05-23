@@ -29,12 +29,20 @@
       <p class="text-sm text-gray-400">Создайте свой первый список</p>
     </div>
 
+    <!-- Модалка подтверждения удаления -->
+    <DeleteConfirmationModal
+      :open="isDeleteModalOpen"
+      title="Удалить список?"
+      @update:open="isDeleteModalOpen = $event"
+      @confirm="handleConfirmDelete"
+    />
+
     <!-- Объединенная модалка для создания/редактирования -->
     <ListFormModal
       v-model:open="isFormModalOpen"
       :list="selectedList"
       @submit="handleListSubmit"
-      @delete="handleDeleteList"
+      @delete="handleDeleteFromModal"
     />
 
     <!-- Модалка шаринга -->
@@ -54,6 +62,7 @@ import ShoppingListsHeader from '~/components/shopping/lists/ShoppingListsHeader
 import ShoppingListsGrid from '~/components/shopping/lists/ShoppingListsGrid.vue';
 import ListFormModal from '~/components/shopping/lists/ListFormModal.vue';
 import ShareListModal from '~/components/shopping/lists/ShareListModal.vue';
+import DeleteConfirmationModal from '~/components/menu-planner/modals/DeleteConfirmationModal.vue';
 
 definePageMeta({ layout: 'cabinet' });
 
@@ -64,6 +73,7 @@ const toast = useToast();
 // Состояния модалок
 const isFormModalOpen = ref(false);
 const isShareModalOpen = ref(false);
+const isDeleteModalOpen = ref(false);
 const selectedList = ref<ShoppingList | null>(null);
 
 // Загрузка данных
@@ -102,8 +112,28 @@ function openRenameModal(list: ShoppingList) {
   isFormModalOpen.value = true;
 }
 
-// Удаление списка
-async function handleDeleteList(id: string) {
+// Открытие модалки удаления
+function openDeleteModal(list: ShoppingList) {
+  selectedList.value = list;
+  isDeleteModalOpen.value = true;
+}
+
+// Подтверждение удаления
+async function handleConfirmDelete() {
+  if (selectedList.value) {
+    await store.deleteList(selectedList.value.id);
+    isDeleteModalOpen.value = false;
+    toast.add({
+      title: 'Успех',
+      description: `Список "${selectedList.value.title}" удален`,
+      color: 'success',
+    });
+    selectedList.value = null;
+  }
+}
+
+// Удаление из модалки редактирования
+async function handleDeleteFromModal(id: string) {
   await store.deleteList(id);
   isFormModalOpen.value = false;
   selectedList.value = null;
