@@ -15,10 +15,8 @@
       <div class="relative z-10 flex items-start justify-between gap-3">
         <div class="min-w-0 flex-1">
           <div class="mb-2 flex items-center gap-2">
-            <div
-              class="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary-100 text-primary-600 shadow-sm dark:bg-primary-500/15 dark:text-primary-400"
-            >
-              <UIcon name="i-lucide-shopping-cart" class="h-5 w-5" />
+            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 shadow-lg">
+              <UIcon name="i-lucide-shopping-basket" class="h-6 w-6 text-white" />
             </div>
 
             <div class="min-w-0">
