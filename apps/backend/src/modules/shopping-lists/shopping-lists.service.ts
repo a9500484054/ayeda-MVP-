@@ -379,7 +379,7 @@ export class ShoppingListsService {
       return list.shareToken;
     }
 
-    const shareToken = crypto.randomBytes(48).toString('hex');
+    const shareToken = crypto.randomBytes(32).toString('hex');
     list.shareToken = shareToken;
     await this.shoppingListRepository.save(list);
 
