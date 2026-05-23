@@ -86,18 +86,42 @@ function handleNavigate(listId: string) {
   router.push(`/cabinet/shopping-lists/${listId}`);
 }
 
-// Drag & Drop сортировка
+// Drag & Drop сортировка с обновлением sortOrder
 async function handleReorder(dragIndex: number, dropIndex: number) {
   const items = [...store.lists];
   const [removed] = items.splice(dragIndex, 1);
   items.splice(dropIndex, 0, removed);
 
+  // Обновляем sortOrder для всех списков
   const reorderData = items.map((item, idx) => ({
     id: item.id,
-    sortOrder: idx * 1000,
+    sortOrder: idx * 1000, // Используем множитель для возможности вставки между
   }));
 
-  await store.reorderLists(reorderData);
+  // Отправляем запросы на обновление sortOrder
+  try {
+    await Promise.all(
+      reorderData.map(async (item) => {
+        await store.updateListSortOrder(item.id, item.sortOrder);
+      })
+    );
+
+    // Обновляем локальный порядок
+    await store.fetchLists();
+
+    toast.add({
+      title: 'Успех',
+      description: 'Порядок списков сохранен',
+      color: 'success',
+    });
+  } catch (error) {
+    console.error('Failed to reorder lists:', error);
+    toast.add({
+      title: 'Ошибка',
+      description: 'Не удалось сохранить порядок списков',
+      color: 'error',
+    });
+  }
 }
 
 // Создание списка
@@ -155,8 +179,9 @@ async function handleListSubmit(title: string) {
       color: 'success',
     });
   } else {
-    // Создание
-    const newList = await store.createList(title);
+    // Создание с sortOrder
+    const maxSortOrder = Math.max(...store.lists.map(l => l.sortOrder || 0), 0);
+    const newList = await store.createList(title, maxSortOrder + 1000);
     router.push(`/cabinet/shopping-lists/${newList.id}`);
   }
 }

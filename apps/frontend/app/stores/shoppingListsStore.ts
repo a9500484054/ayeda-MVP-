@@ -78,9 +78,16 @@ export const useShoppingListsStore = defineStore('shoppingLists', () => {
   async function createList(title: string): Promise<ShoppingList> {
     isLoading.value = true;
     try {
+      // Вычисляем максимальный sortOrder для нового списка
+      const maxSortOrder = Math.max(...lists.value.map(l => l.sortOrder || 0), 0);
+      const newSortOrder = maxSortOrder + 1000;
+
       const newList = await api<ShoppingList>('/shopping-lists', {
         method: 'POST',
-        body: { title } as CreateShoppingListDto,
+        body: {
+          title,
+          sortOrder: newSortOrder
+        } as CreateShoppingListDto,
       });
       lists.value.push(newList);
       toast.add({
@@ -447,6 +454,19 @@ export const useShoppingListsStore = defineStore('shoppingLists', () => {
     error.value = null;
   }
 
+  async function updateListSortOrder(id: string, sortOrder: number) {
+    try {
+      const api = useApi();
+      await api(`/shopping-lists/${id}`, {
+        method: 'PATCH',
+        body: { sortOrder },
+      });
+    } catch (error) {
+      console.error('Failed to update list sort order:', error);
+      throw error;
+    }
+  }
+
   return {
     // State
     lists,
@@ -470,6 +490,7 @@ export const useShoppingListsStore = defineStore('shoppingLists', () => {
     reorderLists,
     generateShareToken,
     revokeShareToken,
+    updateListSortOrder,
 
     // Items Actions
     addItem,

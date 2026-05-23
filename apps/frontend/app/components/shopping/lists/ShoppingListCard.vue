@@ -1,21 +1,28 @@
-<!-- apps\frontend\app\components\shopping\lists\ShoppingListCard.vue -->
 <template>
-  <div class="group relative">
+  <div
+    class="group relative drag-handle"
+    :data-id="list.id"
+    :class="{ 'cursor-grabbing': isDragging }"
+  >
     <!-- Основная карточка -->
     <div
-      class="relative overflow-hidden rounded-3xl border border-gray-200/70 bg-white/90 p-5 backdrop-blur-xl transition-all duration-300  hover:border-primary-300 hover:shadow-2xl hover:shadow-primary-100/40 dark:border-darkMode-400/60 dark:bg-darkMode-50/90 dark:hover:border-primary-500/40 dark:hover:bg-darkMode-100 cursor-pointer"
-      @click="emit('click', list.id)"
+      class="relative overflow-hidden rounded-3xl border border-gray-200/70 bg-white/90 p-5 backdrop-blur-xl transition-all duration-300 hover:border-emerald-300 hover:shadow-2xl hover:shadow-emerald-100/40 dark:border-darkMode-400/60 dark:bg-darkMode-50/90 dark:hover:border-emerald-500/40 dark:hover:bg-darkMode-100"
+      :class="{ 'cursor-pointer': !isDragging }"
+      @click="!isDragging && emit('click', list.id)"
     >
       <!-- Свечение -->
       <div
-        class="absolute inset-0 bg-gradient-to-br from-primary-50/40 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-primary-500/10"
+        class="absolute inset-0 bg-gradient-to-br from-emerald-50/40 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-emerald-500/10"
       />
 
       <!-- Верхняя часть -->
       <div class="relative z-10 flex items-start justify-between gap-3">
         <div class="min-w-0 flex-1">
           <div class="mb-2 flex items-center gap-2">
-            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 shadow-lg">
+            <!-- Drag Handle - только эта область захватывается для перетаскивания -->
+            <div
+              class="flex h-12 w-12 cursor-grab items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 shadow-lg transition-all hover:scale-105 active:cursor-grabbing"
+            >
               <UIcon name="i-lucide-shopping-basket" class="h-6 w-6 text-white" />
             </div>
 
@@ -64,16 +71,12 @@
             Прогресс
           </span>
 
-          <span
-            class="text-xs font-semibold text-primary-600 dark:text-primary-400"
-          >
+          <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
             {{ Math.round(progress) }}%
           </span>
         </div>
 
-        <div
-          class="h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-darkMode-200"
-        >
+        <div class="h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-darkMode-200">
           <div
             class="h-full rounded-full bg-gradient-to-r from-emerald-600 to-teal-700 transition-all duration-500"
             :style="{ width: `${progress}%` }"
@@ -83,7 +86,7 @@
 
       <!-- Нижнее декоративное размытие -->
       <div
-        class="absolute -bottom-10 -right-10 h-32 w-32 rounded-full bg-primary-100/40 blur-3xl dark:bg-primary-500/10"
+        class="absolute -bottom-10 -right-10 h-32 w-32 rounded-full bg-emerald-100/40 blur-3xl dark:bg-emerald-500/10"
       />
     </div>
   </div>
@@ -96,12 +99,11 @@ import ShoppingListCardMenu from './ShoppingListCardMenu.vue';
 const props = defineProps<{
   list: ShoppingList;
   index: number;
+  isDragging?: boolean;
 }>();
 
 const emit = defineEmits<{
   click: [listId: string];
-  dragStart: [index: number];
-  dragEnd: [];
   rename: [list: ShoppingList];
   share: [list: ShoppingList];
   copy: [list: ShoppingList];
@@ -116,67 +118,21 @@ const progress = computed(() => {
   if (+props.list.totalItems === 0) return 0;
   return (+props.list.checkedItems / +props.list.totalItems) * 100;
 });
-// checkedItems
-function handleDragStart(event: DragEvent) {
-  if (!event.dataTransfer) return;
-
-  event.dataTransfer.setData(
-    'text/plain',
-    JSON.stringify({
-      type: 'shoppingList',
-      index: props.index,
-      id: props.list.id,
-    }),
-  );
-
-  event.dataTransfer.effectAllowed = 'move';
-
-  // Скрываем призрачное изображение
-  const dragImage = document.createElement('div');
-  dragImage.style.opacity = '0';
-
-  document.body.appendChild(dragImage);
-
-  event.dataTransfer.setDragImage(dragImage, 0, 0);
-
-  setTimeout(() => {
-    document.body.removeChild(dragImage);
-  }, 0);
-
-  // Затемняем оригинальную карточку
-  const target = event.target as HTMLElement;
-  const card = target.closest('.group');
-
-  if (card) {
-    card.classList.add('dragging-original');
-  }
-
-  emit('dragStart', props.index);
-}
-
-function handleDragEnd() {
-  const draggingElements = document.querySelectorAll('.dragging-original');
-
-  draggingElements.forEach(el => {
-    el.classList.remove('dragging-original');
-  });
-
-  emit('dragEnd');
-}
 </script>
 
 <style scoped>
 .drag-handle {
   cursor: grab;
+  user-select: none;
+  touch-action: none;
 }
 
 .drag-handle:active {
   cursor: grabbing;
 }
 
-.dragging-original {
-  opacity: 0.35;
-  transform: scale(0.98);
-  transition: all 0.2s ease;
+/* Запрещаем выделение текста при перетаскивании */
+.group:active {
+  user-select: none;
 }
 </style>
