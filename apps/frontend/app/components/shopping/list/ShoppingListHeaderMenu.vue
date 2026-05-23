@@ -1,9 +1,10 @@
+<!-- apps\frontend\app\components\shopping\list\ShoppingListHeaderMenu.vue -->
 <template>
   <UDropdownMenu :items="menuItems" :ui="{ content: 'w-56' }">
     <UButton
       variant="ghost"
       size="md"
-      class="!rounded-xl !px-3 !py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-darkMode-100 dark:text-darkMode-700 dark:hover:bg-darkMode-200"
+      class="!rounded-xl !px-3 !py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-darkMode-100 dark:text-darkMode-700 dark:hover:bg-darkMode-200 cursor-pointer"
     >
       <UIcon name="i-lucide-more-vertical" class="h-4 w-4" />
       <!-- <span class="ml-1.5 hidden sm:inline">Действия</span> -->

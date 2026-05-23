@@ -1,3 +1,4 @@
+<!-- apps\frontend\app\components\shopping\lists\ShoppingListsGrid.vue -->
 <template>
   <div ref="containerRef" class="flex flex-col gap-4">
     <ShoppingListCard

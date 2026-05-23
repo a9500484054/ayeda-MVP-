@@ -1,94 +1,165 @@
+<!-- apps\frontend\app\components\shopping\list\ShoppingListItemModal.vue -->
 <template>
   <UModal v-model:open="isOpen" :title="isEditing ? 'Редактировать продукт' : 'Добавить продукт'">
     <template #body>
-      <form class="space-y-4" @submit.prevent="handleSubmit">
-        <!-- Название -->
-        <UFormField label="Название" required>
-          <UInput
-            v-model="form.name"
-            placeholder="Например: Помидоры"
-            autofocus
-          />
-        </UFormField>
+      <form class="space-y-5" @submit.prevent="handleSubmit">
+        <!-- Название с анимацией -->
+        <div class="group">
+          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Название
+            <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <UIcon
+              name="i-lucide-package"
+              class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 transition-colors group-focus-within:text-primary-500"
+            />
+            <input
+              v-model="form.name"
+              type="text"
+              placeholder="Например: Помидоры"
+              class="h-11 w-full rounded-xl border border-gray-200 pl-9 pr-4 text-sm text-gray-900 outline-none transition-all placeholder:text-sm placeholder:text-gray-400 focus:border-primary-400 focus:ring-2 focus:ring-primary-100 dark:border-darkMode-300 dark:bg-darkMode-100 dark:text-darkMode-700 dark:placeholder:text-darkMode-500 dark:focus:ring-primary-900/20"
+              autofocus
+            />
+          </div>
+        </div>
 
         <!-- Категория -->
-        <UFormField label="Категория">
+        <div>
+          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Категория
+          </label>
           <USelect
             v-model="form.categoryId"
             :items="categoryOptions"
             placeholder="Выберите категорию"
             clearable
+            class="w-full"
+            :ui="{
+              wrapper: 'w-full',
+              base: 'w-full rounded-xl border-gray-200 dark:border-darkMode-300 dark:bg-darkMode-100',
+              input: 'h-11 text-sm'
+            }"
           />
-        </UFormField>
-
-        <!-- Количество и единицы -->
-        <div class="grid grid-cols-2 gap-3">
-          <UFormField label="Количество">
-            <UInput
-              v-model.number="form.quantity"
-              type="number"
-              step="0.01"
-              placeholder="1"
-            />
-          </UFormField>
-
-          <UFormField label="Единицы">
-            <UInput
-              v-model="form.unit"
-              placeholder="кг, шт, л..."
-            />
-          </UFormField>
         </div>
 
-        <!-- Цена -->
-        <UFormField label="Цена за единицу">
-          <UInput
-            v-model.number="form.price"
-            type="number"
-            step="0.01"
-            placeholder="0"
-          >
-            <template #trailing>
-              <span class="text-gray-400">₽</span>
-            </template>
-          </UInput>
-        </UFormField>
+        <!-- Количество и единицы -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Количество
+            </label>
+            <div class="relative">
+              <UIcon
+                name="i-lucide-hash"
+                class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+              />
+              <input
+                v-model.number="form.quantity"
+                type="number"
+                step="0.01"
+                placeholder="1"
+                class="h-11 w-full rounded-xl border border-gray-200 pl-9 pr-4 text-sm text-gray-900 outline-none transition-all focus:border-primary-400 focus:ring-2 focus:ring-primary-100 dark:border-darkMode-300 dark:bg-darkMode-100 dark:text-darkMode-700 dark:focus:ring-primary-900/20"
+              />
+            </div>
+          </div>
 
-        <!-- Расчет итога -->
-        <div v-if="form.price && form.quantity" class="text-sm text-gray-500">
-          Итого: {{ (form.price * form.quantity).toFixed(2) }} ₽
+          <div>
+            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Единицы
+            </label>
+            <div class="relative">
+              <UIcon
+                name="i-lucide-ruler"
+                class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+              />
+              <input
+                v-model="form.unit"
+                type="text"
+                placeholder="кг, шт, л..."
+                class="h-11 w-full rounded-xl border border-gray-200 pl-9 pr-4 text-sm text-gray-900 outline-none transition-all focus:border-primary-400 focus:ring-2 focus:ring-primary-100 dark:border-darkMode-300 dark:bg-darkMode-100 dark:text-darkMode-700 dark:focus:ring-primary-900/20"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Цена и итог в одной строке -->
+        <div>
+          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Цена за единицу
+          </label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">₽</span>
+            <input
+              v-model.number="form.price"
+              type="number"
+              step="0.01"
+              placeholder="0"
+              class="h-11 w-full rounded-xl border border-gray-200 pl-8 pr-4 text-sm text-gray-900 outline-none transition-all focus:border-primary-400 focus:ring-2 focus:ring-primary-100 dark:border-darkMode-300 dark:bg-darkMode-100 dark:text-darkMode-700 dark:focus:ring-primary-900/20"
+            />
+          </div>
+
+          <!-- Расчет итога с анимацией -->
+          <Transition name="slide-down">
+            <div v-if="form.price && form.quantity" class="mt-3 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 p-3 dark:from-emerald-950/20 dark:to-teal-950/20">
+              <div class="flex items-center justify-between text-sm">
+                <span class="font-medium text-emerald-700 dark:text-emerald-400">Итого:</span>
+                <span class="text-lg font-bold text-emerald-700 dark:text-emerald-400">
+                  {{ (form.price * form.quantity).toFixed(2) }} ₽
+                </span>
+              </div>
+            </div>
+          </Transition>
         </div>
 
         <!-- Описание -->
-        <UFormField label="Описание">
-          <UTextarea
+        <div>
+          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Описание
+          </label>
+          <textarea
             v-model="form.note"
+            rows="3"
             placeholder="Дополнительная информация..."
-            :rows="2"
+            class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all placeholder:text-sm placeholder:text-gray-400 focus:border-primary-400 focus:ring-2 focus:ring-primary-100 dark:border-darkMode-300 dark:bg-darkMode-100 dark:text-darkMode-700 dark:placeholder:text-darkMode-500 dark:focus:ring-primary-900/20"
           />
-        </UFormField>
+        </div>
       </form>
     </template>
 
     <template #footer>
-      <div class="flex justify-between gap-2">
-        <UButton
+      <div class="flex items-center justify-between gap-3 w-full">
+        <Button
           v-if="isEditing && itemId"
+          icon="i-lucide-trash-2"
+          color="danger"
           variant="ghost"
-          color="red"
+          size="md"
           :loading="isDeleting"
+          class="hover:bg-red-50 dark:hover:bg-red-900/20"
           @click="handleDelete"
         >
           Удалить
-        </UButton>
+        </Button>
 
         <div class="flex flex-1 justify-end gap-2">
-          <UButton variant="ghost" @click="closeModal">
+          <Button
+            variant="ghost"
+            color="neutral"
+            size="md"
+            @click="closeModal"
+          >
             Отмена
-          </UButton>
-          <UButton color="primary" :loading="isLoading" @click="handleSubmit">
+          </Button>
+          <Button
+            :color="isEditing ? 'primary' : 'success'"
+            size="md"
+            :loading="isLoading"
+            :icon="isEditing ? 'i-lucide-save' : 'i-lucide-plus'"
+            @click="handleSubmit"
+          >
             {{ isEditing ? 'Сохранить' : 'Добавить' }}
-          </UButton>
+          </Button>
         </div>
       </div>
     </template>
@@ -97,6 +168,7 @@
 
 <script setup lang="ts">
 import type { ShoppingCategory, ShoppingListItem } from '~/shared/types/shopping.types';
+import Button from '~/shared/ui/button/Button.vue';
 
 const props = defineProps<{
   open: boolean;
@@ -123,7 +195,6 @@ const isOpen = computed({
 });
 
 const isEditing = computed(() => !!props.item);
-
 const itemId = computed(() => props.item?.id);
 
 const isLoading = ref(false);
@@ -202,3 +273,27 @@ watch(() => props.open, (newVal) => {
   }
 });
 </script>
+
+<style scoped>
+.slide-down-enter-active,
+.slide-down-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-down-enter-from,
+.slide-down-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+/* Убираем стрелки у number input */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  opacity: 0.5;
+}
+
+input[type="number"]:hover::-webkit-inner-spin-button,
+input[type="number"]:hover::-webkit-outer-spin-button {
+  opacity: 1;
+}
+</style>

@@ -1,3 +1,4 @@
+<!-- apps\frontend\app\components\shopping\lists\ShoppingListCardMenu.vue -->
 <template>
   <UDropdownMenu :items="menuItems" :ui="{ content: 'w-48' }">
     <button

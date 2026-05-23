@@ -6,7 +6,7 @@
       <div class="min-w-0 flex-1">
         <div class="flex items-center gap-3">
           <!-- Иконка -->
-          <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 shadow-lg">
+          <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 shadow-lg">
             <UIcon name="i-lucide-shopping-basket" class="h-6 w-6 text-white" />
           </div>
 
@@ -64,8 +64,8 @@
                 <span class="font-medium">{{ totalCount }} {{ getCountText(totalCount) }}</span>
               </div>
               <div class="flex items-center gap-1.5">
-                <div class="flex h-6 w-6 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-                  <UIcon name="i-lucide-check-circle" class="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+                <div class="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+                  <UIcon name="i-lucide-check-circle" class="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <span class="font-medium">{{ checkedCount }} куплено</span>
               </div>
@@ -77,23 +77,14 @@
 
     <!-- Отдельная строка: поиск и кнопки действий -->
     <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <!-- Поиск -->
+      <!-- Поиск - используем SearchInput компонент -->
       <div class="flex-1">
-        <div class="relative">
-          <UIcon
-            name="i-lucide-search"
-            class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
-          />
-          <UInput
-            v-model="searchValue"
-            placeholder="Поиск по списку..."
-            class="w-full"
-            size="md"
-            :ui="{
-              input: 'pl-9 pr-4 py-2.5 rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:border-primary-400 focus:ring-primary-400/20 dark:bg-darkMode-100 dark:border-darkMode-300'
-            }"
-          />
-        </div>
+        <SearchInput
+          v-model="searchValue"
+          placeholder="Поиск по списку..."
+          id="shopping-list-search"
+          :clearable="true"
+        />
       </div>
 
       <!-- Кнопки действий -->
@@ -103,11 +94,10 @@
           <UButton
             variant="ghost"
             size="md"
-            class="!rounded-xl !px-3 !py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-darkMode-100 dark:text-darkMode-700 dark:hover:bg-darkMode-200"
+            class="!rounded-xl !px-3 !py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-darkMode-100 dark:text-darkMode-700 cursor-pointer dark:hover:bg-darkMode-200"
             @click="emit('share')"
           >
             <UIcon name="i-lucide-share-2" class="h-4 w-4" />
-            <!-- <span class="ml-1.5 hidden sm:inline">Поделиться</span> -->
           </UButton>
         </UTooltip>
 
@@ -130,13 +120,13 @@
     <div class="mt-6">
       <div class="mb-2 flex items-center justify-between text-sm">
         <span class="font-medium text-gray-700 dark:text-gray-300">Общий прогресс</span>
-        <span class="font-semibold text-primary-600 dark:text-primary-400">
+        <span class="font-semibold text-emerald-600 dark:text-emerald-400">
           {{ Math.round(progress) }}%
         </span>
       </div>
       <div class="h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-darkMode-200">
         <div
-          class="h-full rounded-full bg-gradient-to-r from-primary-500 to-primary-600 transition-all duration-500 ease-out"
+          class="h-full rounded-full bg-gradient-to-br from-emerald-600 to-teal-700 shadow-md transition-all duration-500 ease-out"
           :style="{ width: `${progress}%` }"
         />
       </div>
@@ -145,11 +135,11 @@
 </template>
 
 <script setup lang="ts">
-import Button from '~/shared/ui/button/Button.vue';
+import SearchInput from '~/shared/ui/SearchInput/SearchInput.vue';
 import ShoppingListHeaderMenu from './ShoppingListHeaderMenu.vue';
 
 const props = defineProps<{
-  title: string;
+  title: string | undefined | null;
   totalCount: number;
   checkedCount: number;
   progress: number;
@@ -173,6 +163,7 @@ const isEditing = ref(false);
 const editTitle = ref(props.title);
 const inputRef = ref<HTMLInputElement | null>(null);
 
+// Используем computed для двусторонней привязки к SearchInput
 const searchValue = computed({
   get: () => props.searchQuery,
   set: (value) => emit('searchChange', value),

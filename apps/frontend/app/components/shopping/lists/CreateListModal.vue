@@ -1,3 +1,4 @@
+<!-- apps\frontend\app\components\shopping\lists\CreateListModal.vue -->
 <template>
   <UModal v-model:open="isOpen" title="Создать новый список">
     <template #body>

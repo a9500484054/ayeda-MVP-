@@ -277,11 +277,11 @@ export const useShoppingListsStore = defineStore('shoppingLists', () => {
         currentList.value.items.push(newItem);
         currentList.value.items.sort((a, b) => a.sortOrder - b.sortOrder);
       }
-      toast.add({
-        title: 'Успех',
-        description: `"${dto.name}" добавлен в список`,
-        color: 'success',
-      });
+      // toast.add({
+      //   title: 'Успех',
+      //   description: `"${dto.name}" добавлен в список`,
+      //   color: 'success',
+      // });
       return newItem;
     } catch (err: any) {
       toast.add({
@@ -334,11 +334,11 @@ export const useShoppingListsStore = defineStore('shoppingLists', () => {
       if (currentList.value?.id === listId && currentList.value.items) {
         currentList.value.items = currentList.value.items.filter(i => i.id !== itemId);
       }
-      toast.add({
-        title: 'Успех',
-        description: 'Продукт удален',
-        color: 'success',
-      });
+      // toast.add({
+      //   title: 'Успех',
+      //   description: 'Продукт удален',
+      //   color: 'success',
+      // });
     } catch (err: any) {
       toast.add({
         title: 'Ошибка',

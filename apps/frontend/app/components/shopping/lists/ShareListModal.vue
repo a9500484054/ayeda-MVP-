@@ -1,3 +1,4 @@
+<!-- apps\frontend\app\components\shopping\lists\ShareListModal.vue -->
 <template>
   <UModal v-model:open="isOpen" title="Поделиться списком">
     <template #body>

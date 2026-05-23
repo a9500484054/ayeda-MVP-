@@ -1,3 +1,4 @@
+<!-- apps\frontend\app\components\shopping\lists\RenameListModal.vue -->
 <template>
   <UModal v-model:open="isOpen" title="Переименовать список">
     <template #body>

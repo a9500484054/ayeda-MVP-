@@ -1,5 +1,6 @@
+<!-- apps\frontend\app\components\shopping\list\ShoppingListItems.vue -->
 <template>
-  <div class="space-y-1 max-h-[60vh] overflow-y-auto">
+  <div class="space-y-1">
     <ShoppingListItem
       v-for="item in filteredItems"
       :key="item.id"
@@ -20,7 +21,7 @@
         {{ searchQuery ? 'Ничего не найдено' : 'Список пуст' }}
       </p>
       <p v-if="!searchQuery" class="text-sm text-gray-400">
-        Добавьте продукты через форму ниже
+        Добавьте продукты
       </p>
     </div>
   </div>

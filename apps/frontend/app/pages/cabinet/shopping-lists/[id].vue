@@ -1,20 +1,21 @@
+<!-- apps\frontend\app\pages\cabinet\shopping-lists\[id].vue -->
 <template>
   <div class="mx-auto w-full max-w-5xl px-4 py-6 md:px-6">
     <!-- Loading -->
-    <div v-if="store.isLoading" class="flex flex-col items-center justify-center py-20">
+    <!-- <div  class="flex flex-col items-center justify-center py-20">
       <div class="h-10 w-10 animate-spin rounded-full border-2 border-gray-200 border-t-gray-900" />
       <p class="mt-4 text-sm text-gray-500">Загрузка...</p>
-    </div>
+    </div> -->
 
-    <template v-else-if="store.currentList">
+    <div>
       <!-- Desktop: 2 колонки -->
       <div class="hidden lg:grid lg:grid-cols-20 lg:gap-6">
         <!-- Левая колонка: список покупок (65% = 13/20) -->
         <UCard class="lg:col-span-13">
           <!-- Хедер списка (sticky) - без UCard, просто sticky элемент -->
-          <div class=" bg-white pb-4 dark:bg-darkMode-900">
+          <div class="bg-white pb-4 dark:bg-darkMode-900">
             <ShoppingListHeader
-              :title="store.currentList.title"
+              :title="store.currentList?.title"
               :total-count="store.totalItemsCount"
               :checked-count="store.checkedItemsCount"
               :progress="store.progressPercentage"
@@ -47,11 +48,14 @@
         <!-- Правая колонка: добавление продуктов (35% = 7/20) -->
         <div class="lg:col-span-7">
           <div class="sticky top-6">
-            <AddItemBlock
-              :popular-items="popularItems"
-              @quick-add="handleQuickAdd"
-              @add-popular="handleAddPopular"
-            />
+            <UCard class="add-item-block">
+              <AddItemBlock
+                :popular-items="popularItems"
+                @quick-add="handleQuickAdd"
+                @add-popular="handleAddPopular"
+                @scroll-to-bottom="scrollToBottom"
+              />
+            </UCard>
           </div>
         </div>
       </div>
@@ -59,7 +63,7 @@
       <!-- Mobile/Tablet: одна колонка + плавающая кнопка -->
       <div class="lg:hidden">
         <ShoppingListHeader
-          :title="store.currentList.title"
+          :title="store.currentList?.title"
           :total-count="store.totalItemsCount"
           :checked-count="store.checkedItemsCount"
           :progress="store.progressPercentage"
@@ -86,7 +90,7 @@
           @toggle-item="handleToggleItem"
         />
       </div>
-    </template>
+    </div>
 
     <!-- Модалки -->
     <ShoppingListItemModal
@@ -158,7 +162,6 @@ const route = useRoute();
 const router = useRouter();
 const store = useShoppingListsStore();
 const { print } = useShoppingListPrint();
-const toast = useToast();
 
 const listId = computed(() => route.params.id as string);
 
@@ -305,6 +308,26 @@ async function handleAddPopularMobile(item: { name: string; categoryId?: string;
     unit: item.unit || 'шт',
   });
   isAddItemModalOpen.value = false;
+}
+
+// Функция для скролла вниз
+function scrollToBottom() {
+  nextTick(() => {
+    // Находим контейнер со списком продуктов
+    const container = document.querySelector('.shopping-list-container');
+    if (container) {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: 'smooth'
+      });
+    } else {
+      // Или скроллим всю страницу
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  });
 }
 </script>
 

@@ -1,3 +1,4 @@
+<!-- apps\frontend\app\components\shopping\lists\ShoppingListCard.vue -->
 <template>
   <div class="group relative">
     <!-- Основная карточка -->
