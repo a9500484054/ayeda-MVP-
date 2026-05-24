@@ -124,9 +124,12 @@ function handleDragStart(event: DragEvent) {
     itemId: props.item.id,
     slotId: props.slotId,
     recipeId: props.item.recipeId,
+    notes: props.item.notes,
     title: props.item.recipe?.title || 'Рецепт',
     dragIndex: props.dragIndex,
   };
+
+  console.log('Drag start - setting data:', dragData);
 
   event.dataTransfer.setData('text/plain', JSON.stringify(dragData));
   event.dataTransfer.effectAllowed = 'move';

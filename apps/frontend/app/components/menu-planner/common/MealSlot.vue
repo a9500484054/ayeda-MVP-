@@ -126,11 +126,17 @@ function handleItemDragOver(event: DragEvent) {
 
 function handleItemDrop(event: DragEvent, targetIndex: number) {
   event.preventDefault();
+  event.stopPropagation();
   const target = event.currentTarget as HTMLElement;
   target.classList.remove('drag-over');
 
   const dragData = getDragData(event);
   if (!dragData || !props.slotId) return;
+
+  if (dragData.slotId !== props.slotId) {
+    emit('moveRecipe', dragData.itemId, dragData.slotId, props.slotId);
+    return;
+  }
 
   // Только переупорядочивание внутри одного слота
   if (dragData.slotId === props.slotId && dragData.dragIndex !== undefined) {
@@ -166,15 +172,20 @@ function handleDragLeave(event: DragEvent) {
   }
   // Не меняем состояние isDragOver, оно приходит от родителя
 }
-
 function handleDrop(event: DragEvent) {
   event.preventDefault();
 
   const dragData = getDragData(event);
   if (!dragData || !props.slotId) return;
+  event.stopPropagation();
 
   // Перемещение между слотами (только если source и target разные)
   if (dragData.slotId !== props.slotId) {
+    console.log('Moving recipe via MealSlot drop:', {
+      itemId: dragData.itemId,
+      sourceSlotId: dragData.slotId,
+      targetSlotId: props.slotId
+    });
     emit('moveRecipe', dragData.itemId, dragData.slotId, props.slotId);
   }
 }

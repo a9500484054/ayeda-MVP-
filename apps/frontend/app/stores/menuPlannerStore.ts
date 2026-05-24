@@ -348,7 +348,9 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
     }
 
     try {
-      // Проверяем, не существует ли уже слот с таким же рецептом
+      console.log('Creating slot with recipe:', params);
+
+      // Проверяем, не существует ли уже слот
       const existingSlot = slots.value.find(slot =>
         slot.slotType === params.slotType &&
         slot.dayId === params.dayId &&
@@ -357,16 +359,18 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
       );
 
       if (existingSlot) {
-        // Проверяем, нет ли уже такого рецепта в слоте
+        console.log('Slot exists, adding recipe to existing slot:', existingSlot.id);
+        // Если слот существует, проверяем, нет ли уже такого рецепта
         const recipeExists = existingSlot.items?.some(item => item.recipeId === params.recipeId);
         if (recipeExists) {
           throw new Error('Recipe already exists in this slot');
         }
-        // Если слот существует, просто добавляем рецепт
+        // Добавляем рецепт в существующий слот
         return await addRecipeToSlot(existingSlot.id, params.recipeId, params.notes);
       }
 
       // Создаем новый слот
+      console.log('Creating new slot...');
       const slot = await api.createSlot({
         menuListId: activeMenuListId.value,
         slotType: params.slotType,
@@ -375,15 +379,25 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
         mealType: params.mealType,
       });
 
-      // Добавляем рецепт
+      console.log('Slot created:', slot);
+
+      // Добавляем рецепт в новый слот
       const item = await api.addRecipeToSlot(slot.id, {
         recipeId: params.recipeId,
         notes: params.notes
       });
 
+      console.log('Recipe added to slot:', item);
+
       // Обновляем локальное состояние
       slot.items = [item];
       slots.value.push(slot);
+
+      toast.add({
+        title: 'Успех',
+        description: 'Рецепт добавлен',
+        color: 'success',
+      });
 
       return { slot, item };
     } catch (error: any) {

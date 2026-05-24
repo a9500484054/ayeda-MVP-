@@ -28,7 +28,8 @@ const isAddingToShoppingList = ref(false);
 const showPreviewModal = ref(false);
 const collectedIngredients = ref<Array<{ id: string; name: string; amount: number; unit: string }>>([]);
 
-function getSlotByMeal(mealType: MealType, dayId: string): MenuSlot | undefined {
+// Функция для получения слота по дню и типу приема пищи
+function getSlotByDayAndMeal(dayId: string, mealType: MealType): MenuSlot | undefined {
   return props.slots.find(
     slot => slot.dayId === dayId && slot.mealType === mealType && slot.slotType === 'day'
   );
@@ -225,7 +226,6 @@ function addNewDay() {
   }
 }
 </script>
-
 <template>
   <div>
     <!-- Управление днями -->
@@ -270,24 +270,24 @@ function addNewDay() {
             v-for="day in days"
             :key="day.id"
             :day="day"
-            :breakfast-slot="getSlotByMeal('breakfast', day.id)"
-            :lunch-slot="getSlotByMeal('lunch', day.id)"
-            :dinner-slot="getSlotByMeal('dinner', day.id)"
-            :snack-slot="getSlotByMeal('snack', day.id)"
-            :is-loading="isLoading"
+            :breakfast-slot="getSlotByDayAndMeal(day.id, 'breakfast')"
+            :lunch-slot="getSlotByDayAndMeal(day.id, 'lunch')"
+            :dinner-slot="getSlotByDayAndMeal(day.id, 'dinner')"
+            :snack-slot="getSlotByDayAndMeal(day.id, 'snack')"
             :can-delete="days.length > 1"
-            @add-recipe="handleAddRecipe"
-            @move-recipe="handleMoveRecipe"
-            @remove-recipe="handleRemoveRecipe"
-            @edit-notes="handleEditNotes"
-            @rename-day="handleRenameDay"
-            @delete-day="handleDeleteDay"
-            @reorder="handleReorder"
-            @create-slot="handleCreateSlot"
+            @add-recipe="(dayId, mealType) => emit('addRecipe', dayId, mealType)"
+            @move-recipe="(itemId, sourceSlotId, targetSlotId) => emit('moveRecipe', itemId, sourceSlotId, targetSlotId)"
+            @reorder="(slotId, items) => emit('reorder', slotId, items)"
+            @remove-recipe="(itemId) => emit('removeRecipe', itemId)"
+            @edit-notes="(itemId, notes) => emit('editNotes', itemId, notes)"
+            @rename-day="(dayId, newTitle) => emit('renameDay', dayId, newTitle)"
+            @delete-day="(dayId) => emit('deleteDay', dayId)"
+            @create-slot="(dayId, mealType, recipeId, notes) => emit('createSlot', dayId, mealType, recipeId, notes)"
           />
         </div>
       </div>
     </div>
+
 
     <!-- Модальное окно предпросмотра -->
     <ShoppingListPreviewModal
@@ -297,6 +297,7 @@ function addNewDay() {
     />
   </div>
 </template>
+
 
 <style scoped>
 .days-view {

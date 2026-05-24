@@ -1,4 +1,4 @@
-<!-- DayColumn.vue - обновленная версия -->
+﻿<!-- DayColumn.vue - обновленная версия -->
 <template>
   <div class="day-column  flex-shrink-0 rounded-xl border border-zinc-200 bg-white shadow-sm">
     <!-- Заголовок дня -->
@@ -222,24 +222,29 @@ async function handleSlotContainerDrop(event: DragEvent, mealType: MealType) {
   dragOverStates.value[mealType] = false;
 
   const dragData = getDragData(event);
-  if (!dragData) return;
+  if (!dragData?.itemId || !dragData?.slotId) return;
 
+  // Находим целевой слот по mealType
   const targetSlot = getSlotByMeal(mealType);
-  const sourceSlotId = dragData.slotId;
 
-  // Если слот существует - перемещаем как обычно
-  if (targetSlot) {
-    emit('moveRecipe', dragData.itemId, sourceSlotId, targetSlot.id);
-    return;
-  }
+  if (targetSlot?.id) {
+    // Если слот существует - перемещаем рецепт
+    console.log('Moving recipe to existing slot:', {
+      itemId: dragData.itemId,
+      sourceSlotId: dragData.slotId,
+      targetSlotId: targetSlot.id
+    });
+    emit('moveRecipe', dragData.itemId, dragData.slotId, targetSlot.id);
+  } else {
+    // Если слота нет - создаем новый с рецептом
+    console.log('Creating new slot for recipe:', {
+      dayId: props.day.id,
+      mealType,
+      recipeId: dragData.recipeId
+    });
+    emit('createSlot', props.day.id, mealType, dragData.recipeId, dragData.notes);
 
-  // Если слота нет - создаем новый слот с рецептом
-  const recipeId = dragData.recipeId;
-  if (recipeId) {
-    emit('createSlot', props.day.id, mealType, recipeId, dragData.notes);
-
-    // Удаляем рецепт из исходного слота после успешного создания
-    // Небольшая задержка, чтобы дать время на создание слота
+    // Удаляем из исходного слота после создания
     setTimeout(() => {
       emit('removeRecipe', dragData.itemId);
     }, 100);
@@ -256,11 +261,7 @@ function getSlotByMeal(mealType: MealType): MenuSlot | undefined {
   }
 }
 
-function handleCreateSlot(dayId: string, mealType: MealType, recipeId: string, notes?: string) {
-  emit('createSlot', dayId, mealType, recipeId, notes);
-}
-
-// Остальные методы без изменений
+// Остальные методы
 function openRenameModal() {
   newTitle.value = props.day.title;
   isRenameModalOpen.value = true;
@@ -296,6 +297,10 @@ function handleMoveRecipe(itemId: string, sourceSlotId: string, targetSlotId: st
 
 function handleReorder(slotId: string, items: { id: string; order: number }[]) {
   emit('reorder', slotId, items);
+}
+
+function handleCreateSlot(dayId: string, mealType: MealType, recipeId: string, notes?: string) {
+  emit('createSlot', dayId, mealType, recipeId, notes);
 }
 </script>
 

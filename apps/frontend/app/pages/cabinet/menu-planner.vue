@@ -302,6 +302,8 @@ async function handleRecipeAdded(recipeId: string) {
   try {
     const { type, dayId, date, mealType } = pendingRecipeData.value;
 
+    console.log('Adding recipe:', { type, dayId, date, mealType, recipeId });
+
     if (type === 'day' && dayId && mealType) {
       // Ищем существующий слот
       const existingSlot = store.slots.find(
@@ -309,8 +311,10 @@ async function handleRecipeAdded(recipeId: string) {
       );
 
       if (existingSlot) {
+        console.log('Existing slot found:', existingSlot.id);
         await store.addRecipeToSlot(existingSlot.id, recipeId);
       } else {
+        console.log('Creating new slot with recipe');
         await store.createSlotWithRecipe({
           slotType: 'day',
           dayId,
@@ -318,6 +322,7 @@ async function handleRecipeAdded(recipeId: string) {
           recipeId,
         });
       }
+      await store.fetchSlots(); // Обновляем слоты после добавления
     } else if (type === 'date' && date && mealType) {
       const slotDate = date.toISOString().split('T')[0];
       const existingSlot = store.slots.find(
@@ -334,21 +339,33 @@ async function handleRecipeAdded(recipeId: string) {
           recipeId,
         });
       }
+      await store.fetchSlots();
     }
 
     pendingRecipeData.value = null;
     isRecipeSearchOpen.value = false;
-  } catch (error) {
+
+    toast.add({
+      title: 'Успех',
+      description: 'Рецепт добавлен в меню',
+      color: 'success',
+    });
+  } catch (error: any) {
     console.error('Failed to add recipe:', error);
+    // Ошибка уже обрабатывается в store
   }
 }
 
+
 // Перемещение рецепта между слотами
 async function handleMoveRecipe(itemId: string, sourceSlotId: string, targetSlotId: string) {
-  console.log('Parent move recipe:', { itemId, sourceSlotId, targetSlotId });
+  console.log('=== MOVE RECIPE IN PARENT ===');
+  console.log('itemId:', itemId);
+  console.log('sourceSlotId:', sourceSlotId);
+  console.log('targetSlotId:', targetSlotId);
 
-  if (!targetSlotId || targetSlotId === 'undefined') {
-    console.error('Invalid target slot ID');
+  if (!targetSlotId || targetSlotId === 'undefined' || targetSlotId === 'null') {
+    console.error('Invalid target slot ID:', targetSlotId);
     toast.add({
       title: 'Ошибка',
       description: 'Неверный целевой слот',
@@ -357,13 +374,28 @@ async function handleMoveRecipe(itemId: string, sourceSlotId: string, targetSlot
     return;
   }
 
-  // Проверка на одинаковые слоты
+  // Проверяем существование целевого слота в store
+  const targetSlot = store.slots.find(s => s.id === targetSlotId);
+  if (!targetSlot) {
+    console.error('Target slot not found in store. Available slots:',
+      store.slots.map(s => ({ id: s.id, mealType: s.mealType, dayId: s.dayId }))
+    );
+    toast.add({
+      title: 'Ошибка',
+      description: 'Целевой слот не найден',
+      color: 'error',
+    });
+    return;
+  }
+
+  // Проверяем на одинаковые слоты
   if (sourceSlotId === targetSlotId) {
     console.log('Same slot - skipping move');
     return;
   }
 
   try {
+    // Находим исходный слот и перемещаемый элемент
     const sourceSlot = store.slots.find(s => s.id === sourceSlotId);
     const movedItem = sourceSlot?.items?.find(i => i.id === itemId);
 
@@ -378,9 +410,7 @@ async function handleMoveRecipe(itemId: string, sourceSlotId: string, targetSlot
     }
 
     // Проверяем, нет ли уже такого рецепта в целевом слоте
-    const targetSlot = store.slots.find(s => s.id === targetSlotId);
-    const alreadyExists = targetSlot?.items?.some(i => i.recipeId === movedItem.recipeId);
-
+    const alreadyExists = targetSlot.items?.some(i => i.recipeId === movedItem.recipeId);
     if (alreadyExists) {
       toast.add({
         title: 'Нельзя переместить',
@@ -392,9 +422,11 @@ async function handleMoveRecipe(itemId: string, sourceSlotId: string, targetSlot
 
     // Сначала добавляем рецепт в целевой слот
     await store.addRecipeToSlot(targetSlotId, movedItem.recipeId, movedItem.notes);
+    console.log('Recipe added to target slot');
 
     // Затем удаляем из исходного
     await store.removeRecipeFromSlot(itemId);
+    console.log('Recipe removed from source slot');
 
     toast.add({
       title: 'Успех',
@@ -404,18 +436,11 @@ async function handleMoveRecipe(itemId: string, sourceSlotId: string, targetSlot
   } catch (error: any) {
     console.error('Failed to move recipe:', error);
 
-    // Более детальная обработка ошибок
-    if (error.message?.includes('duplicate') || error.code === '23505' || error.statusCode === 409) {
+    if (error.message?.includes('already exists') || error.code === '23505') {
       toast.add({
         title: 'Нельзя переместить',
         description: 'Этот рецепт уже есть в целевом слоте',
         color: 'warning',
-      });
-    } else if (error.statusCode === 500) {
-      toast.add({
-        title: 'Ошибка сервера',
-        description: 'Попробуйте обновить страницу',
-        color: 'error',
       });
     } else {
       toast.add({
