@@ -152,11 +152,26 @@ function handleDragEnd() {
 </script>
 
 <style scoped>
-.recipe-card {
+/* Дополнительная защита от выделения текста */
+.recipe-card * {
   user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
   transition: all 0.2s ease;
 }
+
 .recipe-card:active {
   cursor: grabbing;
+}
+
+/* Запрет копирования изображения */
+.recipe-card img {
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+  pointer-events: none;
 }
 </style>

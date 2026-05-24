@@ -11,6 +11,26 @@
         <UIcon name="i-lucide-plus" class="h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-90" />
         <span>Добавить день ({{ days.length }}/30)</span>
       </Button>
+
+      <!-- Кнопка добавления в список покупок -->
+      <Button
+        color="white"
+        @click="openPreviewModal"
+        :disabled="days.length === 0 || isLoading"
+        :loading="isAddingToShoppingList"
+        class="relative transition-all duration-200 hover:scale-[1.02]"
+      >
+        <UIcon name="i-lucide-shopping-cart" class="h-3.5 w-3.5" />
+        <span>В список покупок</span>
+
+        <!-- Бейдж с количеством рецептов -->
+        <span
+          v-if="totalRecipesCount > 0 && !isAddingToShoppingList"
+          class="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-green-500 text-[10px] font-medium text-white"
+        >
+          {{ totalRecipesCount > 9 ? '9+' : totalRecipesCount }}
+        </span>
+      </Button>
     </div>
 
     <div class="days-view">
@@ -39,6 +59,13 @@
         </div>
       </div>
     </div>
+
+    <!-- Модальное окно предпросмотра -->
+    <ShoppingListPreviewModal
+      v-model:open="showPreviewModal"
+      :ingredients="collectedIngredients"
+      @confirm="handleCreateShoppingList"
+    />
   </div>
 </template>
 
@@ -46,6 +73,7 @@
 import type { MenuDay, MenuSlot, MealType } from '~/composables/useMenuPlannerApi';
 import DayColumn from '../common/DayColumn.vue';
 import Button from '~/shared/ui/button/Button.vue';
+import ShoppingListPreviewModal from '../modals/ShoppingListPreviewModal.vue';
 
 const props = defineProps<{
   days: MenuDay[];
@@ -63,19 +91,23 @@ const emit = defineEmits<{
   deleteDay: [dayId: string];
   createSlot: [dayId: string, mealType: MealType, recipeId: string, notes?: string];
   reorder: [slotId: string, items: { id: string; order: number }[]];
-  addToShoppingList: [dayId: string]; // Добавляем событие для дня
+  addToShoppingList: [ingredients: Array<{ id: string; name: string; amount: number; unit: string }>];
 }>();
 
 const toast = useToast();
+
+// Состояние для модалки предпросмотра
+const showPreviewModal = ref(false);
+const isAddingToShoppingList = ref(false);
+const collectedIngredients = ref<Array<{ id: string; name: string; amount: number; unit: string }>>([]);
 
 // Высота колонки - вычисляем на основе высоты окна
 const columnHeight = ref(600);
 
 function updateColumnHeight() {
-  // Вычисляем доступную высоту
   const viewportHeight = window.innerHeight;
-  const headerHeight = 200; // Примерная высота хедера
-  const otherElements = 100; // Отступы и другие элементы
+  const headerHeight = 200;
+  const otherElements = 100;
   columnHeight.value = viewportHeight - headerHeight - otherElements;
 }
 
@@ -94,12 +126,138 @@ function getSlotByDayAndMeal(dayId: string, mealType: MealType): MenuSlot | unde
   );
 }
 
+// Подсчет общего количества рецептов
+const totalRecipesCount = computed(() => {
+  return props.slots.reduce((total, slot) => {
+    return total + (slot.items?.length || 0);
+  }, 0);
+});
+
+// Собираем все ингредиенты из всех рецептов
+const allIngredients = computed(() => {
+  const ingredients: Array<{ id: string; name: string; amount: number; unit: string }> = [];
+
+  props.slots.forEach((slot) => {
+    if (slot.items && slot.items.length > 0) {
+      slot.items.forEach((item) => {
+        if (item.recipe && item.recipe.ingredients) {
+          item.recipe.ingredients.forEach((ingredient: any) => {
+            let amount = 0;
+            if (ingredient.amount) {
+              amount = typeof ingredient.amount === 'number'
+                ? ingredient.amount
+                : parseFloat(ingredient.amount) || 0;
+            } else if (ingredient.quantity) {
+              amount = typeof ingredient.quantity === 'number'
+                ? ingredient.quantity
+                : parseFloat(ingredient.quantity) || 0;
+            }
+
+            let name = '';
+            let unit = '';
+            let id = '';
+
+            if (ingredient.short) {
+              name = ingredient.name;
+            } else if (ingredient.ingredient?.name) {
+              name = ingredient.ingredient.name;
+            }
+
+            if (ingredient.unit) {
+              unit = typeof ingredient.unit === 'string'
+                ? ingredient.unit
+                : ingredient.unit?.short || 'шт';
+            } else if (ingredient.ingredient?.unit?.short) {
+              unit = ingredient.ingredient.unit.short;
+            } else if (ingredient.ingredient?.unit) {
+              unit = typeof ingredient.ingredient.unit === 'string'
+                ? ingredient.ingredient.unit
+                : ingredient.ingredient.unit?.short || 'шт';
+            } else {
+              unit = 'шт';
+            }
+
+            if (ingredient.id) {
+              id = ingredient.id;
+            } else if (ingredient.ingredient?.id) {
+              id = ingredient.ingredient.id;
+            }
+
+            if (name && amount > 0) {
+              ingredients.push({ id, name, amount, unit });
+            }
+          });
+        }
+      });
+    }
+  });
+
+  return ingredients;
+});
+
+// Открытие модалки предпросмотра
+function openPreviewModal() {
+  if (props.days.length === 0) {
+    toast.add({
+      title: 'Нет дней',
+      description: 'Добавьте хотя бы один день в меню',
+      color: 'warning'
+    });
+    return;
+  }
+
+  if (allIngredients.value.length === 0) {
+    toast.add({
+      title: 'Нет ингредиентов',
+      description: 'В рецептах нет ингредиентов для добавления',
+      color: 'warning'
+    });
+    return;
+  }
+
+  collectedIngredients.value = allIngredients.value;
+  showPreviewModal.value = true;
+}
+
+// Создание списка покупок после подтверждения
+async function handleCreateShoppingList(ingredients: Array<{ id: string; name: string; amount: number; unit: string }>) {
+  isAddingToShoppingList.value = true;
+
+  try {
+    emit('addToShoppingList', ingredients);
+
+    toast.add({
+      title: 'Успешно!',
+      description: `${ingredients.length} ингредиент${getIngredientEnding(ingredients.length)} добавлен${getIngredientEndingVerb(ingredients.length)} в список покупок`,
+      color: 'success'
+    });
+  } catch (error) {
+    console.error('Failed to add to shopping list:', error);
+    toast.add({
+      title: 'Ошибка',
+      description: 'Не удалось добавить ингредиенты в список покупок',
+      color: 'error'
+    });
+  } finally {
+    isAddingToShoppingList.value = false;
+  }
+}
+
+// Вспомогательные функции
+function getIngredientEnding(count: number): string {
+  if (count % 10 === 1 && count % 100 !== 11) return '';
+  if (count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 10 || count % 100 >= 20)) return 'а';
+  return 'ов';
+}
+
+function getIngredientEndingVerb(count: number): string {
+  if (count % 10 === 1 && count % 100 !== 11) return 'о';
+  return 'ы';
+}
+
 // Обработчик добавления всех рецептов дня в список покупок
 function handleDayAddToShoppingList(dayId: string) {
-  // Находим все слоты дня
   const daySlots = props.slots.filter(slot => slot.dayId === dayId && slot.slotType === 'day');
-
-  // Собираем все ингредиенты из всех рецептов дня
   const ingredients: Array<{ id: string; name: string; amount: number; unit: string }> = [];
 
   daySlots.forEach((slot) => {
@@ -166,7 +324,6 @@ function handleDayAddToShoppingList(dayId: string) {
     return;
   }
 
-  // Эмитим событие с массивом ингредиентов
   emit('addToShoppingList', ingredients);
 }
 
@@ -198,7 +355,7 @@ function addNewDay() {
   flex: 1;
   width: 100%;
   overflow-x: auto;
-  min-height: 0; /* Важно для правильной работы flex */
+  min-height: 0;
 }
 
 .days-grid-wrapper {
@@ -210,13 +367,12 @@ function addNewDay() {
 .days-grid {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: 320px; /* Увеличил ширину колонки */
+  grid-auto-columns: 320px;
   gap: 1rem;
   height: 100%;
   padding-bottom: 8px;
 }
 
-/* Стили для горизонтального скролла */
 .days-view::-webkit-scrollbar {
   height: 8px;
 }
