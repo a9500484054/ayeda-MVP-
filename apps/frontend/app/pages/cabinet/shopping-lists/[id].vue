@@ -93,7 +93,7 @@
 
     <ShareListModal
       v-model:open="isShareModalOpen"
-      :list="store.currentList"
+      :list="selectedList"
       @generate="handleGenerateShareToken"
       @revoke="handleRevokeShareToken"
     />
@@ -133,7 +133,7 @@
 
 <script setup lang="ts">
 import { useShoppingListsStore } from '~/stores/shoppingListsStore';
-import type { ShoppingListItem, ShoppingCategory } from '~/shared/types/shopping.types';
+import type { ShoppingListItem, ShoppingCategory, ShoppingList } from '~/shared/types/shopping.types';
 import ShoppingListItems from '~/components/shopping/list/ShoppingListItems.vue';
 import AddItemBlock from '~/components/shopping/list/AddItemBlock.vue';
 import ShoppingListItemModal from '~/components/shopping/list/ShoppingListItemModal.vue';
@@ -149,6 +149,7 @@ const route = useRoute();
 const router = useRouter();
 const store = useShoppingListsStore();
 const { print } = useShoppingListPrint();
+const toast = useToast();
 
 const listId = computed(() => route.params.id as string);
 
@@ -163,6 +164,7 @@ const isShareModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
 const isAddItemModalOpen = ref(false);
 const editingItem = ref<ShoppingListItem | null>(null);
+const selectedList = ref<ShoppingList | null>(null);
 
 // Категории для выбора
 const categories = ref<ShoppingCategory[]>([]);
@@ -211,20 +213,107 @@ function handlePrint() {
   }
 }
 
-// ========== ДОБАВЬТЕ ЭТИ МЕТОДЫ ==========
+// ========== МЕТОДЫ ДЛЯ ШАРИНГА ==========
 function openShareModal() {
-  console.log('openShareModal called'); // Для отладки
+  console.log('openShareModal called');
+  selectedList.value = store.currentList ? { ...store.currentList } : null;
   isShareModalOpen.value = true;
+
+  // Если у списка нет токена - автоматически создаем ссылку
+  if (selectedList.value && !selectedList.value.shareToken) {
+    handleGenerateShareToken(selectedList.value.id);
+  }
 }
 
 async function handleGenerateShareToken(id: string) {
-  console.log('handleGenerateShareToken called for id:', id);
-  await store.generateShareToken(id);
+  try {
+    console.log('handleGenerateShareToken called for id:', id);
+    const token = await store.generateShareToken(id);
+    console.log('Generated token:', token);
+
+    // Обновляем selectedList
+    if (selectedList.value && selectedList.value.id === id) {
+      selectedList.value = {
+        ...selectedList.value,
+        shareToken: token
+      };
+    }
+
+    // Также обновляем store.currentList для синхронизации
+    if (store.currentList && store.currentList.id === id) {
+      store.currentList = {
+        ...store.currentList,
+        shareToken: token
+      };
+    }
+
+    // Обновляем список в store.lists для синхронизации
+    const listIndex = store.lists.findIndex(l => l.id === id);
+    if (listIndex !== -1) {
+      store.lists[listIndex] = {
+        ...store.lists[listIndex],
+        shareToken: token
+      };
+    }
+
+    toast.add({
+      title: 'Успех',
+      description: 'Ссылка для шаринга создана',
+      color: 'success',
+    });
+  } catch (error) {
+    console.error('Failed to generate share token:', error);
+    toast.add({
+      title: 'Ошибка',
+      description: 'Не удалось создать ссылку для шаринга',
+      color: 'error',
+    });
+  }
 }
 
 async function handleRevokeShareToken(id: string) {
-  console.log('handleRevokeShareToken called for id:', id);
-  await store.revokeShareToken(id);
+  try {
+    console.log('handleRevokeShareToken called for id:', id);
+    await store.revokeShareToken(id);
+
+    // Обновляем selectedList
+    if (selectedList.value && selectedList.value.id === id) {
+      selectedList.value = {
+        ...selectedList.value,
+        shareToken: null
+      };
+    }
+
+    // Также обновляем store.currentList для синхронизации
+    if (store.currentList && store.currentList.id === id) {
+      store.currentList = {
+        ...store.currentList,
+        shareToken: null
+      };
+    }
+
+    // Обновляем список в store.lists для синхронизации
+    const listIndex = store.lists.findIndex(l => l.id === id);
+    if (listIndex !== -1) {
+      store.lists[listIndex] = {
+        ...store.lists[listIndex],
+        shareToken: null
+      };
+    }
+
+    toast.add({
+      title: 'Успех',
+      description: 'Ссылка для шаринга отозвана',
+      color: 'success',
+    });
+  } catch (error) {
+    console.error('Failed to revoke share token:', error);
+    toast.add({
+      title: 'Ошибка',
+      description: 'Не удалось отозвать ссылку',
+      color: 'error',
+    });
+  }
 }
 // ========================================
 

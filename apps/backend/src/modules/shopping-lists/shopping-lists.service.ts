@@ -299,14 +299,14 @@ export class ShoppingListsService {
       .createQueryBuilder('list')
       .leftJoin('shopping_list_items', 'item', 'item.shopping_list_id = list.id')
       .select([
-        'list.id',
-        'list.title',
-        'list.share_token',
-        'list.sort_order',
-        'list.created_at',
-        'list.updated_at',
-        'COUNT(item.id) as total_items',
-        'SUM(CASE WHEN item.is_checked = true THEN 1 ELSE 0 END) as checked_items',
+        'list.id as id',                    // Добавлен алиас
+        'list.title as title',              // Добавлен алиас
+        'list.share_token as "shareToken"', // Добавлен алиас
+        'list.sort_order as "sortOrder"',   // Добавлен алиас
+        'list.created_at as "createdAt"',   // Добавлен алиас
+        'list.updated_at as "updatedAt"',   // Добавлен алиас
+        'COUNT(item.id) as "totalItems"',
+        'SUM(CASE WHEN item.is_checked = true THEN 1 ELSE 0 END) as "checkedItems"',
       ])
       .where('list.id = :id', { id })
       .andWhere('list.user_id = :userId', { userId })
@@ -325,18 +325,19 @@ export class ShoppingListsService {
       relations: ['items', 'items.category'],
     });
 
+    // Создаем объект списка с правильными алиасами
     const list = new ShoppingList();
-    list.id = result.list_id;
-    list.title = result.list_title;
-    list.shareToken = result.list_share_token;
-    list.sortOrder = parseInt(result.list_sort_order);
-    list.createdAt = result.list_created_at;
-    list.updatedAt = result.list_updated_at;
+    list.id = result.id;                    // Исправлено
+    list.title = result.title;              // Исправлено
+    list.shareToken = result.shareToken;    // Исправлено
+    list.sortOrder = parseInt(result.sortOrder);  // Исправлено
+    list.createdAt = result.createdAt;      // Исправлено
+    list.updatedAt = result.updatedAt;      // Исправлено
     list.items = listWithItems?.items || [];
 
     return this.toListResponseDto(list, {
-      totalItems: parseInt(result.total_items),
-      checkedItems: parseInt(result.checked_items),
+      totalItems: parseInt(result.totalItems) || 0,
+      checkedItems: parseInt(result.checkedItems) || 0,
     }, true);
   }
 
