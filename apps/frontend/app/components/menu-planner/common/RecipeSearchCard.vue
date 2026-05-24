@@ -13,7 +13,7 @@
     <div class="h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg bg-zinc-100">
       <img
         v-if="recipe.photo && recipe.photo.src"
-        :src="recipe.photo.src"
+        :src="recipeImage"
         :alt="recipe.title || 'Рецепт'"
         class="h-full w-full object-cover"
       />
@@ -72,6 +72,8 @@ const emit = defineEmits<{
   select: [recipe: RecipeResponse];
 }>();
 
+const config = useRuntimeConfig()
+
 function getDifficultyText(difficulty: string | undefined): string {
   if (difficulty === 'easy') return 'Легко';
   if (difficulty === 'medium') return 'Средне';
@@ -82,6 +84,13 @@ function getDifficultyText(difficulty: string | undefined): string {
 function handleClick() {
   emit('select', props.recipe!);
 }
+
+const recipeImage = computed(() => {
+  if (props.recipe.photo?.src) {
+    return config.public.apiUrl + props.recipe.photo.src
+  }
+  return '/images/placeholder-recipe.jpg'
+})
 </script>
 
 <style scoped>

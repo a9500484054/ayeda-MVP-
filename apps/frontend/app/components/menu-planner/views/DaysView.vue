@@ -21,15 +21,15 @@
         class="relative transition-all duration-200 hover:scale-[1.02]"
       >
         <UIcon name="i-lucide-shopping-cart" class="h-3.5 w-3.5" />
-        <span>В список покупок</span>
+        <span>Добавить меню в список покупок</span>
 
         <!-- Бейдж с количеством рецептов -->
-        <span
+        <!-- <span
           v-if="totalRecipesCount > 0 && !isAddingToShoppingList"
           class="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-green-500 text-[10px] font-medium text-white"
         >
           {{ totalRecipesCount > 9 ? '9+' : totalRecipesCount }}
-        </span>
+        </span> -->
       </Button>
     </div>
 
@@ -374,20 +374,25 @@ function addNewDay() {
 }
 
 .days-view::-webkit-scrollbar {
-  height: 8px;
+  height: 4px;
 }
 
 .days-view::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 4px;
+  background: transparent;
 }
 
 .days-view::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+  background: #cbd5e100;
+  border-radius: 1px;
 }
 
 .days-view::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #94a3b839;
+}
+
+/* Для Firefox */
+.days-view {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e118 transparent;
 }
 </style>

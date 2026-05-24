@@ -179,7 +179,7 @@
                     h-10
                     w-10
                     shrink-0
-                    items-center  
+                    items-center
                     justify-center
                     rounded-xl
                     bg-green-100
@@ -227,25 +227,25 @@
     </template>
 
     <template #footer>
-      <div class="flex justify-end gap-3">
-        <UButton
-          variant="soft"
+      <div class="flex justify-end gap-3 w-full">
+        <Button
           color="neutral"
+          variant="ghost"
+          size="md"
           @click="closeModal"
         >
           Отмена
-        </UButton>
+        </Button>
 
-        <UButton
+        <Button
           color="primary"
-          size="lg"
+          size="md"
           :disabled="!selectedRecipeIds.length"
           :loading="isAdding"
-          class="rounded-xl px-6"
           @click="addRecipes"
         >
           Добавить {{ selectedRecipeIds.length }} рецепт{{ selectedRecipeIds.length === 1 ? '' : 'а' }}
-        </UButton>
+        </Button>
       </div>
     </template>
   </UModal>
@@ -258,6 +258,7 @@ import type { RecipeResponse } from '~/composables/useRecipesApi';
 import { useMenuPlannerStore } from '~/stores/menuPlannerStore';
 
 import RecipeSearchCard from '../common/RecipeSearchCard.vue';
+import Button from '~/shared/ui/button/Button.vue';
 
 const MAX_RECIPES = 4;
 
@@ -407,6 +408,7 @@ function toggleRecipe(recipe: RecipeResponse) {
     selectedRecipeIds.value.push(recipe.id);
     isRecipesVisible.value = false;
   }
+  searchInput.value.inputRef.blur();
 }
 
 function removeRecipe(recipeId: string) {
@@ -454,12 +456,13 @@ function resetModal() {
   isRecipesVisible.value = false;
 }
 
-watch(() => props.open, async (open) => {
-  if (open) {
-    await nextTick();
-    searchInput.value?.inputRef?.focus?.();
-  }
-});
+// watch(() => props.open, async (open) => {
+//   if (open) {
+//     await nextTick();
+//     searchInput.value?.inputRef?.focus?.();
+//   }
+// });
+
 </script>
 
 <style scoped>

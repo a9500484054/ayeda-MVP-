@@ -2,9 +2,9 @@
   <div
     class="meal-slot min-h-[100px] rounded-xl border p-2 transition-all"
     :class="{
-      'border-zinc-200 bg-white': !isDragOver && !isEmpty,
-      'border-dashed border-zinc-300 bg-zinc-50': !isDragOver && isEmpty,
-      'border-green-500 bg-green-50 ring-2 ring-green-300': isDragOver,
+      'border-zinc-200 bg-white': !localDragOver && !isEmpty,
+      'border-dashed border-zinc-300 bg-zinc-50': !localDragOver && isEmpty,
+      'border-green-500 bg-green-50 ring-2 ring-green-300': localDragOver,
     }"
     @dragover.prevent="handleDragOver"
     @dragleave="handleDragLeave"
@@ -42,8 +42,8 @@
           :drag-index="index"
           @remove="emit('removeRecipe', item.id)"
           @edit-notes="(notes) => emit('editNotes', item.id, notes)"
-          @drag-start="() => {}"
-          @drag-end="() => {}"
+          @drag-start="handleChildDragStart"
+          @drag-end="handleChildDragEnd"
           @drag-over="handleItemDragOver"
           @drop="(event, idx) => handleItemDrop(event, idx)"
         />
@@ -74,7 +74,7 @@ const props = defineProps<{
   slotId?: string;
   items?: MenuSlotItem[];
   mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
-  isDragOver?: boolean; // Внешнее состояние от родителя
+  isDragOver?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -84,6 +84,7 @@ const emit = defineEmits<{
   moveRecipe: [itemId: string, sourceSlotId: string, targetSlotId: string];
   reorder: [slotId: string, items: { id: string; order: number }[]];
   requestCreateSlot: [dayId: string, mealType: string, recipeId: string, notes?: string];
+  dragOverState: [state: boolean];
 }>();
 
 const mealLabels: Record<string, string> = {
@@ -102,6 +103,14 @@ const sortedItems = computed(() => {
 
 const itemsLength = computed(() => props.items?.length || 0);
 const isEmpty = computed(() => itemsLength.value === 0);
+
+// Локальное состояние drag-over для анимации
+const localDragOver = ref(false);
+
+// Следим за внешним состоянием
+watch(() => props.isDragOver, (newValue) => {
+  localDragOver.value = newValue;
+});
 
 function getDragData(event: DragEvent) {
   if (!event.dataTransfer) return null;
@@ -162,7 +171,8 @@ function handleDragOver(event: DragEvent) {
   if (event.dataTransfer) {
     event.dataTransfer.dropEffect = 'move';
   }
-  // Не меняем состояние isDragOver, оно приходит от родителя
+  localDragOver.value = true;
+  emit('dragOverState', true);
 }
 
 function handleDragLeave(event: DragEvent) {
@@ -170,10 +180,14 @@ function handleDragLeave(event: DragEvent) {
   if (relatedTarget && (event.currentTarget as HTMLElement).contains(relatedTarget)) {
     return;
   }
-  // Не меняем состояние isDragOver, оно приходит от родителя
+  localDragOver.value = false;
+  emit('dragOverState', false);
 }
+
 function handleDrop(event: DragEvent) {
   event.preventDefault();
+  localDragOver.value = false;
+  emit('dragOverState', false);
 
   const dragData = getDragData(event);
   if (!dragData || !props.slotId) return;
@@ -188,6 +202,19 @@ function handleDrop(event: DragEvent) {
     });
     emit('moveRecipe', dragData.itemId, dragData.slotId, props.slotId);
   }
+}
+
+// Обработчики от дочернего компонента
+function handleChildDragStart() {
+  // Можно добавить логику при начале перетаскивания
+}
+
+function handleChildDragEnd() {
+  // Убеждаемся, что после перетаскивания фон сбрасывается
+  setTimeout(() => {
+    localDragOver.value = false;
+    emit('dragOverState', false);
+  }, 100);
 }
 </script>
 
@@ -205,10 +232,5 @@ function handleDrop(event: DragEvent) {
 .recipe-item.drag-over {
   transform: translateY(4px);
   border-top: 2px solid #22c55e;
-}
-
-.meal-slot.drag-over {
-  background-color: #f0fdf4;
-  border-color: #22c55e;
 }
 </style>

@@ -1,4 +1,5 @@
 ﻿<!-- components/menu-planner/common/DayColumn.vue -->
+<!-- components/menu-planner/common/DayColumn.vue -->
 <template>
   <div class="day-column flex h-full flex-col rounded-xl border border-zinc-200 bg-white shadow-sm">
     <!-- Заголовок дня -->
@@ -9,7 +10,15 @@
         </h3>
 
         <!-- Меню с действиями -->
-        <UDropdownMenu :items="menuItems" :ui="{ content: 'w-48' }" :side-offset="8"  :side="'bottom'"  :align="'end'">
+        <UDropdownMenu
+          :items="menuItems"
+          :ui="{ content: 'w-48' }"
+          :content="{
+            align: 'start',
+            side: 'bottom',
+            sideOffset: 8
+          }"
+        >
           <button
             class="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full transition-colors hover:bg-zinc-100 cursor-pointer"
             @click.stop
@@ -41,6 +50,7 @@
           @move-recipe="handleMoveRecipe"
           @reorder="handleReorder"
           @request-create-slot="handleCreateSlot"
+          @drag-over-state="(state) => handleDragOverState('breakfast', state)"
         />
       </div>
 
@@ -63,6 +73,7 @@
           @move-recipe="handleMoveRecipe"
           @reorder="handleReorder"
           @request-create-slot="handleCreateSlot"
+          @drag-over-state="(state) => handleDragOverState('lunch', state)"
         />
       </div>
 
@@ -85,6 +96,7 @@
           @move-recipe="handleMoveRecipe"
           @reorder="handleReorder"
           @request-create-slot="handleCreateSlot"
+          @drag-over-state="(state) => handleDragOverState('dinner', state)"
         />
       </div>
 
@@ -107,47 +119,137 @@
           @move-recipe="handleMoveRecipe"
           @reorder="handleReorder"
           @request-create-slot="handleCreateSlot"
+          @drag-over-state="(state) => handleDragOverState('snack', state)"
         />
       </div>
     </div>
 
     <!-- Модалка переименования -->
-    <UModal v-model:open="isRenameModalOpen" title="Переименовать день">
-      <template #body>
-        <div class="p-4">
-          <UInput v-model="newTitle" placeholder="Название дня" autofocus />
+    <UModal v-model:open="isRenameModalOpen">
+      <template #header>
+        <div class="flex items-center justify-between w-full">
+          <h3 class="text-lg font-semibold text-zinc-900">
+            Переименовать день
+          </h3>
+          <Button
+            icon="i-lucide-x"
+            color="neutral"
+            variant="ghost"
+            size="sm"
+            icon-only
+            class="-my-1 rounded-full hover:bg-zinc-100"
+            @click="isRenameModalOpen = false"
+          />
         </div>
       </template>
+
+      <template #body>
+        <div>
+          <UInput
+            v-model="newTitle"
+            placeholder="Название дня"
+            autofocus
+            class="w-full"
+            :ui="{
+              base: 'rounded-lg border-zinc-200 focus:border-green-500 focus:ring-green-500'
+            }"
+          />
+        </div>
+      </template>
+
       <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" @click="isRenameModalOpen = false">Отмена</UButton>
-          <UButton color="primary" @click="saveRename">Сохранить</UButton>
+        <div class="flex justify-end gap-2 w-full">
+          <Button
+            color="neutral"
+            variant="ghost"
+            size="md"
+            @click="isRenameModalOpen = false"
+          >
+            Отмена
+          </Button>
+          <Button
+            color="primary"
+            size="md"
+            :disabled="!newTitle.trim() || newTitle === day.title"
+            @click="saveRename"
+          >
+            Сохранить
+          </Button>
         </div>
       </template>
     </UModal>
 
     <!-- Модалка подтверждения удаления -->
-    <UModal v-model:open="isDeleteModalOpen" title="Удалить день?">
-      <template #body>
-        <div class="p-4">
-          <p class="text-sm text-zinc-600">
-            Вы уверены, что хотите удалить день "{{ day.title }}"? Все рецепты в этом дне также будут удалены.
-          </p>
+    <UModal v-model:open="isDeleteModalOpen">
+      <template #header>
+        <div class="flex items-center justify-between w-full">
+          <h3 class="text-lg font-semibold text-zinc-900">
+            Удалить день?
+          </h3>
+          <Button
+            icon="i-lucide-x"
+            color="neutral"
+            variant="ghost"
+            size="sm"
+            icon-only
+            class="-my-1 rounded-full hover:bg-zinc-100"
+            @click="isDeleteModalOpen = false"
+          />
         </div>
       </template>
+
+      <template #body>
+        <div class="p-4">
+          <div class="flex items-start gap-3">
+            <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-100">
+              <UIcon name="i-lucide-alert-triangle" class="h-5 w-5 text-red-600" />
+            </div>
+            <div class="flex-1">
+              <p class="text-sm text-zinc-600">
+                Вы уверены, что хотите удалить день "{{ day.title }}"? Все рецепты в этом дне также будут удалены.
+              </p>
+            </div>
+          </div>
+        </div>
+      </template>
+
       <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" @click="isDeleteModalOpen = false">Отмена</UButton>
-          <UButton color="red" @click="confirmDelete">Удалить</UButton>
+        <div class="flex justify-end gap-2 w-full">
+          <Button
+            color="neutral"
+            variant="ghost"
+            size="md"
+            @click="isDeleteModalOpen = false"
+          >
+            Отмена
+          </Button>
+          <Button
+            color="danger"
+            size="md"
+            icon="i-lucide-trash-2"
+            @click="confirmDelete"
+          >
+            Удалить
+          </Button>
         </div>
       </template>
     </UModal>
+
+    <!-- Модальное окно предпросмотра для дня -->
+    <ShoppingListPreviewModal
+      v-model:open="showDayPreviewModal"
+      :ingredients="dayIngredients"
+      @confirm="handleDayConfirm"
+    />
   </div>
 </template>
+
 
 <script setup lang="ts">
 import type { MenuDay, MenuSlot, MealType } from '~/composables/useMenuPlannerApi';
 import MealSlot from './MealSlot.vue';
+import ShoppingListPreviewModal from '../modals/ShoppingListPreviewModal.vue';
+import Button from '~/shared/ui/button/Button.vue';
 
 const props = defineProps<{
   day: MenuDay;
@@ -157,7 +259,7 @@ const props = defineProps<{
   snackSlot?: MenuSlot;
   isLoading?: boolean;
   canDelete?: boolean;
-  columnHeight?: number; // Добавляем пропс для высоты колонки
+  columnHeight?: number;
 }>();
 
 const emit = defineEmits<{
@@ -169,13 +271,17 @@ const emit = defineEmits<{
   renameDay: [dayId: string, newTitle: string];
   deleteDay: [dayId: string];
   createSlot: [dayId: string, mealType: MealType, recipeId: string, notes?: string];
-  addToShoppingList: [dayId: string]; // Новое событие для добавления в список покупок
+  addToShoppingList: [ingredients: Array<{ id: string; name: string; amount: number; unit: string }>];
 }>();
 
 const toast = useToast();
 const isRenameModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
 const newTitle = ref('');
+
+// Состояние для модалки предпросмотра дня
+const showDayPreviewModal = ref(false);
+const dayIngredients = ref<Array<{ id: string; name: string; amount: number; unit: string }>>([]);
 
 // Состояние drag-over для каждого типа приема пищи
 const dragOverStates = ref({
@@ -185,27 +291,99 @@ const dragOverStates = ref({
   snack: false,
 });
 
-// Высота колонки по умолчанию
-const defaultColumnHeight = 600;
+// Функция сбора ингредиентов из слотов
+function collectIngredientsFromSlots(slots: (MenuSlot | undefined)[]): Array<{ id: string; name: string; amount: number; unit: string }> {
+  const ingredients: Array<{ id: string; name: string; amount: number; unit: string }> = [];
+
+  slots.forEach((slot) => {
+    if (slot?.items && slot.items.length > 0) {
+      slot.items.forEach((item) => {
+        if (item.recipe && item.recipe.ingredients) {
+          item.recipe.ingredients.forEach((ingredient: any) => {
+            let amount = 0;
+            if (ingredient.amount) {
+              amount = typeof ingredient.amount === 'number'
+                ? ingredient.amount
+                : parseFloat(ingredient.amount) || 0;
+            } else if (ingredient.quantity) {
+              amount = typeof ingredient.quantity === 'number'
+                ? ingredient.quantity
+                : parseFloat(ingredient.quantity) || 0;
+            }
+
+            let name = '';
+            let unit = '';
+            let id = '';
+
+            if (ingredient.name) {
+              name = ingredient.name;
+            } else if (ingredient.ingredient?.name) {
+              name = ingredient.ingredient.name;
+            }
+
+            if (ingredient.unit) {
+              unit = typeof ingredient.unit === 'string'
+                ? ingredient.unit
+                : ingredient.unit?.short || 'шт';
+            } else if (ingredient.ingredient?.unit?.short) {
+              unit = ingredient.ingredient.unit.short;
+            } else if (ingredient.ingredient?.unit) {
+              unit = typeof ingredient.ingredient.unit === 'string'
+                ? ingredient.ingredient.unit
+                : ingredient.ingredient.unit?.short || 'шт';
+            } else {
+              unit = 'шт';
+            }
+
+            if (ingredient.id) {
+              id = ingredient.id;
+            } else if (ingredient.ingredient?.id) {
+              id = ingredient.ingredient.id;
+            }
+
+            if (name && amount > 0) {
+              ingredients.push({ id, name, amount, unit });
+            }
+          });
+        }
+      });
+    }
+  });
+
+  return ingredients;
+}
 
 // Меню с действиями
 const menuItems = computed(() => {
   const items: any[] = [];
+
+  // В список покупок - собираем ингредиенты и открываем модалку
+  items.push({
+    label: 'В список покупок',
+    icon: 'i-lucide-shopping-cart',
+    onSelect: () => {
+      const allSlots = [props.breakfastSlot, props.lunchSlot, props.dinnerSlot, props.snackSlot];
+      const ingredients = collectIngredientsFromSlots(allSlots);
+
+      if (ingredients.length === 0) {
+        toast.add({
+          title: 'Нет ингредиентов',
+          description: 'В этом дне нет ингредиентов для добавления',
+          color: 'warning',
+        });
+        return;
+      }
+
+      dayIngredients.value = ingredients;
+      showDayPreviewModal.value = true;
+    },
+  });
 
   // Редактировать
   items.push({
     label: 'Редактировать',
     icon: 'i-lucide-pencil',
     onSelect: () => openRenameModal(),
-  });
-
-  // В список покупок
-  items.push({
-    label: 'В список покупок',
-    icon: 'i-lucide-shopping-cart',
-    onSelect: () => {
-      emit('addToShoppingList', props.day.id);
-    },
   });
 
   // Разделитель
@@ -226,6 +404,12 @@ const menuItems = computed(() => {
 
   return [items];
 });
+
+// Обработчик подтверждения из модалки дня
+function handleDayConfirm(ingredients: Array<{ id: string; name: string; amount: number; unit: string }>) {
+  emit('addToShoppingList', ingredients);
+  showDayPreviewModal.value = false;
+}
 
 function handleSlotContainerDragOver(event: DragEvent) {
   event.preventDefault();
@@ -262,11 +446,9 @@ async function handleSlotContainerDrop(event: DragEvent, mealType: MealType) {
   const dragData = getDragData(event);
   if (!dragData?.itemId || !dragData?.slotId) return;
 
-  // Находим целевой слот по mealType
   const targetSlot = getSlotByMeal(mealType);
 
   if (targetSlot?.id) {
-    // Если слот существует - перемещаем рецепт
     console.log('Moving recipe to existing slot:', {
       itemId: dragData.itemId,
       sourceSlotId: dragData.slotId,
@@ -274,7 +456,6 @@ async function handleSlotContainerDrop(event: DragEvent, mealType: MealType) {
     });
     emit('moveRecipe', dragData.itemId, dragData.slotId, targetSlot.id);
   } else {
-    // Если слота нет - создаем новый с рецептом
     console.log('Creating new slot for recipe:', {
       dayId: props.day.id,
       mealType,
@@ -282,7 +463,6 @@ async function handleSlotContainerDrop(event: DragEvent, mealType: MealType) {
     });
     emit('createSlot', props.day.id, mealType, dragData.recipeId, dragData.notes);
 
-    // Удаляем из исходного слота после создания
     setTimeout(() => {
       emit('removeRecipe', dragData.itemId);
     }, 100);
@@ -347,6 +527,10 @@ function handleReorder(slotId: string, items: { id: string; order: number }[]) {
 function handleCreateSlot(dayId: string, mealType: MealType, recipeId: string, notes?: string) {
   emit('createSlot', dayId, mealType, recipeId, notes);
 }
+
+function handleDragOverState(mealType: MealType, state: boolean) {
+  dragOverStates.value[mealType] = state;
+}
 </script>
 
 <style scoped>
@@ -367,24 +551,23 @@ function handleCreateSlot(dayId: string, mealType: MealType, recipeId: string, n
 /* Стили для скролла */
 .overflow-y-auto {
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 #f1f5f9;
+  scrollbar-color: #e2e8f0 transparent;
 }
 
 .overflow-y-auto::-webkit-scrollbar {
-  width: 6px;
+  width: 2px;
 }
 
 .overflow-y-auto::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 3px;
+  background: transparent;
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
+  background: #e2e8f0;
+  border-radius: 20px;
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #cbd5e1;
 }
 </style>

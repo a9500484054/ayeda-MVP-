@@ -486,11 +486,11 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
         }
       }
 
-      toast.add({
-        title: 'Успех',
-        description: 'Рецепт удален',
-        color: 'success',
-      });
+      // toast.add({
+      //   title: 'Успех',
+      //   description: 'Рецепт удален',
+      //   color: 'success',
+      // });
     } catch (err: any) {
       toast.add({
         title: 'Ошибка',
