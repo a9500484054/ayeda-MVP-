@@ -1,3 +1,4 @@
+<!-- apps\frontend\app\pages\admin\users.vue -->
 <script setup lang="ts">
 import { h, resolveComponent } from 'vue'
 import type { TableColumn } from '@nuxt/ui'

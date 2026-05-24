@@ -20,6 +20,7 @@ export const adminNavigation = [
   { label: 'Дашборд', icon: 'i-lucide-layout-dashboard', to: '/admin' },
   { label: 'Пользователи', icon: 'i-lucide-users', to: '/admin/users' },
   { label: 'Рецепты', icon: 'i-lucide-utensils', to: '/admin/recipes' },
+  { label: 'Блог', icon: 'i-lucide-newspaper', to: '/admin/articles' },
   { label: 'Модерация',
     icon: 'i-lucide-shield-check',
     defaultOpen: true,
