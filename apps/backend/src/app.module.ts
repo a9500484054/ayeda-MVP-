@@ -17,6 +17,7 @@ import { UploadsModule } from './modules/uploads/uploads.module';
 import { MenuPlannerModule } from './modules/menu-planner/menu-planner.module';
 import { ShoppingCategoriesModule } from './modules/shopping-categories/shopping-categories.module';
 import { ShoppingListsModule } from './modules/shopping-lists/shopping-lists.module';
+import { ArticlesModule } from './modules/articles/articles.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { ShoppingListsModule } from './modules/shopping-lists/shopping-lists.mod
     MenuPlannerModule,
     ShoppingCategoriesModule,
     ShoppingListsModule,
+    ArticlesModule,
   ],
   controllers: [],
   providers: [],
