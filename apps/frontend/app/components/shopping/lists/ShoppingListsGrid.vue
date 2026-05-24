@@ -127,14 +127,14 @@ useSortable(containerRef, localLists, {
  * Контейнер
  */
 .sortable-ghost {
-  opacity: 0 !important;
+  opacity: 1 !important;
 }
 
 /**
  * Карточка которую взяли
  */
 .sortable-chosen {
-  opacity: 0 !important;
+  opacity: 1 !important;
 }
 
 /**
