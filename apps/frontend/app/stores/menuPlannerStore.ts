@@ -393,11 +393,11 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
       slot.items = [item];
       slots.value.push(slot);
 
-      toast.add({
-        title: 'Успех',
-        description: 'Рецепт добавлен',
-        color: 'success',
-      });
+      // toast.add({
+      //   title: 'Успех',
+      //   description: 'Рецепт добавлен',
+      //   color: 'success',
+      // });
 
       return { slot, item };
     } catch (error: any) {
@@ -440,11 +440,11 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
         targetSlot.items.sort((a, b) => a.order - b.order);
       }
 
-      toast.add({
-        title: 'Успех',
-        description: 'Рецепт добавлен',
-        color: 'success',
-      });
+      // toast.add({
+      //   title: 'Успех',
+      //   description: 'Рецепт добавлен',
+      //   color: 'success',
+      // });
 
       return item;
     } catch (error: any) {
@@ -466,6 +466,7 @@ export const useMenuPlannerStore = defineStore('menuPlanner', () => {
       throw error;
     }
   }
+
 
   async function removeRecipeFromSlot(itemId: string) {
     isLoading.value = true;

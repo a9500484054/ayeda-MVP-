@@ -467,6 +467,62 @@ export const useShoppingListsStore = defineStore('shoppingLists', () => {
     }
   }
 
+// В shoppingListsStore.ts
+  async function createMenuShoppingList(title: string, items: Array<{ name: string; quantity: number; unit: string }>): Promise<ShoppingList | null> {
+    console.log('items', items)
+    if (!items.length) {
+      toast.add({
+        title: 'Нет ингредиентов',
+        description: 'В меню нет ингредиентов для добавления в список покупок',
+        color: 'warning',
+      });
+      return null;
+    }
+
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+      // Получаем максимальный sortOrder для существующих списков
+      const maxSortOrder = Math.max(...lists.value.map(l => l.sortOrder || 0), 0);
+      const newSortOrder = maxSortOrder + 1000;
+
+      // Создаем список с items за один запрос
+      const newList = await api<ShoppingList>('/shopping-lists', {
+        method: 'POST',
+        body: {
+          title,
+          sortOrder: newSortOrder,
+          items: items,
+        },
+      });
+
+      // Добавляем список в массив lists
+      lists.value.unshift(newList);
+
+      toast.add({
+        title: 'Успех',
+        description: `Список "${title}" создан с ${items.length} ингредиентами`,
+        color: 'success',
+      });
+
+      return newList;
+    } catch (err: any) {
+      error.value = err.message;
+      console.error('Failed to create shopping list from menu:', err);
+      toast.add({
+        title: 'Ошибка',
+        description: err.message || 'Не удалось создать список покупок',
+        color: 'error',
+      });
+      return null;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+
+
   return {
     // State
     lists,
@@ -491,6 +547,7 @@ export const useShoppingListsStore = defineStore('shoppingLists', () => {
     generateShareToken,
     revokeShareToken,
     updateListSortOrder,
+    createMenuShoppingList,
 
     // Items Actions
     addItem,

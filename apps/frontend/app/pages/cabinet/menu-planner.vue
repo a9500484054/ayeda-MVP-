@@ -132,12 +132,13 @@ import RecipeSearchModal from '~/components/menu-planner/modals/RecipeSearchModa
 import Button from '~/shared/ui/button/Button.vue';
 import MenuListModal from '~/components/menu-planner/modals/MenuListModal.vue';
 import DeleteConfirmationModal from '~/components/menu-planner/modals/DeleteConfirmationModal.vue';
+import { useShoppingListsStore } from '~/stores/shoppingListsStore';
 
 definePageMeta({ layout: 'cabinet' });
 
 const store = useMenuPlannerStore();
+const storeShoppingList = useShoppingListsStore();
 const toast = useToast()
-
 // Modal states
 const isCreateModalOpen = ref(false);
 const isEditModalOpen = ref(false);
@@ -198,44 +199,132 @@ async function handleListUpdated() {
   await store.fetchMenuLists();
 }
 
-// Обработчик добавления ингредиентов в список покупок
 async function handleAddToShoppingList(ingredients: Array<{ id: string; name: string; amount: number; unit: string }>) {
-  if (!ingredients.length) {
-    toast.add({
-      title: 'Нет ингредиентов',
-      description: 'В меню нет ингредиентов для добавления',
-      color: 'warning'
-    });
-    return;
-  }
-
   try {
-    // Выводим в консоль для проверки
-    console.log('=== Ингредиенты для добавления в список покупок ===');
-    console.log(`Всего ингредиентов: ${ingredients.length}`);
-    console.log(`Объект ингредиентов:`, ingredients);
+    if (!ingredients.length) {
+      toast.add({
+        title: 'Нет ингредиентов',
+        description: 'В меню нет ингредиентов для добавления',
+        color: 'warning'
+      });
+      return;
+    }
 
-    ingredients.forEach((ingredient, index) => {
-      console.log(`${index + 1}. ${ingredient.name}: ${ingredient.amount} ${ingredient.unit}`);
+    // Группируем одинаковые ингредиенты
+    const groupedIngredients = new Map<string, { name: string; quantity: number; unit: string }>();
+
+    ingredients.forEach(ingredient => {
+      const key = `${ingredient.name}-${ingredient.unit}`;
+      if (groupedIngredients.has(key)) {
+        const existing = groupedIngredients.get(key)!;
+        existing.quantity += ingredient.amount;
+      } else {
+        groupedIngredients.set(key, {
+          name: ingredient.name,
+          quantity: ingredient.amount,
+          unit: ingredient.unit
+        });
+      }
     });
 
-    // Здесь будет логика добавления в список покупок через API
-    toast.add({
-      title: 'Добавлено в список покупок',
-      description: `${ingredients.length} ингредиент${getIngredientEnding(ingredients.length)} добавлен${getIngredientEndingVerb(ingredients.length)} в список`,
-      color: 'success'
-    });
-  } catch (error) {
+    const items = Array.from(groupedIngredients.values());
+    console.log('items', items);
+    // Пытаемся найти активный список покупок
+        // Создаем новый список
+      const today = new Date();
+      const title = `Меню от ${today.toLocaleDateString('ru-RU')}`;
+
+      const response = await storeShoppingList.createMenuShoppingList(title, items);
+
+      toast.add({
+        title: 'Список покупок создан',
+        description: `${items.length} ингредиент${getIngredientEnding(items.length)} добавлен${getIngredientEndingVerb(items.length)} в список "${title}"`,
+        color: 'success'
+      });
+    console.log('=== Успешно добавлено в список покупок ===', response);
+    return response;
+
+  } catch (error: any) {
     console.error('Failed to add to shopping list:', error);
+
     toast.add({
       title: 'Ошибка',
-      description: 'Не удалось добавить ингредиенты в список покупок',
+      description: error.data?.message || 'Не удалось добавить ингредиенты в список покупок',
       color: 'error'
     });
   }
 }
+// // Обработчик добавления ингредиентов в список покупок
+// async function handleAddToShoppingList(ingredients: Array<{ id: string; name: string; amount: number; unit: string }>) {
+//   if (!ingredients.length) {
+//     toast.add({
+//       title: 'Нет ингредиентов',
+//       description: 'В меню нет ингредиентов для добавления',
+//       color: 'warning'
+//     });
+//     return;
+//   }
 
-// Вспомогательные функции для правильных окончаний
+//   // Группируем одинаковые ингредиенты
+//   const groupedIngredients = new Map<string, { name: string; quantity: number; unit: string }>();
+
+//   ingredients.forEach(ingredient => {
+//     const key = `${ingredient.name}-${ingredient.unit}`;
+//     if (groupedIngredients.has(key)) {
+//       const existing = groupedIngredients.get(key)!;
+//       existing.quantity += ingredient.amount;
+//     } else {
+//       groupedIngredients.set(key, {
+//         name: ingredient.name,
+//         quantity: ingredient.amount,
+//         unit: ingredient.unit
+//       });
+//     }
+//   });
+
+//   const items = Array.from(groupedIngredients.values());
+
+//   // Формируем название списка с текущей датой
+//   const today = new Date();
+//   const title = `Меню от ${today.toLocaleDateString('ru-RU')}`;
+
+//   try {
+//     // Вызываем API для создания списка покупок
+//     const response = await $fetch('/api/v1/shopping-lists', {
+//       method: 'POST',
+//       body: {
+//         title: title,
+//         items: items
+//       }
+//     });
+
+//     console.log('=== Список покупок создан ===');
+//     console.log(`Название: ${title}`);
+//     console.log(`Количество ингредиентов: ${items.length}`);
+//     console.log(`ID списка: ${response.id}`);
+
+//     toast.add({
+//       title: 'Список покупок создан',
+//       description: `${items.length} ингредиент${getIngredientEnding(items.length)} добавлен${getIngredientEndingVerb(items.length)} в список "${title}"`,
+//       color: 'success'
+//     });
+
+//     // Опционально: перенаправить на страницу списка покупок
+//     // await navigateTo(`/cabinet/shopping-lists/${response.id}`);
+
+//     return response;
+//   } catch (error: any) {
+//     console.error('Failed to create shopping list:', error);
+
+//     toast.add({
+//       title: 'Ошибка',
+//       description: error.data?.message || 'Не удалось создать список покупок',
+//       color: 'error'
+//     });
+//   }
+// }
+
+// // Вспомогательные функции для правильных окончаний
 function getIngredientEnding(count: number): string {
   if (count % 10 === 1 && count % 100 !== 11) return '';
   if (count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 10 || count % 100 >= 20)) return 'а';
@@ -456,11 +545,11 @@ async function handleReorder(slotId: string, items: { id: string; order: number 
   console.log('Reorder items:', { slotId, items });
   try {
     await store.reorderSlotItems(slotId, items);
-    toast.add({
-      title: 'Успех',
-      description: 'Порядок рецептов изменен',
-      color: 'success',
-    });
+    // toast.add({
+    //   title: 'Успех',
+    //   description: 'Порядок рецептов изменен',
+    //   color: 'success',
+    // });
   } catch (error) {
     console.error('Failed to reorder:', error);
   }
@@ -498,11 +587,11 @@ async function handleCreateSlot(dayId: string, mealType: MealType, recipeId: str
       });
     }
 
-    toast.add({
-      title: 'Успех',
-      description: 'Рецепт добавлен',
-      color: 'success',
-    });
+    // toast.add({
+    //   title: 'Успех',
+    //   description: 'Рецепт добавлен',
+    //   color: 'success',
+    // });
   } catch (error: any) {
     console.error('Failed to create slot with recipe:', error);
 

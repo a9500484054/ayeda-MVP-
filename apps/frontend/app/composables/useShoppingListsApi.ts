@@ -7,6 +7,7 @@ import type {
   UpdateShoppingItemDto,
   ShareTokenResponse,
 } from '~/shared/types/shopping.types';
+import { useApi } from './useApi';
 
 export function useShoppingListsApi() {
   const api = useApi();
