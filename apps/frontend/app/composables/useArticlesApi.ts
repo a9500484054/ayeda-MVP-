@@ -71,5 +71,12 @@ export function useArticlesApi() {
         method: 'GET',
       });
     },
+
+    // Получить статью по slug (публичная страница)
+    async getArticleBySlug(slug: string): Promise<Article> {
+      return api(`/articles/${slug}`, {
+        method: 'GET',
+      });
+    },
   };
 }

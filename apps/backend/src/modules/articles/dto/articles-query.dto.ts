@@ -27,7 +27,7 @@ export class ArticlesQueryDto {
   @IsEnum(['draft', 'published'])
   status?: string;
 
-  @ApiPropertyOptional({ description: 'Категория' })
+  @ApiPropertyOptional({ description: 'Категория (одна)' })
   @IsOptional()
   @IsString()
   category?: string;

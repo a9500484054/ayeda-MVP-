@@ -83,7 +83,7 @@
     <!-- Empty -->
     <div
       v-else-if="recipes.length === 0"
-      class="flex flex-col items-center justify-center rounded-3xl border border-dashed border-zinc-200 bg-white py-24"
+      class="flex flex-col items-center justify-center rounded-3xl border border-dashed border-zinc-200 bg-white py-24 min-h-[70vh]"
     >
       <UIcon
         name="i-lucide-cooking-pot"
