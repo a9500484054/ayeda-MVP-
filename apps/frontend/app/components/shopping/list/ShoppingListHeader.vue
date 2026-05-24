@@ -95,7 +95,7 @@
             variant="ghost"
             size="md"
             class="!rounded-xl !px-3 !py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-darkMode-100 dark:text-darkMode-700 cursor-pointer dark:hover:bg-darkMode-200"
-            @click="emit('share')"
+            @click="handleShareClick"
           >
             <UIcon name="i-lucide-share-2" class="h-4 w-4" />
           </UButton>
@@ -206,6 +206,11 @@ function handleFilterChange(type: 'all' | 'checked' | 'unchecked') {
 
 function handleSortChange(by: 'name' | 'category' | 'status' | 'order') {
   emit('sortChange', by);
+}
+
+function handleShareClick() {
+  console.log('Share button clicked'); // Проверяем, вызывается ли клик
+  emit('share');
 }
 
 watch(() => props.title, (newTitle) => {

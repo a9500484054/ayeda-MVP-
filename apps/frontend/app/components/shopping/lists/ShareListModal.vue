@@ -20,6 +20,8 @@
 
     <!-- Body -->
     <template #body>
+
+      {{ list }}
       <div class="space-y-4">
         <div class="space-y-2">
           <label class="text-sm font-medium text-gray-700 dark:text-gray-300">

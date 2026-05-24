@@ -1,18 +1,10 @@
-<!-- apps\frontend\app\pages\cabinet\shopping-lists\[id].vue -->
+<!-- apps/frontend/app/pages/cabinet/shopping-lists/[id].vue -->
 <template>
   <div class="mx-auto w-full max-w-5xl px-4 py-6 md:px-6">
-    <!-- Loading -->
-    <!-- <div  class="flex flex-col items-center justify-center py-20">
-      <div class="h-10 w-10 animate-spin rounded-full border-2 border-gray-200 border-t-gray-900" />
-      <p class="mt-4 text-sm text-gray-500">Загрузка...</p>
-    </div> -->
-
     <div>
       <!-- Desktop: 2 колонки -->
       <div class="hidden lg:grid lg:grid-cols-20 lg:gap-6">
-        <!-- Левая колонка: список покупок (65% = 13/20) -->
         <UCard class="lg:col-span-13">
-          <!-- Хедер списка (sticky) - без UCard, просто sticky элемент -->
           <div class="bg-white pb-4 dark:bg-darkMode-900">
             <ShoppingListHeader
               :title="store.currentList?.title"
@@ -33,7 +25,6 @@
             />
           </div>
 
-          <!-- Список позиций -->
           <ShoppingListItems
             :items="store.currentItems"
             :filter-type="filterType"
@@ -45,7 +36,6 @@
           />
         </UCard>
 
-        <!-- Правая колонка: добавление продуктов (35% = 7/20) -->
         <div class="lg:col-span-7">
           <div class="sticky top-6">
             <UCard class="add-item-block">
@@ -60,7 +50,7 @@
         </div>
       </div>
 
-      <!-- Mobile/Tablet: одна колонка + плавающая кнопка -->
+      <!-- Mobile/Tablet -->
       <div class="lg:hidden">
         <ShoppingListHeader
           :title="store.currentList?.title"
@@ -117,9 +107,6 @@
 
     <!-- Модалка для добавления продуктов (Mobile/Tablet) -->
     <UModal v-model:open="isAddItemModalOpen">
-      <!-- <template #title>
-        Добавить продукты
-      </template> -->
       <template #body>
         <AddItemBlock
           :popular-items="popularItems"
@@ -147,7 +134,6 @@
 <script setup lang="ts">
 import { useShoppingListsStore } from '~/stores/shoppingListsStore';
 import type { ShoppingListItem, ShoppingCategory } from '~/shared/types/shopping.types';
-import ShoppingListHeader from '~/components/shopping/list/ShoppingListHeader.vue';
 import ShoppingListItems from '~/components/shopping/list/ShoppingListItems.vue';
 import AddItemBlock from '~/components/shopping/list/AddItemBlock.vue';
 import ShoppingListItemModal from '~/components/shopping/list/ShoppingListItemModal.vue';
@@ -155,6 +141,7 @@ import ShareListModal from '~/components/shopping/lists/ShareListModal.vue';
 import DeleteConfirmationModal from '~/components/menu-planner/modals/DeleteConfirmationModal.vue';
 import { useShoppingListPrint } from '~/composables/useShoppingListPrint';
 import { useApi } from "~/composables/useApi";
+import ShoppingListHeader from '~/components/shopping/list/ShoppingListHeader.vue';
 
 definePageMeta({ layout: 'cabinet' });
 
@@ -224,13 +211,22 @@ function handlePrint() {
   }
 }
 
+// ========== ДОБАВЬТЕ ЭТИ МЕТОДЫ ==========
+function openShareModal() {
+  console.log('openShareModal called'); // Для отладки
+  isShareModalOpen.value = true;
+}
+
 async function handleGenerateShareToken(id: string) {
+  console.log('handleGenerateShareToken called for id:', id);
   await store.generateShareToken(id);
 }
 
 async function handleRevokeShareToken(id: string) {
+  console.log('handleRevokeShareToken called for id:', id);
   await store.revokeShareToken(id);
 }
+// ========================================
 
 function openDeleteModal() {
   isDeleteModalOpen.value = true;
@@ -294,7 +290,7 @@ async function handleAddPopular(item: { name: string; categoryId?: string; unit?
   });
 }
 
-// Mobile добавление (закрываем модалку после добавления)
+// Mobile добавление
 async function handleQuickAddMobile(name: string) {
   await store.addItem(listId.value, { name, quantity: 1, unit: 'шт' });
   isAddItemModalOpen.value = false;
@@ -310,10 +306,8 @@ async function handleAddPopularMobile(item: { name: string; categoryId?: string;
   isAddItemModalOpen.value = false;
 }
 
-// Функция для скролла вниз
 function scrollToBottom() {
   nextTick(() => {
-    // Находим контейнер со списком продуктов
     const container = document.querySelector('.shopping-list-container');
     if (container) {
       container.scrollTo({
@@ -321,7 +315,6 @@ function scrollToBottom() {
         behavior: 'smooth'
       });
     } else {
-      // Или скроллим всю страницу
       window.scrollTo({
         top: document.documentElement.scrollHeight,
         behavior: 'smooth'
@@ -332,7 +325,6 @@ function scrollToBottom() {
 </script>
 
 <style scoped>
-/* Анимация для плавающей кнопки */
 .fixed {
   animation: fade-in-up 0.3s ease-out;
 }
