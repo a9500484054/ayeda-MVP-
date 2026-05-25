@@ -1,79 +1,125 @@
-import type { Meta, StoryObj } from "@storybook/vue3";
-import { Button } from "@ayeda/ui-kit";
+import type { Meta, StoryObj } from '@storybook/vue3'
+import Button from '../../frontend/app/shared/ui/button/Button.vue'
 
-const meta = {
-  title: "UI/Button",
+const meta: Meta<typeof Button> = {
+  title: 'UI/Button',
   component: Button,
-  tags: ["autodocs"],
-  argTypes: {
-    variant: {
-      control: "select",
-      options: ["primary", "secondary", "outline", "ghost"],
-    },
-    size: {
-      control: "select",
-      options: ["sm", "md", "lg"],
-    },
-    disabled: {
-      control: "boolean",
-    },
-  },
-  args: {
-    variant: "primary",
-    size: "md",
-    disabled: false,
-    default: "Button",
-  },
-} satisfies Meta<typeof Button>;
+  tags: ['autodocs'],
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+  argTypes: {
+    color: {
+      control: 'select',
+      options: [
+        'primary',
+        'secondary',
+        'danger',
+        'success',
+        'warning',
+        'info',
+        'neutral',
+        'white',
+      ],
+    },
+
+    size: {
+      control: 'select',
+      options: ['xs', 'sm', 'md', 'lg'],
+    },
+
+    variant: {
+      control: 'select',
+      options: ['solid', 'outline', 'ghost'],
+    },
+
+    iconPosition: {
+      control: 'select',
+      options: ['left', 'right'],
+    },
+
+    text: {
+      control: 'text',
+    },
+
+    icon: {
+      control: 'text',
+    },
+
+    iconOnly: {
+      control: 'boolean',
+    },
+
+    block: {
+      control: 'boolean',
+    },
+
+    loading: {
+      control: 'boolean',
+    },
+
+    disabled: {
+      control: 'boolean',
+    },
+  },
+}
+
+export default meta
+
+type Story = StoryObj<typeof Button>
 
 export const Primary: Story = {
   args: {
-    variant: "primary",
-    default: "Primary Button",
+    text: 'Primary Button',
+    color: 'primary',
+    size: 'md',
+    variant: 'solid',
   },
-};
+}
 
-export const Secondary: Story = {
+export const WithIcon: Story = {
   args: {
-    variant: "secondary",
-    default: "Secondary Button",
+    text: 'With Star Icon',
+    icon: 'lucide:star',
+    iconPosition: 'left',
   },
-};
+}
 
-export const Outline: Story = {
+export const IconOnly: Story = {
   args: {
-    variant: "outline",
-    default: "Outline Button",
+    icon: 'lucide:settings',
+    iconOnly: true,
+    text: '',
   },
-};
+}
 
-export const Ghost: Story = {
+export const Loading: Story = {
   args: {
-    variant: "ghost",
-    default: "Ghost Button",
+    text: 'Loading',
+    loading: true,
   },
-};
-
-export const Small: Story = {
-  args: {
-    size: "sm",
-    default: "Small asdsasafdas",
-  },
-};
-
-export const Large: Story = {
-  args: {
-    size: "lg",
-    default: "Large Button",
-  },
-};
+}
 
 export const Disabled: Story = {
   args: {
+    text: 'Disabled',
     disabled: true,
-    default: "Disabled Button",
   },
-};
+}
+
+export const AllVariants: Story = {
+  render: () => ({
+    components: { Button },
+
+    template: `
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+        <Button color="primary" text="Primary" icon="lucide:star" />
+        <Button color="secondary" text="Secondary" icon="lucide:heart" />
+        <Button color="danger" text="Danger" icon="lucide:trash-2" />
+        <Button color="success" text="Success" icon="lucide:check" />
+        <Button color="warning" text="Warning" icon="lucide:triangle-alert" />
+        <Button color="info" text="Info" icon="lucide:info" />
+        <Button color="neutral" text="Neutral" icon="lucide:menu" />
+        <Button color="white" text="White" icon="lucide:user" />
+      </div>
+    `,
+  }),
+}

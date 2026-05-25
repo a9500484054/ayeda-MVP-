@@ -1,15 +1,19 @@
-import type { Preview } from "@storybook/vue3";
+import { setup } from '@storybook/vue3'
+import { Icon } from '@iconify/vue'
 
-const preview: Preview = {
-  parameters: {
-    actions: { argTypesRegex: "^on[A-Z].*" },
-    controls: {
-      matchers: {
-        color: /(background|color)$/i,
-        date: /Date$/,
-      },
+setup((app) => {
+  app.component('UIcon', Icon)
+})
+
+export const parameters = {
+  actions: {
+    argTypesRegex: '^on[A-Z].*',
+  },
+
+  controls: {
+    matchers: {
+      color: /(background|color)$/i,
+      date: /Date$/,
     },
   },
-};
-
-export default preview;
+}

@@ -1,3 +1,4 @@
+<!-- apps\frontend\app\components\my-recipe\AutoCompleteTags.vue -->
 <template>
   <div class="relative">
     <!-- Input -->

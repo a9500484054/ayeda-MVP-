@@ -9,9 +9,12 @@
   },
   "dependencies": {
     "@ayeda/ui-kit": "workspace:*",
+    "@iconify/vue": "^5.0.1",
     "vue": "^3.4.0"
   },
   "devDependencies": {
+    "@heroicons/vue": "^2.2.0",
+    "@iconify-json/lucide": "^1.2.108",
     "@storybook/addon-essentials": "^8.6.17",
     "@storybook/addon-interactions": "^8.6.17",
     "@storybook/addon-links": "^8.6.17",
@@ -19,8 +22,9 @@
     "@storybook/test": "^8.6.17",
     "@storybook/vue3": "^8.6.17",
     "@storybook/vue3-vite": "^8.6.17",
-    "@vitejs/plugin-vue": "^5.0.0",
+    "@vitejs/plugin-vue": "^5.2.4",
     "storybook": "^8.6.17",
+    "unplugin-icons": "^23.0.1",
     "vite": "^5.0.0"
   }
 }

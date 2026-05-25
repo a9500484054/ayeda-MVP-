@@ -1,3 +1,4 @@
+<!-- apps\frontend\app\components\my-recipe\RecipeCard.vue -->
 <template>
   <UFormField required>
     <div class="space-y-3">

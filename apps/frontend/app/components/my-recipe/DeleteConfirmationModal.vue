@@ -1,3 +1,4 @@
+<!-- apps\frontend\app\components\my-recipe\DeleteConfirmationModal.vue -->
 <template>
   <UModal
     :open="open"
