@@ -1,3 +1,4 @@
+<!-- apps\frontend\app\components\my-recipe\RecipeCard.vue -->
 <template>
   <article
     :class="[
@@ -41,7 +42,6 @@
           color="info"
           size="sm"
           icon="i-lucide-edit-2"
-          icon-only
         />
 
         <Button
@@ -50,7 +50,6 @@
           color="danger"
           size="sm"
           icon="i-lucide-trash-2"
-          icon-only
         />
       </div>
 
@@ -63,7 +62,7 @@
           size="sm"
           icon="i-lucide-star-off"
         >
-          <span class="ml-1 text-xs">Убрать</span>
+          <span class="ml-1 text-xs">Убрать из избранного</span>
         </Button>
       </div>
     </div>
@@ -112,7 +111,7 @@
       </div>
 
       <div class="mt-4 flex items-center justify-between">
-        <!-- Categories -->
+        <!-- Categories - теперь слева -->
         <div class="flex flex-wrap gap-1">
           <span
             v-for="cat in recipe.categories?.slice(0, 2)"
@@ -124,7 +123,7 @@
           </span>
         </div>
 
-        <!-- Likes & Comments -->
+        <!-- Likes & Comments - теперь справа -->
         <div class="flex items-center gap-4 text-sm" :class="isListView ? 'text-zinc-500' : 'text-white/75'">
           <div class="flex items-center gap-1">
             <UIcon name="i-lucide-heart" class="h-4 w-4" />
@@ -144,14 +143,16 @@
       >
         <span class="text-zinc-500">{{ formatDate(recipe.createdAt) }}</span>
 
+        <!-- Кнопки с ховером для list view -->
         <div class="relative">
+          <!-- Кнопки появляются при ховере на контейнер -->
           <div
             v-if="showModerationButton && (recipe.status === 'private' || recipe.status === 'rejected')"
             class="flex gap-2"
             :class="isListView ? 'opacity-0 group-hover:opacity-100 transition-all duration-300' : ''"
           >
             <Button v-if="recipe.status === 'private'" color="success" size="xs" @click.stop="emitSubmitModeration">
-              <span>На модерацию</span>
+              <span>Отправить на модерацию</span>
             </Button>
 
             <template v-if="recipe.status === 'rejected'">
@@ -160,29 +161,31 @@
                 color="success"
                 size="xs"
               >
-                На модерацию
+                Отправить на модерацию
               </Button>
               <Button
                 @click.stop="emitMakePrivate"
                 color="warning"
                 size="xs"
               >
-                Приватный
+                Сделать приватным
               </Button>
             </template>
           </div>
+          <!-- Заглушка чтобы не прыгал контент -->
           <div v-else class="h-9"></div>
         </div>
       </div>
 
-      <!-- Кнопки для grid view -->
+      <!-- Кнопки для grid view - с ховером (только для "Мои рецепты") -->
       <div
         v-if="!isListView && isMyRecipesTab && showModerationButton && (recipe.status === 'private' || recipe.status === 'rejected')"
         class="relative"
       >
+        <!-- Кнопки появляются при ховере на карточку -->
         <div class="absolute bottom-0 left-0 right-0 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
           <Button v-if="recipe.status === 'private'" color="success" size="xs" @click.stop="emitSubmitModeration" block>
-            <span>На модерацию</span>
+            <span>Отправить на модерацию</span>
           </Button>
 
           <template v-if="recipe.status === 'rejected'">
@@ -200,7 +203,7 @@
               block
               size="xs"
             >
-              Приватный
+              Сделать приватным
             </Button>
           </template>
         </div>
@@ -211,9 +214,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { RecipeResponse } from '~/composables/useRecipesApi';
+import type { RecipeResponse } from '~/composables/useRecipesApi'
 import Button from '~/shared/ui/button/Button.vue';
-import { formatDate, getRelativeDate } from '~/shared/utils/dates'
 
 const props = defineProps<{
   recipe: RecipeResponse
@@ -230,10 +232,13 @@ const emit = defineEmits<{
   'remove-from-favorites': [recipe: RecipeResponse]
 }>()
 
-const isListView = computed(() => props.viewMode === 'list')
+const isListView = computed(() => {
+  const mode = props.viewMode
+  return mode === 'list'
+})
+
 const isMyRecipesTab = computed(() => props.activeTab === 'my')
 const isFavoritesTab = computed(() => props.activeTab === 'favorites')
-const showModerationButton = computed(() => props.activeTab === 'my')
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
@@ -266,14 +271,27 @@ const statusLabel = computed(() => {
   return map[props.recipe.status] || props.recipe.status
 })
 
+const showModerationButton = computed(() => props.activeTab === 'my')
+
+const formatDate = (date: string) => {
+  if (!date) return ''
+  const d = new Date(date)
+  const diff = Math.floor((Date.now() - d.getTime()) / (86400000))
+
+  if (diff === 0) return 'Сегодня'
+  if (diff === 1) return 'Вчера'
+  if (diff < 7) return `${diff} дн назад`
+  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
+}
+
+const handleImageError = (e: Event) => {
+  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop'
+}
+
 const emitClick = () => emit('click', props.recipe)
 const emitEdit = () => emit('edit', props.recipe)
 const emitDelete = () => emit('delete', props.recipe)
 const emitSubmitModeration = () => emit('submit-moderation', props.recipe)
 const emitMakePrivate = () => emit('make-private', props.recipe)
 const emitRemoveFromFavorites = () => emit('remove-from-favorites', props.recipe)
-
-const handleImageError = (e: Event) => {
-  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop'
-}
 </script>

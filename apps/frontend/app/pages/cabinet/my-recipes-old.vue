@@ -1,3 +1,4 @@
+<!-- apps\frontend\app\components\my-recipe\AutoCompleteTags.vue -->
 <template>
   <div class="mx-auto w-full max-w-7xl px-4 py-6 md:px-6">
     <!-- HEADER -->
@@ -17,12 +18,14 @@
         @update:search-query="handleSearchUpdate"
         @update:current-view="setView"
         @create="openCreateModal"
+        @clear-search="clearSearch"
       />
     </div>
 
-    <!-- Tabs -->
+    <!-- Tabs - Упрощенная версия с плавной анимацией -->
     <div class="mb-6">
       <div class="relative inline-flex bg-zinc-100/80 rounded-xl p-1">
+        <!-- Анимированный фон -->
         <div
           class="absolute top-1 bottom-1 bg-white rounded-lg shadow-sm transition-all duration-300 ease-out"
           :style="{
@@ -42,7 +45,11 @@
           @click="switchTab(tab.value)"
         >
           <div class="flex items-center gap-2">
-            <UIcon :name="tab.icon" class="h-4 w-4" />
+            <UIcon
+              :name="tab.icon"
+              class="h-4 w-4 transition-all duration-200"
+              :class="activeTab === tab.value ? 'text-green-600' : ''"
+            />
             <span class="whitespace-nowrap">{{ tab.label }}</span>
             <span
               v-if="tab.count !== undefined"
@@ -58,13 +65,51 @@
       </div>
     </div>
 
-    <!-- Loading Skeletons -->
-    <div v-if="pending && page === 1" :class="containerClass">
-      <!-- <Skeleton v-for="i in 6" :key="i" :view-mode="currentView" /> -->
+    <!-- Loading -->
+    <div v-if="pending && page === 1" class="flex flex-col items-center justify-center py-28">
+      <div class="h-10 w-10 animate-spin rounded-full border-2 border-zinc-200 border-t-zinc-900" />
+      <p class="mt-4 text-sm text-zinc-500">Загрузка рецептов...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div v-else-if="recipes.length === 0"
+         class="flex flex-col items-center justify-center rounded-3xl border border-dashed border-zinc-200 bg-white py-24 min-h-[70vh]">
+      <UIcon
+        :name="activeTab === 'favorites' ? 'i-lucide-star' : 'i-lucide-cooking-pot'"
+        class="h-16 w-16 text-zinc-300"
+      />
+      <h2 class="mt-5 text-xl font-semibold text-zinc-900">
+        {{ emptyStateTitle }}
+      </h2>
+      <p class="mt-2 text-sm text-zinc-500">
+        {{ emptyStateDescription }}
+      </p>
+
+      <Button
+        v-if="activeTab === 'my' && searchQuery"
+        size="md"
+        variant="solid"
+        color="primary"
+        class="mt-6"
+        @click="clearSearch"
+      >
+        Очистить поиск
+      </Button>
+
+      <Button
+        v-if="activeTab === 'my' && !searchQuery"
+        size="md"
+        variant="solid"
+        color="primary"
+        class="mt-6"
+        @click="openCreateModal"
+      >
+        Создать первый рецепт
+      </Button>
     </div>
 
     <!-- Recipes Grid/List -->
-    <div v-else-if="recipes.length" :class="containerClass">
+    <div v-else :class="containerClass">
       <RecipeCard
         v-for="recipe in recipes"
         :key="recipe.id"
@@ -80,29 +125,19 @@
       />
     </div>
 
-    <!-- Empty State -->
-    <EmptyState
-      v-else
-      :title="emptyStateTitle"
-      :description="emptyStateDescription"
-      :icon="emptyStateIcon"
-      :action-text="emptyStateActionText"
-      @action="emptyStateAction"
-    />
-
     <!-- Load More -->
-    <div v-if="hasNext && activeTab === 'my'" class="mt-14 flex justify-center">
-      <Button
+    <div v-if="hasNext" class="mt-14 flex justify-center">
+      <button
+        class="flex h-12 items-center gap-2 rounded-2xl border border-zinc-200 bg-white px-6 text-sm font-medium text-zinc-800 transition-all hover:border-zinc-300 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50"
+        :disabled="loadingMore"
         @click="loadMore"
-        :loading="loadingMore"
-        color="neutral"
-        variant="outline"
       >
-        {{ loadingMore ? 'Загрузка...' : 'Загрузить еще' }}
-      </Button>
+        <UIcon v-if="loadingMore" name="i-lucide-loader-circle" class="h-4 w-4 animate-spin" />
+        <span>{{ loadingMore ? 'Загрузка...' : 'Загрузить еще' }}</span>
+      </button>
     </div>
 
-    <div v-else-if="recipes.length && activeTab === 'my'" class="mt-14 flex items-center justify-center gap-2 py-8 text-sm text-zinc-400">
+    <div v-else-if="recipes.length" class="mt-14 flex items-center justify-center gap-2 py-8 text-sm text-zinc-400">
       <UIcon name="i-lucide-check-check" class="h-4 w-4" />
       <span>Вы просмотрели все рецепты</span>
     </div>
@@ -112,16 +147,15 @@
       :open="isModalOpen"
       :mode="mode"
       :recipe="editingRecipe"
+      :categories="categories"
+      :units="units"
       @update:open="handleModalClose"
       @save="handleSaveRecipe"
     />
 
-    <ConfirmModal
+    <DeleteConfirmationModal
       :open="showDeleteModal"
-      title="Удалить рецепт?"
-      :description="`Вы уверены, что хотите удалить «${recipeToDelete?.title}»? Это действие нельзя отменить.`"
-      confirm-text="Удалить"
-      confirm-color="danger"
+      :recipe-title="recipeToDelete?.title || ''"
       :loading="isDeleting"
       @update:open="showDeleteModal = false"
       @confirm="deleteRecipe"
@@ -148,29 +182,31 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, nextTick, onUnmounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useAuth } from '~/composables/useAuth'
-import { getDeclension } from '~/shared/utils/strings'
+import { useRecipesApi, type RecipeResponse, type CreateRecipeDto, type UpdateRecipeDto } from '~/composables/useRecipesApi'
+import { useRecipesFavorites } from '~/composables/useRecipesFavorites'
+import { useCategoriesApi } from '~/composables/useCategoriesApi'
+import { useUnitsApi, type Unit } from '~/composables/useUnitsApi'
 
-// Components
 import RecipeFilters from '~/components/my-recipe/RecipeFilters.vue'
 import RecipeCard from '~/components/my-recipe/RecipeCard.vue'
-import RecipeFormSlideover from '~/components/my-recipe/forms/RecipeFormSlideover.vue'
-import SubmitModerationModal from '~/components/my-recipe/modals/SubmitModerationModal.vue'
-import MakePrivateModal from '~/components/my-recipe/modals/MakePrivateModal.vue'
-import { useRecipesApi, type RecipeResponse } from '~/composables/useRecipesApi'
+import RecipeFormSlideover from '~/components/my-recipe/RecipeFormSlideover.vue'
+import DeleteConfirmationModal from '~/components/my-recipe/DeleteConfirmationModal.vue'
+import SubmitModerationModal from '~/components/my-recipe/SubmitModerationModal.vue'
+import MakePrivateModal from '~/components/my-recipe/MakePrivateModal.vue'
 import Button from '~/shared/ui/button/Button.vue'
-import ConfirmModal from '~/shared/ui/confirm-modal/ConfirmModal.vue'
-import { useRecipesFavorites } from '~/composables/useRecipesFavorites'
-
 
 definePageMeta({ layout: 'cabinet' })
 
 const { isAuthenticated, user } = useAuth()
+
 const toast = useToast()
 
 const recipesApi = useRecipesApi()
 const favoritesApi = useRecipesFavorites()
+const categoriesApi = useCategoriesApi()
+const unitsApi = useUnitsApi()
 
 // ==================== State ====================
 const recipes = ref<RecipeResponse[]>([])
@@ -181,6 +217,9 @@ const page = ref(1)
 const hasNext = ref(false)
 const pending = ref(false)
 const activeTab = ref<'my' | 'favorites'>('my')
+
+const favoriteIds = ref<Set<string>>(new Set())
+const favoriteRecipesMap = ref<Map<string, RecipeResponse>>(new Map())
 
 // Счётчики
 const myRecipesTotal = ref(0)
@@ -205,6 +244,10 @@ const isMakePrivateLoading = ref(false)
 const moderationError = ref<string | null>(null)
 const makePrivateError = ref<string | null>(null)
 
+// Data
+const categories = ref<any[]>([])
+const units = ref<Unit[]>([])
+
 // ==================== Computed ====================
 const totalRecipes = computed(() =>
   activeTab.value === 'favorites' ? favoritesCount.value : myRecipesTotal.value
@@ -227,18 +270,6 @@ const emptyStateDescription = computed(() => {
   return 'Создайте свой первый рецепт и поделитесь им с сообществом'
 })
 
-const emptyStateIcon = computed(() => {
-  if (activeTab.value === 'favorites') return 'i-lucide-star'
-  if (searchQuery.value) return 'i-lucide-search'
-  return 'i-lucide-cooking-pot'
-})
-
-const emptyStateActionText = computed(() => {
-  if (activeTab.value === 'my' && searchQuery.value) return 'Очистить поиск'
-  if (activeTab.value === 'my' && !searchQuery.value) return 'Создать первый рецепт'
-  return ''
-})
-
 const tabs = computed(() => [
   {
     value: 'my' as const,
@@ -255,6 +286,11 @@ const tabs = computed(() => [
 ])
 
 // ==================== Methods ====================
+const getDeclension = (count: number, words: [string, string, string]): string => {
+  const cases = [2, 0, 1, 1, 1, 2]
+  return words[count % 100 > 4 && count % 100 < 20 ? 2 : cases[count % 10 < 5 ? count % 10 : 5]]
+}
+
 const switchTab = (tab: 'my' | 'favorites') => {
   activeTab.value = tab
 }
@@ -286,6 +322,9 @@ const fetchRecipes = async (reset = false) => {
 
     myRecipesTotal.value = response.total
     hasNext.value = response.hasNext
+
+    // Загружаем статусы избранного для рецептов
+    await loadFavoriteIds()
   } catch (error) {
     console.error('Error fetching recipes:', error)
   } finally {
@@ -303,16 +342,20 @@ const fetchFavorites = async () => {
     const favorites = await favoritesApi.getUserFavorites(user.value.id)
     const favoriteItems = favorites.data || favorites || []
 
-    const recipesList: RecipeResponse[] = []
+    const newMap = new Map<string, RecipeResponse>()
+    const newIds = new Set<string>()
 
     favoriteItems.forEach((item: any) => {
       const recipe = item?.recipe
       if (recipe?.id) {
-        recipesList.push(recipe)
+        newMap.set(recipe.id, recipe)
+        newIds.add(recipe.id)
       }
     })
 
-    recipes.value = recipesList
+    favoriteRecipesMap.value = newMap
+    favoriteIds.value = newIds
+    recipes.value = Array.from(newMap.values())
     favoritesCount.value = recipes.value.length
     hasNext.value = false
   } catch (error) {
@@ -330,9 +373,40 @@ const loadMore = async () => {
   await fetchRecipes(false)
 }
 
+const loadFavoriteIds = async () => {
+  if (!isAuthenticated.value || !user.value?.id) return
+
+  try {
+    const favorites = await favoritesApi.getUserFavorites(user.value.id)
+    const favoriteItems = favorites.data || favorites || []
+
+    const ids = new Set<string>()
+    const map = new Map<string, RecipeResponse>()
+
+    favoriteItems.forEach((item: any) => {
+      const recipe = item?.recipe
+      if (recipe?.id) {
+        ids.add(recipe.id)
+        map.set(recipe.id, recipe)
+      }
+    })
+
+    favoriteIds.value = ids
+    favoriteRecipesMap.value = map
+    favoritesCount.value = favoriteItems.length
+  } catch (error) {
+    console.error('Error loading favorite IDs:', error)
+  }
+}
+
 // Handlers
 const handleSearchUpdate = (value: string) => {
   searchQuery.value = value
+  fetchRecipes(true)
+}
+
+const clearSearch = () => {
+  searchQuery.value = ''
   fetchRecipes(true)
 }
 
@@ -343,15 +417,6 @@ const setView = (view: 'grid' | 'list') => {
 
 const goToRecipe = (recipe: RecipeResponse) => {
   navigateTo(recipe.srcPath ? `/recipes/${recipe.srcPath}` : `/recipes/${recipe.id}`)
-}
-
-const emptyStateAction = () => {
-  if (activeTab.value === 'my' && searchQuery.value) {
-    searchQuery.value = ''
-    fetchRecipes(true)
-  } else if (activeTab.value === 'my' && !searchQuery.value) {
-    openCreateModal()
-  }
 }
 
 // Modal handlers
@@ -371,26 +436,46 @@ const handleModalClose = (open: boolean) => {
   if (!open) isModalOpen.value = false
 }
 
+// const handleSaveRecipe = async (data: any, modeType: string, id?: string) => {
+//   try {
+//     if (modeType === 'edit' && id) {
+//       await recipesApi.updateRecipe(id, data as UpdateRecipeDto)
+//     } else {
+//       await recipesApi.createRecipe(data as CreateRecipeDto)
+//     }
+//     await fetchRecipes(true)
+//     await loadFavoriteIds()
+//   } catch (error: any) {
+//     console.error('Error saving recipe:', error)
+//     throw error
+//   }
+// }
+
 const handleSaveRecipe = async (data: any, modeType: string, id?: string) => {
   try {
     if (modeType === 'edit' && id) {
-      await recipesApi.updateRecipe(id, data)
+      await recipesApi.updateRecipe(id, data as UpdateRecipeDto)
     } else {
-      await recipesApi.createRecipe(data)
+      await recipesApi.createRecipe(data as CreateRecipeDto)
     }
 
+    // Обновляем списки только после успешного сохранения
     await fetchRecipes(true)
+    await loadFavoriteIds()
 
+    // Показываем только один тостер успеха
     toast.add({
       title: 'Успех',
       description: modeType === 'edit' ? 'Рецепт успешно обновлен' : 'Рецепт успешно создан',
       color: 'success'
     })
 
+    // Возвращаем успех
     return { success: true }
   } catch (error: any) {
     console.error('Error saving recipe:', error)
 
+    // Извлекаем сообщение об ошибке
     let errorMessage = 'Ошибка при сохранении рецепта'
 
     if (error.data?.message) {
@@ -403,12 +488,14 @@ const handleSaveRecipe = async (data: any, modeType: string, id?: string) => {
       errorMessage = error.message
     }
 
+    // Показываем тостер ошибки
     toast.add({
       title: 'Ошибка',
       description: errorMessage,
       color: 'error'
     })
 
+    // Пробрасываем ошибку дальше, чтобы форма знала, что произошла ошибка
     throw error
   }
 }
@@ -427,20 +514,11 @@ const deleteRecipe = async () => {
     await recipesApi.deleteRecipe(recipeToDelete.value.id)
     showDeleteModal.value = false
     await fetchRecipes(true)
+    await loadFavoriteIds()
     recipeToDelete.value = null
-
-    toast.add({
-      title: 'Успех',
-      description: 'Рецепт удален',
-      color: 'success'
-    })
   } catch (error: any) {
     console.error('Error deleting recipe:', error)
-    toast.add({
-      title: 'Ошибка',
-      description: error.message || 'Ошибка при удалении рецепта',
-      color: 'error'
-    })
+    alert(error.message || 'Ошибка при удалении рецепта')
   } finally {
     isDeleting.value = false
   }
@@ -470,18 +548,14 @@ const handleSubmitModeration = async () => {
     isSubmitModerationModalOpen.value = false
 
     // Обновляем статус рецепта в локальном списке
+    const updatedRecipe = { ...selectedRecipe.value, status: 'pending' }
     const index = recipes.value.findIndex(r => r.id === selectedRecipe.value?.id)
     if (index !== -1) {
-      recipes.value[index] = { ...recipes.value[index], status: 'pending' }
+      recipes.value[index] = updatedRecipe
     }
 
+    // Обновляем общий список
     await fetchRecipes(true)
-
-    toast.add({
-      title: 'Успех',
-      description: 'Рецепт отправлен на модерацию',
-      color: 'success'
-    })
   } catch (error: any) {
     moderationError.value = error.message || 'Ошибка при отправке на модерацию'
     console.error('Error submitting for moderation:', error)
@@ -501,18 +575,14 @@ const handleMakePrivate = async () => {
     isMakePrivateModalOpen.value = false
 
     // Обновляем статус рецепта в локальном списке
+    const updatedRecipe = { ...selectedRecipe.value, status: 'private' }
     const index = recipes.value.findIndex(r => r.id === selectedRecipe.value?.id)
     if (index !== -1) {
-      recipes.value[index] = { ...recipes.value[index], status: 'private' }
+      recipes.value[index] = updatedRecipe
     }
 
+    // Обновляем общий список
     await fetchRecipes(true)
-
-    toast.add({
-      title: 'Успех',
-      description: 'Рецепт сделан приватным',
-      color: 'success'
-    })
   } catch (error: any) {
     makePrivateError.value = error.message || 'Ошибка при изменении статуса рецепта'
     console.error('Error making private:', error)
@@ -521,28 +591,7 @@ const handleMakePrivate = async () => {
   }
 }
 
-const removeFromFavorites = async (recipe: RecipeResponse) => {
-  if (!isAuthenticated.value || !user.value?.id) return
 
-  try {
-    await favoritesApi.toggleFavorite(recipe.id)
-
-    toast.add({
-      title: 'Успех',
-      description: 'Рецепт удален из избранного',
-      color: 'success'
-    })
-
-    await fetchFavorites()
-  } catch (error: any) {
-    console.error('Error removing from favorites:', error)
-    toast.add({
-      title: 'Ошибка',
-      description: error.message || 'Не удалось удалить рецепт из избранного',
-      color: 'error'
-    })
-  }
-}
 
 // ==================== Watchers ====================
 watch(activeTab, (newTab) => {
@@ -553,11 +602,22 @@ watch(activeTab, (newTab) => {
   }
 })
 
-// ==================== Tab Animation ====================
+// ==================== Mounted ====================
+onMounted(async () => {
+  const savedView = localStorage.getItem('recipesView') as any
+  if (['grid','list'].includes(savedView)) {
+    currentView.value = savedView
+  }
+
+  await loadFavoriteIds()
+  await fetchRecipes(true)
+})
+// ==================== Tab Animation Refs ====================
 const tabButtons = ref<HTMLButtonElement[]>([])
 const activeTabWidth = ref(0)
 const activeTabLeft = ref(0)
 
+// Обновление позиции индикатора
 const updateIndicatorPosition = () => {
   if (!tabButtons.value.length) return
 
@@ -570,29 +630,60 @@ const updateIndicatorPosition = () => {
   }
 }
 
-// ==================== Mounted ====================
-onMounted(async () => {
-  const savedView = localStorage.getItem('recipesView') as any
-  if (['grid', 'list'].includes(savedView)) {
-    currentView.value = savedView
+// Добавить в script секцию
+const removeFromFavorites = async (recipe: RecipeResponse) => {
+  if (!isAuthenticated.value || !user.value?.id) return
+
+  try {
+    await favoritesApi.toggleFavorite(recipe.id)
+
+    // Показываем уведомление об успехе
+    toast.add({
+      title: 'Успех',
+      description: 'Рецепт удален из избранного',
+      color: 'success'
+    })
+
+    // Обновляем список избранного
+    await fetchFavorites()
+
+    // Также обновляем favoriteIds для корректного отображения в других местах
+    await loadFavoriteIds()
+  } catch (error: any) {
+    console.error('Error removing from favorites:', error)
+    toast.add({
+      title: 'Ошибка',
+      description: error.message || 'Не удалось удалить рецепт из избранного',
+      color: 'error'
+    })
   }
+}
 
-  await fetchRecipes(true)
-
-  nextTick(() => {
-    updateIndicatorPosition()
-  })
-
-  window.addEventListener('resize', updateIndicatorPosition)
-})
-
+// Обновляем при изменении activeTab и после рендера
 watch(activeTab, () => {
   nextTick(() => {
     updateIndicatorPosition()
   })
 })
 
+// Обновляем при ресайзе окна
+onMounted(() => {
+  nextTick(() => {
+    updateIndicatorPosition()
+  })
+  window.addEventListener('resize', updateIndicatorPosition)
+})
+
 onUnmounted(() => {
   window.removeEventListener('resize', updateIndicatorPosition)
 })
 </script>
+
+<style scoped>
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+</style>

@@ -93,7 +93,7 @@ const handleBlur = () => {
 }
 
 const inputClass = computed(() => {
-  const baseClass = 'h-11 text-sm text-gray-900 dark:text-darkMode-700 focus:ring-2'
+  const baseClass = 'h-11 text-sm text-gray-900 dark:text-darkMode-700 focus:ring-2 bg-white dark:bg-darkMode-100'
   const borderClass = props.error
     ? 'border-red-500 focus:border-red-500 focus:ring-red-100 dark:border-red-600'
     : 'border-gray-200 focus:border-emerald-400 focus:ring-emerald-100 dark:border-darkMode-300 dark:bg-darkMode-100 dark:focus:ring-emerald-900/20'

@@ -3,6 +3,7 @@
     :class="buttonClasses"
     :disabled="disabled"
     v-bind="$attrs"
+    type="button"
   >
     <!-- Иконка слева или спиннер при загрузке -->
     <UIcon

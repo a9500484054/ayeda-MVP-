@@ -1,45 +1,38 @@
-<!-- components/recipe/RecipeFilters.vue -->
 <template>
   <div class="flex w-full flex-col gap-3 sm:flex-row lg:w-auto">
     <!-- Search -->
-    <div class="relative min-w-[280px]">
-      <UIcon name="i-lucide-search" class="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-      <input
-        :value="searchQuery"
-        type="text"
-        placeholder="Поиск моих рецептов..."
-        class="h-11 w-full rounded-2xl border border-zinc-200 bg-white pl-11 pr-10 text-sm text-zinc-900 outline-none transition-all placeholder:text-zinc-400 focus:border-zinc-900"
-        @input="onSearchInput"
-      />
-      <button
-        v-if="searchQuery"
-        class="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1 text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700"
-        @click="clearSearch"
-      >
-        <UIcon name="i-lucide-x" class="h-4 w-4" />
-      </button>
-    </div>
+    <Input
+      v-model="localSearchQuery"
+      placeholder="Поиск моих рецептов..."
+      icon="i-lucide-search"
+      class="min-w-[280px]"
+      @update:model-value="handleSearchUpdate"
+    >
+      <template #rightIcon>
+        <button
+          v-if="localSearchQuery"
+          type="button"
+          class="rounded-full p-1 hover:bg-gray-100 dark:hover:bg-darkMode-200"
+          @click="clearSearch"
+        >
+          <UIcon name="i-lucide-x" class="h-3 w-3 text-gray-400" />
+        </button>
+      </template>
+    </Input>
 
     <!-- View Switch -->
     <div class="hidden sm:block ml-auto">
-      <div class="flex h-11 items-center rounded-2xl border border-zinc-200 bg-white p-1">
-        <button
-          v-for="view in views"
-          :key="view.value"
-          class="flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-200 cursor-pointer"
-          :class="currentView === view.value ? 'bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-500 active:bg-emerald-800' : 'text-zinc-500 hover:bg-emerald-50 hover:text-emerald-600'"
-          :title="view.title"
-          @click="$emit('update:currentView', view.value)"
-        >
-          <UIcon :name="view.icon" class="h-4 w-4" />
-        </button>
-      </div>
+      <ViewToggle
+        v-if="viewOptions.length"
+        :model-value="currentView"
+        :options="viewOptions"
+        size="md"
+        @update:model-value="handleViewUpdate"
+      />
     </div>
 
-
-
     <!-- Create Button -->
-    <Button color="success" size="sm" @click="$emit('create')">
+    <Button color="success" size="sm" @click="handleCreate">
       <UIcon name="i-lucide-plus" class="h-4 w-4" />
       <span>Создать рецепт</span>
     </Button>
@@ -47,37 +40,59 @@
 </template>
 
 <script setup lang="ts">
+import { ref, watch } from 'vue'
+import { useDebounceFn } from '@vueuse/core'
+import Input from '~/shared/ui/input/Input.vue';
+import ViewToggle from '~/shared/ui/view-toggle/ViewToggle.vue';
 import Button from '~/shared/ui/button/Button.vue';
 
-const props = defineProps<{
+interface Props {
   searchQuery: string
   currentView: 'grid' | 'list'
-}>()
+}
+
+const props = defineProps<Props>()
 
 const emit = defineEmits<{
   'update:searchQuery': [value: string]
   'update:currentView': [value: 'grid' | 'list']
   'create': []
-  'clear-search': []
 }>()
 
-const views = [
-  { value: 'grid', title: 'Большая сетка', icon: 'i-lucide-grid-2x2' },
+// Опции для ViewToggle
+const viewOptions = [
+  { value: 'grid', title: 'Сетка', icon: 'i-lucide-grid-2x2' },
   { value: 'list', title: 'Список', icon: 'i-lucide-list' }
 ]
 
-let searchDebounceTimer: NodeJS.Timeout | null = null
+// Локальное состояние для мгновенного обновления UI
+const localSearchQuery = ref(props.searchQuery)
 
-const onSearchInput = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
-  searchDebounceTimer = setTimeout(() => {
-    emit('update:searchQuery', target.value)
-  }, 400)
+// Синхронизация с пропсом
+watch(() => props.searchQuery, (newVal) => {
+  localSearchQuery.value = newVal
+})
+
+// Debounced emit
+const debouncedEmit = useDebounceFn((value: string) => {
+  emit('update:searchQuery', value)
+}, 400)
+
+const handleSearchUpdate = (value: string) => {
+  localSearchQuery.value = value
+  debouncedEmit(value)
 }
 
 const clearSearch = () => {
+  localSearchQuery.value = ''
   emit('update:searchQuery', '')
-  emit('clear-search')
+}
+
+const handleViewUpdate = (value: 'grid' | 'list') => {
+  emit('update:currentView', value)
+}
+
+const handleCreate = () => {
+  emit('create')
 }
 </script>
