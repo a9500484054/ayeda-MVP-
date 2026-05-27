@@ -51,6 +51,10 @@ export class Recipe {
   @Column({ name: 'cooking_time', nullable: true })
   cookingTime: number;
 
+  @ApiProperty({ example: 0, description: 'Количество комментариев' })
+  @Column({ name: 'comments_count', default: 0 })
+  commentsCount: number;
+
   @ApiProperty({
     example: 4,
     description: 'Количество порций',

@@ -95,6 +95,7 @@ export class UserFavoritesController {
   }
 
   private mapToFavoriteResponseDto(favorite: any): FavoriteResponseDto {
+    
     // Безопасное получение категорий
     let categories = [];
     if (favorite.recipe?.categories) {
@@ -127,6 +128,7 @@ export class UserFavoritesController {
       createdAt: favorite.createdAt,
       recipe: {
         ...favorite.recipe,
+        commentsCount: favorite.recipe.commentsCount || 0, // Добавить
         categories, // переопределяем categories (массив с данными)
         ingredients, // переопределяем ingredients
       },

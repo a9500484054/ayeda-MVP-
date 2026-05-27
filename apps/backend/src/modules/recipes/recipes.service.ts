@@ -442,6 +442,7 @@ export class RecipesService {
       updatedAt: recipe.updatedAt,
       publishedAt: recipe.publishedAt,
       seo: recipe.seo,
+      commentsCount: recipe.commentsCount || 0, // ✅ ДОБАВЬТЕ ЭТУ СТРОКУ
     };
   }
 

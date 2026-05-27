@@ -45,7 +45,16 @@ export class CommentsService {
       authorId,
     });
 
-    return this.commentsRepository.save(comment);
+    const savedComment = await this.commentsRepository.save(comment);
+
+    // ✅ Увеличиваем счетчик комментариев у рецепта
+    await this.recipesRepository.increment(
+      { id: recipeId },
+      'commentsCount',
+      1
+    );
+
+    return savedComment;
   }
 
   async findAll(
@@ -65,23 +74,21 @@ export class CommentsService {
       throw new NotFoundException('Рецепт не найден');
     }
 
-    const where: any = {
-      recipeId,
-      deletedAt: IsNull(),
-    };
+    const queryBuilder = this.commentsRepository
+      .createQueryBuilder('comment')
+      .leftJoinAndSelect('comment.author', 'author')
+      .where('comment.recipeId = :recipeId', { recipeId })
+      .andWhere('comment.deletedAt IS NULL')
+      .orderBy('comment.createdAt', 'DESC')
+      .skip(skip)
+      .take(limit);
 
     // Если не включено отображение скрытых, фильтруем
     if (!includeHidden) {
-      where.isHidden = false;
+      queryBuilder.andWhere('comment.isHidden = :isHidden', { isHidden: false });
     }
 
-    const [comments, total] = await this.commentsRepository.findAndCount({
-      where,
-      relations: ['author'],
-      order: { createdAt: 'DESC' },
-      skip,
-      take: limit,
-    });
+    const [comments, total] = await queryBuilder.getManyAndCount();
 
     return new PaginatedResponseDto(comments, total, page, limit);
   }
@@ -129,8 +136,18 @@ export class CommentsService {
       throw new ForbiddenException('Вы не можете удалить этот комментарий');
     }
 
+    // Сохраняем recipeId для обновления счетчика
+    const recipeId = comment.recipeId;
+
     // Soft delete
     await this.commentsRepository.softDelete(id);
+
+    // ✅ Уменьшаем счетчик комментариев у рецепта
+    await this.recipesRepository.decrement(
+      { id: recipeId },
+      'commentsCount',
+      1
+    );
   }
 
   async hide(
@@ -140,7 +157,16 @@ export class CommentsService {
     const comment = await this.findOne(id);
 
     comment.isHidden = true;
-    return this.commentsRepository.save(comment);
+    const savedComment = await this.commentsRepository.save(comment);
+
+    // ⚠️ Опционально: если скрытые комментарии не должны учитываться в счетчике
+    // await this.recipesRepository.decrement(
+    //   { id: comment.recipeId },
+    //   'commentsCount',
+    //   1
+    // );
+
+    return savedComment;
   }
 
   async unhide(id: string, moderatorId: string): Promise<Comment> {
@@ -153,7 +179,26 @@ export class CommentsService {
     }
 
     comment.isHidden = false;
-    return this.commentsRepository.save(comment);
+    const savedComment = await this.commentsRepository.save(comment);
+
+    // ⚠️ Опционально: если скрытые комментарии не учитывались в счетчике
+    // await this.recipesRepository.increment(
+    //   { id: comment.recipeId },
+    //   'commentsCount',
+    //   1
+    // );
+
+    return savedComment;
+  }
+
+  async getRecipeCommentsCount(recipeId: string): Promise<number> {
+    // Получаем из рецепта (быстрый способ)
+    const recipe = await this.recipesRepository.findOne({
+      where: { id: recipeId, deletedAt: IsNull() },
+      select: ['commentsCount'],
+    });
+
+    return recipe?.commentsCount || 0;
   }
 
   toResponseDto(comment: Comment): CommentResponseDto {

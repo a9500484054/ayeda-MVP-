@@ -71,6 +71,9 @@ export class RecipeResponseDto {
   @ApiProperty({ required: false, example: 30 })
   cookingTime?: number;
 
+  @ApiProperty({ example: 15, description: 'Количество комментариев' })
+  commentsCount: number;
+
   @ApiProperty({ required: false, example: 4 })
   servings?: number;
 
