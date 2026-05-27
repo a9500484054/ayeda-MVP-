@@ -61,7 +61,7 @@
 
     <!-- Loading Skeletons -->
     <div v-if="pending && page === 1" :class="containerClass">
-      <!-- <Skeleton v-for="i in 6" :key="i" :view-mode="currentView" /> -->
+      <Skeleton v-for="i in 6" :key="i" :view-mode="currentView" />
     </div>
 
     <!-- Recipes Grid/List -->
@@ -156,6 +156,7 @@ import { getDeclension } from '~/shared/utils/strings'
 // Components
 import RecipeFilters from '~/components/my-recipe/RecipeFilters.vue'
 import RecipeCard from '~/components/my-recipe/RecipeCard.vue'
+import Skeleton from '~/shared/ui/skeleton/Skeleton.vue'
 import RecipeFormSlideover from '~/components/my-recipe/forms/RecipeFormSlideover.vue'
 import SubmitModerationModal from '~/components/my-recipe/modals/SubmitModerationModal.vue'
 import MakePrivateModal from '~/components/my-recipe/modals/MakePrivateModal.vue'

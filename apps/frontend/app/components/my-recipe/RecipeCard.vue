@@ -38,7 +38,7 @@
         <Button
           @click.stop="emitEdit"
           variant="solid"
-          color="info"
+          color="neutral"
           size="sm"
           icon="i-lucide-edit-2"
           icon-only
@@ -151,7 +151,7 @@
             :class="isListView ? 'opacity-0 group-hover:opacity-100 transition-all duration-300' : ''"
           >
             <Button v-if="recipe.status === 'private'" color="success" size="xs" @click.stop="emitSubmitModeration">
-              <span>На модерацию</span>
+              <span>Сделать публичным</span>
             </Button>
 
             <template v-if="recipe.status === 'rejected'">
@@ -160,7 +160,7 @@
                 color="success"
                 size="xs"
               >
-                На модерацию
+                сделать публичным
               </Button>
               <Button
                 @click.stop="emitMakePrivate"
@@ -182,7 +182,7 @@
       >
         <div class="absolute bottom-0 left-0 right-0 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
           <Button v-if="recipe.status === 'private'" color="success" size="xs" @click.stop="emitSubmitModeration" block>
-            <span>На модерацию</span>
+            <span>Сделать публичным</span>
           </Button>
 
           <template v-if="recipe.status === 'rejected'">
@@ -192,7 +192,7 @@
               size="xs"
               block
             >
-              На модерацию
+              Сделать публичным
             </Button>
             <Button
               @click.stop="emitMakePrivate"
