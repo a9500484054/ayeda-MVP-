@@ -9,14 +9,17 @@ import { UsersModule } from '../users/users.module';
 import { IngredientsModule } from '../ingredients/ingredients.module';
 import { CategoriesModule } from '../categories/categories.module';
 import { UnitsModule } from '../units/units.module';
+import { FavoritesModule } from '../favorites/favorites.module'; // Добавить импорт
+import { Favorite } from '../favorites/entities/favorite.entity'; // Добавить импорт
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Recipe, RecipeIngredient, RecipeCategory]),
+    TypeOrmModule.forFeature([Recipe, RecipeIngredient, RecipeCategory, Favorite]),
     UsersModule,
     IngredientsModule,
     CategoriesModule,
     UnitsModule,
+    FavoritesModule,
   ],
   controllers: [RecipesController],
   providers: [RecipesService],

@@ -59,7 +59,7 @@
     </div>
 
     <!-- Loading Skeletons -->
-    <div v-if="pending && page === 1" :class="containerClass">
+    <div v-if="showSkeletons" :class="containerClass">
       <Skeleton v-for="i in 6" :key="i" :view-mode="currentView" />
     </div>
 
@@ -188,6 +188,10 @@ const activeTab = ref<'my' | 'favorites'>('my')
 const myRecipesTotal = ref(0)
 const favoritesCount = ref(0)
 
+// Состояние для скелетона с задержкой
+const showSkeletons = ref(false)
+let skeletonTimeout: ReturnType<typeof setTimeout> | null = null
+
 // Modal
 const isModalOpen = ref(false)
 const mode = ref<'create' | 'edit'>('create')
@@ -261,7 +265,27 @@ const switchTab = (tab: 'my' | 'favorites') => {
   activeTab.value = tab
 }
 
-// Fetch My Recipes
+// Управление отображением скелетона с задержкой
+const startSkeletonTimer = () => {
+  if (skeletonTimeout) clearTimeout(skeletonTimeout)
+  showSkeletons.value = false
+
+  skeletonTimeout = setTimeout(() => {
+    if (pending.value && page.value === 1) {
+      showSkeletons.value = true
+    }
+  }, 300)
+}
+
+const stopSkeletonTimer = () => {
+  if (skeletonTimeout) {
+    clearTimeout(skeletonTimeout)
+    skeletonTimeout = null
+  }
+  showSkeletons.value = false
+}
+
+// Fetch Recipes в зависимости от активной вкладки
 const fetchRecipes = async (reset = false) => {
   if (reset) {
     page.value = 1
@@ -269,25 +293,55 @@ const fetchRecipes = async (reset = false) => {
   }
 
   const isLoadingMore = !reset && page.value > 1
-  if (isLoadingMore) loadingMore.value = true
-  else pending.value = true
+  if (isLoadingMore) {
+    loadingMore.value = true
+  } else {
+    pending.value = true
+    if (reset || page.value === 1) {
+      startSkeletonTimer()
+    }
+  }
 
   try {
     let response
 
-    // Если есть поисковый запрос - используем searchMyRecipes
-    if (searchQuery.value && searchQuery.value.trim()) {
-      response = await recipesApi.searchMyRecipes(searchQuery.value, {
-        page: page.value,
-        limit: 12,
-      })
+    if (activeTab.value === 'favorites') {
+      // Поиск по избранным рецептам
+      if (searchQuery.value && searchQuery.value.trim()) {
+        response = await recipesApi.searchFavoritesRecipes(searchQuery.value, {
+          page: page.value,
+          limit: 12,
+        })
+      } else {
+        // Если нет поиска, показываем все избранные (пагинация на клиенте)
+        const start = (page.value - 1) * 12
+        const end = start + 12
+        const paginatedData = favoritesData.value.slice(start, end)
+
+        response = {
+          data: paginatedData,
+          total: favoritesCount.value,
+          page: page.value,
+          limit: 12,
+          pages: Math.ceil(favoritesCount.value / 12),
+          hasNext: end < favoritesCount.value,
+          hasPrev: page.value > 1
+        }
+      }
     } else {
-      // Иначе обычный запрос
-      response = await recipesApi.getRecipes({
-        page: page.value,
-        limit: 12,
-        authorId: user.value?.id,
-      })
+      // Мои рецепты
+      if (searchQuery.value && searchQuery.value.trim()) {
+        response = await recipesApi.searchMyRecipes(searchQuery.value, {
+          page: page.value,
+          limit: 12,
+        })
+      } else {
+        response = await recipesApi.getRecipes({
+          page: page.value,
+          limit: 12,
+          authorId: user.value?.id,
+        })
+      }
     }
 
     if (reset || page.value === 1) {
@@ -296,17 +350,23 @@ const fetchRecipes = async (reset = false) => {
       recipes.value.push(...response.data)
     }
 
-    myRecipesTotal.value = response.total
+    if (activeTab.value === 'favorites') {
+      favoritesCount.value = response.total
+    } else {
+      myRecipesTotal.value = response.total
+    }
+
     hasNext.value = response.hasNext
   } catch (error) {
     console.error('Error fetching recipes:', error)
   } finally {
     loadingMore.value = false
     pending.value = false
+    stopSkeletonTimer()
   }
 }
 
-// Fetch Favorites - загружает все избранное
+// Fetch Favorites - загружает все избранное для кэша
 const fetchFavorites = async () => {
   if (!isAuthenticated.value || !user.value?.id) return
 
@@ -332,15 +392,8 @@ const fetchFavorites = async () => {
   }
 }
 
-// Показ избранного (без повторного запроса)
-const showFavorites = () => {
-  recipes.value = favoritesData.value
-  pending.value = false
-  hasNext.value = false
-}
-
 const loadMore = async () => {
-  if (loadingMore.value || !hasNext.value || activeTab.value === 'favorites') return
+  if (loadingMore.value || !hasNext.value) return
   page.value++
   await fetchRecipes(false)
 }
@@ -348,6 +401,7 @@ const loadMore = async () => {
 // Handlers
 const handleSearchUpdate = (value: string) => {
   searchQuery.value = value
+  page.value = 1
   fetchRecipes(true)
 }
 
@@ -366,6 +420,9 @@ const emptyStateAction = () => {
     fetchRecipes(true)
   } else if (activeTab.value === 'my' && !searchQuery.value) {
     openCreateModal()
+  } else if (activeTab.value === 'favorites' && searchQuery.value) {
+    searchQuery.value = ''
+    fetchRecipes(true)
   }
 }
 
@@ -395,7 +452,7 @@ const handleSaveRecipe = async (data: any, modeType: string, id?: string) => {
     }
 
     await fetchRecipes(true)
-    await fetchFavorites() // Обновляем избранное
+    await fetchFavorites()
 
     toast.add({
       title: 'Успех',
@@ -445,7 +502,7 @@ const deleteRecipe = async () => {
     await recipesApi.deleteRecipe(recipeToDelete.value.id)
     showDeleteModal.value = false
     await fetchRecipes(true)
-    await fetchFavorites() // Обновляем избранное
+    await fetchFavorites()
     recipeToDelete.value = null
 
     toast.add({
@@ -488,7 +545,6 @@ const handleSubmitModeration = async () => {
     await recipesApi.submitForModeration(selectedRecipe.value.id)
     isSubmitModerationModalOpen.value = false
 
-    // Обновляем статус рецепта в локальном списке
     const index = recipes.value.findIndex(r => r.id === selectedRecipe.value?.id)
     if (index !== -1) {
       recipes.value[index] = { ...recipes.value[index], status: 'pending' }
@@ -520,7 +576,6 @@ const handleMakePrivate = async () => {
     await recipesApi.makePrivate(selectedRecipe.value.id)
     isMakePrivateModalOpen.value = false
 
-    // Обновляем статус рецепта в локальном списке
     const index = recipes.value.findIndex(r => r.id === selectedRecipe.value?.id)
     if (index !== -1) {
       recipes.value[index] = { ...recipes.value[index], status: 'private' }
@@ -557,7 +612,7 @@ const removeFromFavorites = async (recipe: RecipeResponse) => {
     await fetchFavorites()
 
     if (activeTab.value === 'favorites') {
-      showFavorites()
+      await fetchRecipes(true)
     }
   } catch (error: any) {
     console.error('Error removing from favorites:', error)
@@ -571,11 +626,9 @@ const removeFromFavorites = async (recipe: RecipeResponse) => {
 
 // ==================== Watchers ====================
 watch(activeTab, (newTab) => {
-  if (newTab === 'favorites') {
-    showFavorites()
-  } else {
-    fetchRecipes(true)
-  }
+  searchQuery.value = ''
+  page.value = 1
+  fetchRecipes(true)
 })
 
 // ==================== Tab Animation ====================
@@ -623,5 +676,6 @@ watch(activeTab, () => {
 
 onUnmounted(() => {
   window.removeEventListener('resize', updateIndicatorPosition)
+  stopSkeletonTimer()
 })
 </script>

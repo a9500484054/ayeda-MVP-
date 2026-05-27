@@ -19,6 +19,7 @@ import { UnitsService } from '../units/units.service';
 import { RecipeStatus, RecipeType } from './enums/recipe.enums';
 import { RecipeResponseDto } from './dto/recipe-response.dto';
 import { UserRole } from '../users/entities/user.entity';
+import { Favorite } from '../favorites/entities/favorite.entity';
 
 @Injectable()
 export class RecipesService {
@@ -34,6 +35,8 @@ export class RecipesService {
     private categoriesService: CategoriesService,
     private unitsService: UnitsService,
     private dataSource: DataSource,
+    @InjectRepository(Favorite)
+    private favoritesRepository: Repository<Favorite>,
   ) {}
 
   async create(
@@ -549,23 +552,52 @@ export class RecipesService {
     return queryBuilder.getManyAndCount();
   }
 
-  // 3. Поиск по избранным рецептам
+  // 3. Поиск по избранным рецептам (с использованием Favorite Repository)
   async searchFavorites(userId: string, query: string, paginationDto: any): Promise<[Recipe[], number]> {
     const { page, limit } = paginationDto;
     const skip = (page - 1) * limit;
 
-    const queryBuilder = this.buildSearchQuery(query)
-      .innerJoin('favorite', 'favorite', 'favorite.recipe_id = recipe.id')
-      .andWhere('favorite.user_id = :userId', { userId })
-      .andWhere('recipe.status = :status', { status: RecipeStatus.PUBLIC })
-      .andWhere('recipe.deletedAt IS NULL');
+    // Получаем избранные рецепты
+    const favorites = await this.favoritesRepository.find({
+      where: { userId },
+      relations: ['recipe'],
+      order: { createdAt: 'DESC' },
+      skip,
+      take: limit,
+    });
 
-    queryBuilder
-      .orderBy('favorite.created_at', 'DESC')
-      .skip(skip)
-      .take(limit);
+    // Фильтруем по поиску и статусу
+    let recipes = favorites
+      .map(f => f.recipe)
+      .filter(r => r && r.status === RecipeStatus.PUBLIC && r.deletedAt === null);
 
-    return queryBuilder.getManyAndCount();
+    if (query && query.trim()) {
+      const searchTerm = query.trim().toLowerCase();
+      recipes = recipes.filter(recipe =>
+        recipe.title?.toLowerCase().includes(searchTerm) ||
+        recipe.description?.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    // Загружаем полные данные для найденных рецептов
+    if (recipes.length === 0) {
+      return [[], 0];
+    }
+
+    const recipeIds = recipes.map(r => r.id);
+    const recipesWithRelations = await this.recipesRepository
+      .createQueryBuilder('recipe')
+      .leftJoinAndSelect('recipe.author', 'author')
+      .leftJoinAndSelect('recipe.ingredients', 'ingredients')
+      .leftJoinAndSelect('ingredients.ingredient', 'ingredient')
+      .leftJoinAndSelect('ingredients.unit', 'unit')
+      .leftJoinAndSelect('recipe.categories', 'rc')
+      .leftJoinAndSelect('rc.category', 'category')
+      .where('recipe.id IN (:...ids)', { ids: recipeIds })
+      .orderBy('recipe.createdAt', 'DESC')
+      .getMany();
+
+    return [recipesWithRelations, recipesWithRelations.length];
   }
 
   // 4. Комбинированный поиск (публичные + свои рецепты)
