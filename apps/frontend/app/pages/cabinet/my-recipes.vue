@@ -312,6 +312,8 @@ const fetchRecipes = async (reset = false) => {
           page: page.value,
           limit: 12,
         })
+        // При поиске обновляем favoritesCount результатами поиска
+        favoritesCount.value = response.total
       } else {
         // Если нет поиска, показываем все избранные (пагинация на клиенте)
         const start = (page.value - 1) * 12
@@ -320,13 +322,15 @@ const fetchRecipes = async (reset = false) => {
 
         response = {
           data: paginatedData,
-          total: favoritesCount.value,
+          total: favoritesData.value.length,
           page: page.value,
           limit: 12,
-          pages: Math.ceil(favoritesCount.value / 12),
-          hasNext: end < favoritesCount.value,
+          pages: Math.ceil(favoritesData.value.length / 12),
+          hasNext: end < favoritesData.value.length,
           hasPrev: page.value > 1
         }
+        // Восстанавливаем общий счетчик избранного
+        favoritesCount.value = favoritesData.value.length
       }
     } else {
       // Мои рецепты
@@ -335,12 +339,14 @@ const fetchRecipes = async (reset = false) => {
           page: page.value,
           limit: 12,
         })
+        myRecipesTotal.value = response.total
       } else {
         response = await recipesApi.getRecipes({
           page: page.value,
           limit: 12,
           authorId: user.value?.id,
         })
+        myRecipesTotal.value = response.total
       }
     }
 
@@ -348,12 +354,6 @@ const fetchRecipes = async (reset = false) => {
       recipes.value = response.data
     } else {
       recipes.value.push(...response.data)
-    }
-
-    if (activeTab.value === 'favorites') {
-      favoritesCount.value = response.total
-    } else {
-      myRecipesTotal.value = response.total
     }
 
     hasNext.value = response.hasNext
