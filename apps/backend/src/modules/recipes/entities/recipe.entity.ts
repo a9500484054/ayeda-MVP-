@@ -162,4 +162,8 @@ export class Recipe {
     description?: string;
     keywords?: string[];
   };
+
+  @ApiProperty({ example: 0, description: 'Количество просмотров' })
+  @Column({ name: 'views_count', default: 0 })
+  viewsCount: number;
 }

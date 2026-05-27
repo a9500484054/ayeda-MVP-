@@ -74,6 +74,9 @@ export class RecipeResponseDto {
   @ApiProperty({ example: 15, description: 'Количество комментариев' })
   commentsCount: number;
 
+  @ApiProperty({ example: 1250, description: 'Количество просмотров' })
+  viewsCount: number;
+
   @ApiProperty({ required: false, example: 4 })
   servings?: number;
 

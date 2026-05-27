@@ -400,6 +400,15 @@ export class RecipesService {
     return queryBuilder.getManyAndCount();
   }
 
+  // Добавьте новый метод
+  async incrementViews(id: string): Promise<void> {
+    await this.recipesRepository.increment(
+      { id },
+      'viewsCount',
+      1
+    );
+  }
+
   toResponseDto(recipe: Recipe): RecipeResponseDto {
     const categories =
       recipe.categories?.map((rc) => ({
@@ -443,6 +452,7 @@ export class RecipesService {
       publishedAt: recipe.publishedAt,
       seo: recipe.seo,
       commentsCount: recipe.commentsCount || 0, // ✅ ДОБАВЬТЕ ЭТУ СТРОКУ
+      viewsCount: recipe.viewsCount || 0, // ✅ Добавьте эту строку
     };
   }
 

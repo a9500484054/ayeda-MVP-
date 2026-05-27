@@ -11,6 +11,7 @@ import {
   Query,
   HttpStatus,
   HttpCode,
+  Ip,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -115,11 +116,14 @@ export class RecipesController {
   @ApiOperation({ summary: 'Получить рецепт по ID' })
   @ApiParam({ name: 'id', description: 'UUID рецепта' })
   @ApiResponse({ status: HttpStatus.OK, type: RecipeResponseDto })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Рецепт не найден',
-  })
-  async findOne(@Param('id') id: string): Promise<RecipeResponseDto> {
+  async findOne(
+    @Param('id') id: string,
+    @Ip() ipAddress?: string, // Опционально для логирования
+  ): Promise<RecipeResponseDto> {
+    // Увеличиваем счетчик просмотров (не ждем результата)
+    this.recipesService.incrementViews(id).catch(err => {
+      console.error('Failed to increment views:', err);
+    });
     const recipe = await this.recipesService.findOne(id);
     return this.recipesService.toResponseDto(recipe);
   }
@@ -131,9 +135,17 @@ export class RecipesController {
   async findBySrcPath(
     @Param('srcPath') srcPath: string,
   ): Promise<RecipeResponseDto> {
+    // Увеличиваем счетчик просмотров
     const recipe = await this.recipesService.findBySrcPath(srcPath);
+
+    // Увеличиваем просмотры после получения рецепта (знаем id)
+    this.recipesService.incrementViews(recipe.id).catch(err => {
+      console.error('Failed to increment views:', err);
+    });
+
     return this.recipesService.toResponseDto(recipe);
   }
+
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
