@@ -402,6 +402,8 @@ const handleSaveRecipe = async (data: any, modeType: string, id?: string) => {
       description: modeType === 'edit' ? 'Рецепт успешно обновлен' : 'Рецепт успешно создан',
       color: 'success'
     })
+    
+    isModalOpen.value = false
 
     return { success: true }
   } catch (error: any) {

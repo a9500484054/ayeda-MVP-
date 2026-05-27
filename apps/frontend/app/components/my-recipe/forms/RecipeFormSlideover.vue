@@ -63,27 +63,51 @@
           <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-3 dark:bg-darkMode-100 dark:border-darkMode-300">
             <h3 class="text-sm font-medium text-gray-900 dark:text-darkMode-700">Параметры</h3>
 
-            <div class="grid grid-cols-3 gap-3">
-              <Input
-                v-model.number="formData.cookingTime"
-                type="number"
-                label="Время (мин)"
-                placeholder="30"
-              />
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <!-- Время приготовления -->
+              <div>
+                <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Время приготовления
+                </label>
+                <NumberStepper
+                  v-model="formData.cookingTime"
+                  :min="1"
+                  :max="480"
+                  :step="5"
+                  unit="мин"
+                  :editable="true"
+                />
+              </div>
 
-              <Input
-                v-model.number="formData.servings"
-                type="number"
-                label="Порции"
-                placeholder="4"
-              />
+              <!-- Количество порций -->
+              <div>
+                <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Количество порций
+                </label>
+                <NumberStepper
+                  v-model="formData.servings"
+                  :min="1"
+                  :max="50"
+                  unit="порц"
+                  :editable="true"
+                />
+              </div>
 
-              <Input
-                v-model.number="formData.calories"
-                type="number"
-                label="Калории (ккал)"
-                placeholder="0"
-              />
+              <!-- Калорийность -->
+              <div>
+                <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Калорийность (ккал)
+                </label>
+                <NumberStepper
+                  v-model="formData.calories"
+                  :min="0"
+                  :max="5000"
+                  :step="10"
+                  unit="ккал"
+                  :editable="true"
+                  :allow-decimal="false"
+                />
+              </div>
             </div>
           </div>
 
@@ -185,6 +209,7 @@ import Textarea from '~/shared/ui/textarea/Textarea.vue'
 import IngredientsList from '~/shared/ui/ingredients-list/IngredientsList.vue'
 import { transliterateRussian } from '~/shared/utils/strings'
 import { validateVideoUrl, getEmbedUrl, detectVideoPlatform } from '~/shared/utils/video'
+import NumberStepper from '~/shared/ui/number-stepper/NumberStepper.vue'
 
 interface Props {
   open: boolean
