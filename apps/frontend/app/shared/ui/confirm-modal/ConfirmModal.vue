@@ -2,7 +2,7 @@
 <template>
   <Modal :open="open" @update:open="$emit('update:open', $event)">
     <div class="flex items-center gap-3 mb-4">
-      <div class="rounded-full p-2" :class="iconBgClass">
+      <div class="rounded-full p-2 flex" :class="iconBgClass">
         <UIcon :name="icon" class="h-5 w-5" :class="iconColorClass" />
       </div>
       <h3 class="text-lg font-semibold text-gray-900 dark:text-darkMode-700">
