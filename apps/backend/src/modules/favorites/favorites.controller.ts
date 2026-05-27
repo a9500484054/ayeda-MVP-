@@ -95,16 +95,40 @@ export class UserFavoritesController {
   }
 
   private mapToFavoriteResponseDto(favorite: any): FavoriteResponseDto {
+    // Безопасное получение категорий
+    let categories = [];
+    if (favorite.recipe?.categories) {
+      categories = favorite.recipe.categories
+        .filter((rc: any) => rc.category && rc.category.id)
+        .map((rc: any) => ({
+          id: rc.category.id,
+          code: rc.category.code,
+          name: rc.category.name,
+          description: rc.category.description,
+        }));
+    }
+
+    // Безопасное получение ингредиентов
+    let ingredients = [];
+    if (favorite.recipe?.ingredients) {
+      ingredients = favorite.recipe.ingredients.map((ri: any) => ({
+        id: ri.id,
+        amount: ri.amount,
+        notes: ri.notes,
+        ingredient: ri.ingredient,
+        unit: ri.unit,
+      }));
+    }
+
     return {
-      ...favorite,
+      id: favorite.id,
+      recipeId: favorite.recipeId,
+      userId: favorite.userId,
+      createdAt: favorite.createdAt,
       recipe: {
         ...favorite.recipe,
-        categories: favorite.recipe.categories.map((cat: any) => ({
-          id: cat.id,
-          code: cat.code,
-          name: cat.name,
-          description: cat.description,
-        })),
+        categories, // переопределяем categories (массив с данными)
+        ingredients, // переопределяем ingredients
       },
     };
   }
