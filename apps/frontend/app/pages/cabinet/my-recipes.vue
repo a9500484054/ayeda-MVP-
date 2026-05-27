@@ -273,12 +273,22 @@ const fetchRecipes = async (reset = false) => {
   else pending.value = true
 
   try {
-    const response = await recipesApi.getRecipes({
-      page: page.value,
-      limit: 12,
-      authorId: user.value?.id,
-      search: searchQuery.value || undefined,
-    })
+    let response
+
+    // Если есть поисковый запрос - используем searchRecipes
+    if (searchQuery.value && searchQuery.value.trim()) {
+      response = await recipesApi.searchRecipes(searchQuery.value, {
+        page: page.value,
+        limit: 12,
+      })
+    } else {
+      // Иначе обычный запрос
+      response = await recipesApi.getRecipes({
+        page: page.value,
+        limit: 12,
+        authorId: user.value?.id,
+      })
+    }
 
     if (reset || page.value === 1) {
       recipes.value = response.data

@@ -91,11 +91,26 @@
           <div class="bg-white rounded-xl border border-gray-200 p-5 dark:bg-darkMode-100 dark:border-darkMode-300">
             <Input
               v-model="formData.video"
-              label="Видео (YouTube)"
-              placeholder="https://youtube.com/..."
+              label="Видео"
+              placeholder="https://youtube.com/watch?v=... или vk.com/video-... или rutube.ru/video/..."
               :error="videoError"
+              hint="Поддерживаются YouTube, VK Video, Rutube"
               @blur="validateVideo"
             />
+
+            <!-- Предпросмотр видео (если URL корректен) -->
+            <div v-if="formData.video && !videoError && videoEmbedUrl" class="mt-3">
+              <div class="text-xs text-gray-500 mb-2">Предпросмотр:</div>
+              <div class="relative pt-[56.25%] rounded-lg overflow-hidden bg-gray-100">
+                <iframe
+                  :src="videoEmbedUrl"
+                  class="absolute inset-0 w-full h-full"
+                  frameborder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowfullscreen
+                />
+              </div>
+            </div>
           </div>
 
           <!-- Ingredients -->
@@ -169,7 +184,7 @@ import StepsList from '~/shared/ui/steps-list/StepsList.vue'
 import Textarea from '~/shared/ui/textarea/Textarea.vue'
 import IngredientsList from '~/shared/ui/ingredients-list/IngredientsList.vue'
 import { transliterateRussian } from '~/shared/utils/strings'
-import { validateYouTubeUrl } from '~/shared/utils/video'
+import { validateVideoUrl, getEmbedUrl, detectVideoPlatform } from '~/shared/utils/video'
 
 interface Props {
   open: boolean
@@ -307,18 +322,40 @@ const handleIngredientSearch = async (query: string, index: number) => {
 }
 
 // Methods
+const videoEmbedUrl = ref('')
+
 const validateVideo = () => {
-  if (!formData.value.video) {
+  const url = formData.value.video
+  if (!url) {
     videoError.value = ''
+    videoEmbedUrl.value = ''
     return
   }
 
-  if (!validateYouTubeUrl(formData.value.video)) {
-    videoError.value = 'Введите корректную YouTube ссылку'
-  } else {
-    videoError.value = ''
+  if (!validateVideoUrl(url)) {
+    const platform = detectVideoPlatform(url)
+    if (platform === 'vk') {
+      videoError.value = 'Некорректная ссылка VK Video. Попробуйте скопировать ссылку из адресной строки браузера.'
+    } else if (platform === 'rutube') {
+      videoError.value = 'Некорректная ссылка Rutube.'
+    } else if (platform === 'youtube') {
+      videoError.value = 'Некорректная ссылка YouTube.'
+    } else {
+      videoError.value = 'Введите корректную ссылку на видео (YouTube, VK Video, Rutube)'
+    }
+    videoEmbedUrl.value = ''
+    return
   }
+
+  videoError.value = ''
+  videoEmbedUrl.value = getEmbedUrl(url) || ''
 }
+
+
+// Вызываем валидацию при монтировании (если есть ссылка)
+watch(() => formData.value.video, () => {
+  if (formData.value.video) validateVideo()
+}, { immediate: true })
 
 const resetForm = () => {
   formData.value = {
