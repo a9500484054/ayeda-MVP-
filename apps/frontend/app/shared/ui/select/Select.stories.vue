@@ -245,6 +245,67 @@
             </template>
           </Select>
         </div>
+
+        <!-- Добавьте в grid после существующих примеров -->
+
+        <!-- 11. С поиском (в отдельном поле) -->
+        <div class="bg-white rounded-xl p-6 shadow-sm">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">🔍 С поиском (отдельное поле)</h3>
+          <Select
+            v-model="searchValue"
+            :options="manyOptions"
+            label="Выберите город"
+            placeholder="Выберите город"
+            searchable
+          />
+          <p class="text-sm text-gray-500 mt-2">Выбрано: {{ searchValue || 'ничего' }}</p>
+        </div>
+
+        <!-- 12. С поиском в инпуте -->
+        <div class="bg-white rounded-xl p-6 shadow-sm">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">🔍 Поиск в инпуте</h3>
+          <Select
+            v-model="searchInInputValue"
+            :options="manyOptions"
+            label="Выберите город"
+            placeholder="Введите название города..."
+            searchable
+            search-in-input
+          />
+          <p class="text-sm text-gray-500 mt-2">Выбрано: {{ searchInInputValue || 'ничего' }}</p>
+        </div>
+
+        <!-- 13. С поиском и кастомной фильтрацией -->
+        <div class="bg-white rounded-xl p-6 shadow-sm">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">🔍 Поиск с кастомной фильтрацией</h3>
+          <Select
+            v-model="customFilterValue"
+            :options="iconOptions"
+            label="Выберите категорию"
+            placeholder="Поиск по названию или иконке..."
+            searchable
+            :filter-option="customFilter"
+          >
+            <template #options="{ options, isSelected, selectOption }">
+              <button
+                v-for="option in options"
+                :key="option.value"
+                type="button"
+                class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-gray-100"
+                :class="{ 'bg-emerald-50': isSelected(option.value) }"
+                @click="selectOption(option)"
+              >
+                <UIcon :name="option.icon" class="h-4 w-4 text-gray-400" />
+                <span class="flex-1 text-gray-700">{{ option.label }}</span>
+                <UIcon
+                  v-if="isSelected(option.value)"
+                  name="i-lucide-check"
+                  class="h-4 w-4 text-emerald-600"
+                />
+              </button>
+            </template>
+          </Select>
+        </div>
       </div>
 
       <!-- Много опций -->
@@ -281,7 +342,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import Select from './Select.vue'
+import Select, { type SelectOption } from './Select.vue'
 import Button from '../button/Button.vue'
 
 // Базовые опции
@@ -358,4 +419,15 @@ const manyOptions = Array.from({ length: 50 }, (_, i) => ({
 // Программное управление
 const programmaticSelect = ref()
 const programmaticValue = ref(null)
+
+
+// Поиск
+const searchValue = ref(null)
+const searchInInputValue = ref(null)
+const customFilterValue = ref(null)
+
+const customFilter = (option: SelectOption, query: string) => {
+  return option.label.toLowerCase().includes(query) ||
+         (option.icon && option.icon.toLowerCase().includes(query))
+}
 </script>

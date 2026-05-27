@@ -23,17 +23,21 @@
         :class="{ 'opacity-50': disabled }"
       >
         <div class="flex gap-2">
-          <!-- Ingredient Select -->
           <div class="flex-1">
+            <!-- Добавляем key для принудительного перерендера при изменении ingredientId -->
             <Select
+              :key="`select-${index}-${ingredient.ingredientId || 'empty'}`"
               :ref="(el) => setSelectRef(el, index)"
               :model-value="ingredient.ingredientId"
-              :options="availableIngredientsOptions(index)"
+              :options="getOptionsForIndex(index)"
               :placeholder="ingredientPlaceholder"
               :disabled="disabled"
-              :loading="ingredientsLoading && activeIngredientIndex === index"
+              :loading="isLoadingIngredients"
+              searchable
               @update:model-value="(val) => selectIngredientById(val, index)"
-              @focus="() => handleSelectFocus(index)"
+              @search="(query) => handleSearch(query, index)"
+              @focus="() => handleFocus(index)"
+              @open="() => handleOpen(index)"
             >
               <template #options="{ options, isSelected }">
                 <button
@@ -54,7 +58,6 @@
             </Select>
           </div>
 
-          <!-- Amount -->
           <Input
             v-model.number="ingredient.amount"
             type="number"
@@ -64,12 +67,10 @@
             @update:model-value="emitUpdate"
           />
 
-          <!-- Unit -->
           <div class="flex min-w-[80px] items-center rounded-lg px-2 text-sm text-gray-500 dark:text-darkMode-500">
             {{ ingredient.unitName || '—' }}
           </div>
 
-          <!-- Remove -->
           <Button
             v-if="!disabled"
             color="danger"
@@ -81,7 +82,6 @@
         </div>
       </div>
 
-      <!-- Empty state -->
       <div
         v-if="localIngredients.length === 0"
         class="flex flex-col items-center justify-center py-8 text-center"
@@ -97,7 +97,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed, onUnmounted } from 'vue'
+import { ref, watch, computed } from 'vue'
+import { useDebounceFn } from '@vueuse/core'
 import Input from '../input/Input.vue'
 import Button from '../button/Button.vue'
 import Select from '../select/Select.vue'
@@ -126,8 +127,6 @@ interface Props {
   error?: string
   required?: boolean
   disabled?: boolean
-  ingredients?: SuggestionItem[]
-  ingredientsLoading?: boolean
   ingredientPlaceholder?: string
 }
 
@@ -136,21 +135,18 @@ const props = withDefaults(defineProps<Props>(), {
   hint: '',
   required: false,
   disabled: false,
-  ingredients: () => [],
-  ingredientsLoading: false,
   ingredientPlaceholder: 'Поиск ингредиента...'
 })
 
 const emit = defineEmits<{
   'update:modelValue': [value: IngredientItem[]]
-  'search-ingredients': [query: string]
+  'search': [query: string, index: number]
 }>()
 
 const localIngredients = ref<IngredientItem[]>([])
-const activeIngredientIndex = ref<number | null>(null)
 const selectRefs = ref<Map<number, InstanceType<typeof Select>>>(new Map())
-
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
+const localSuggestions = ref<SuggestionItem[]>([])
+const isLoadingIngredients = ref(false)
 
 // Sync with props
 watch(
@@ -171,7 +167,42 @@ const labelClass = computed(() => {
     : 'text-gray-700 dark:text-gray-300'
 })
 
-// Установка ref для Select
+// Получение опций для конкретного индекса, ВКЛЮЧАЯ выбранный ингредиент
+const getOptionsForIndex = (index: number) => {
+  const currentIngredient = localIngredients.value[index]
+  const currentIngredientId = currentIngredient?.ingredientId
+  // ID выбранных ингредиентов в других строках
+  const selectedIds = new Set(
+    localIngredients.value
+      .filter((_, i) => i !== index)
+      .map(ing => ing.ingredientId)
+      .filter(Boolean)
+  )
+
+  // Доступные опции (не выбранные в других строках)
+  const available = localSuggestions.value
+    .filter(item => !selectedIds.has(item.id))
+    .map(item => ({
+      value: item.id,
+      label: item.name
+    }))
+
+  // Если есть выбранный ингредиент, добавляем его в начало списка
+  if (currentIngredientId && currentIngredient.ingredient) {
+
+    const existingIndex = available.findIndex(opt => opt.value === currentIngredientId)
+    console.log('currentIngredient:', currentIngredient, existingIndex)
+    if (existingIndex === -1) {
+      available.unshift({
+        value: currentIngredientId,
+        label: currentIngredient.ingredient.name
+      })
+    }
+  }
+
+  return available
+}
+
 const setSelectRef = (el: any, index: number) => {
   if (el) {
     selectRefs.value.set(index, el)
@@ -180,32 +211,49 @@ const setSelectRef = (el: any, index: number) => {
   }
 }
 
-// Доступные опции для конкретного ингредиента
-const availableIngredientsOptions = (index: number) => {
-  const selectedIds = localIngredients.value
-    .filter((_, i) => i !== index)
-    .map(ing => ing.ingredientId)
-    .filter(Boolean)
+// Debounced search
+const debouncedSearch = useDebounceFn((query: string, index: number) => {
+  if (query && query.length >= 2) {
+    console.log('Emitting search for:', query, 'index:', index)
+    emit('search', query, index)
+  } else if (!query) {
+    console.log('Emitting empty search for index:', index)
+    emit('search', '', index)
+  }
+}, 300)
 
-  return props.ingredients
-    .filter(item => !selectedIds.includes(item.id))
-    .map(item => ({
-      value: item.id,
-      label: item.name
-    }))
+const handleSearch = (query: string, index: number) => {
+  console.log('IngredientsList handleSearch:', query, index)
+  debouncedSearch(query, index)
+}
+
+const handleFocus = (index: number) => {
+  console.log('Focus on ingredient', index)
+  if (localSuggestions.value.length === 0) {
+    emit('search', '', index)
+  }
+}
+
+const handleOpen = (index: number) => {
+  console.log('IngredientsList opened for index:', index)
+  if (localSuggestions.value.length === 0) {
+    emit('search', '', index)
+  }
 }
 
 const selectIngredientById = (value: string | number | null, index: number) => {
+  console.log('selectIngredientById called with:', value, index)
   if (!value || typeof value !== 'string') return
 
-  const item = props.ingredients.find(i => i.id === value)
+  const item = localSuggestions.value.find(i => i.id === value)
   if (item) {
     selectIngredient(item, index)
   }
 }
 
 const selectIngredientFromOption = (option: { value: string; label: string }, index: number) => {
-  const item = props.ingredients.find(i => i.id === option.value)
+  console.log('selectIngredientFromOption called:', option, index)
+  const item = localSuggestions.value.find(i => i.id === option.value)
   if (item) {
     selectIngredient(item, index)
   }
@@ -214,7 +262,10 @@ const selectIngredientFromOption = (option: { value: string; label: string }, in
 const selectIngredient = (item: SuggestionItem, index: number) => {
   if (props.disabled) return
 
-  localIngredients.value[index] = {
+  console.log('Selecting ingredient:', item.name, 'at index:', index)
+
+  // Создаем новый объект для обновления
+  const updatedIngredient = {
     ...localIngredients.value[index],
     ingredientId: item.id,
     ingredient: { id: item.id, name: item.name },
@@ -222,9 +273,14 @@ const selectIngredient = (item: SuggestionItem, index: number) => {
     unitName: item.unitName || ''
   }
 
+  // Обновляем массив
+  const newIngredients = [...localIngredients.value]
+  newIngredients[index] = updatedIngredient
+  localIngredients.value = newIngredients
+
   emitUpdate()
 
-  // Закрываем dropdown после выбора
+  // Закрываем дропдаун
   const selectRef = selectRefs.value.get(index)
   if (selectRef && selectRef.close) {
     selectRef.close()
@@ -234,7 +290,6 @@ const selectIngredient = (item: SuggestionItem, index: number) => {
 const addIngredient = () => {
   if (props.disabled) return
 
-  const newIndex = localIngredients.value.length
   localIngredients.value.push({
     ingredientId: '',
     amount: 0,
@@ -255,12 +310,14 @@ const emitUpdate = () => {
   emit('update:modelValue', localIngredients.value)
 }
 
-const handleSelectFocus = (index: number) => {
-  activeIngredientIndex.value = index
-  emit('search-ingredients', '')
+// Обработка внешних данных
+const setSuggestions = (suggestions: SuggestionItem[]) => {
+  console.log('IngredientsList setSuggestions:', suggestions.length)
+  localSuggestions.value = suggestions
+  isLoadingIngredients.value = false
 }
 
-onUnmounted(() => {
-  if (searchTimeout) clearTimeout(searchTimeout)
+defineExpose({
+  setSuggestions
 })
 </script>

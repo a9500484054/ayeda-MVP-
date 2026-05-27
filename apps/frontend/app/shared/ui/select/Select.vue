@@ -1,4 +1,3 @@
-<!-- В шаблон Select.vue добавим отображение множественного выбора -->
 <template>
   <div class="group">
     <label v-if="label" class="mb-1.5 block text-sm font-medium" :class="labelClass">
@@ -7,13 +6,15 @@
     </label>
 
     <div class="relative">
+      <!-- Input -->
       <Input
-        :model-value="displayValue"
+        :model-value="inputValue"
         :placeholder="placeholder"
         :disabled="disabled"
         :error="error"
-        :readonly="true"
+        :readonly="!searchable"
         @click="toggleDropdown"
+        @update:model-value="handleSearchInput"
       >
         <template #rightIcon>
           <UIcon
@@ -33,9 +34,9 @@
           <div class="max-h-60 overflow-y-auto p-1">
             <slot name="header" />
 
-            <slot name="options" :options="options" :isSelected="isSelected" :selectOption="selectOption">
+            <slot name="options" :options="filteredOptions" :isSelected="isSelected" :selectOption="selectOption">
               <button
-                v-for="option in options"
+                v-for="option in filteredOptions"
                 :key="option.value"
                 type="button"
                 class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-gray-100 dark:hover:bg-darkMode-200"
@@ -67,12 +68,12 @@
             <slot name="footer" />
 
             <div
-              v-if="options.length === 0 && !$slots.empty"
+              v-if="filteredOptions.length === 0 && !$slots.empty"
               class="px-3 py-3 text-center text-sm text-gray-400"
             >
-              Нет данных
+              {{ searchQuery ? 'Ничего не найдено' : 'Нет данных' }}
             </div>
-            <div v-else-if="options.length === 0 && $slots.empty">
+            <div v-else-if="filteredOptions.length === 0 && $slots.empty">
               <slot name="empty" />
             </div>
           </div>
@@ -86,6 +87,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted } from 'vue'
+import { useDebounceFn } from '@vueuse/core'
 import Input from '../input/Input.vue'
 
 export interface SelectOption {
@@ -104,23 +106,57 @@ interface Props {
   required?: boolean
   disabled?: boolean
   multiple?: boolean
+  searchable?: boolean
+  filterOption?: (option: SelectOption, query: string) => boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   placeholder: 'Выберите...',
   required: false,
   disabled: false,
-  multiple: false
+  multiple: false,
+  searchable: false
 })
 
 const emit = defineEmits<{
   'update:modelValue': [value: string | number | null | string[] | number[]]
   'change': [value: string | number | null | string[] | number[]]
+  'search': [query: string]
+  'open': []
 }>()
 
 const isOpen = ref(false)
+const searchQuery = ref('')
+const isSearching = ref(false)
 
-// Вычисляем отображаемое значение
+// Значение для отображения в инпуте
+const inputValue = computed(() => {
+  // Если режим поиска и пользователь что-то ввел - показываем поисковый запрос
+  if (props.searchable && isSearching.value) {
+    return searchQuery.value
+  }
+  // Иначе показываем выбранное значение
+  return displayValue.value
+})
+
+// Фильтрация опций (только локальная)
+const filteredOptions = computed(() => {
+  if (!props.searchable || !searchQuery.value) {
+    return props.options
+  }
+
+  const query = searchQuery.value.toLowerCase().trim()
+
+  if (props.filterOption) {
+    return props.options.filter(opt => props.filterOption!(opt, query))
+  }
+
+  return props.options.filter(opt =>
+    opt.label.toLowerCase().includes(query)
+  )
+})
+
+// Вычисляем отображаемое значение для выбранной опции
 const displayValue = computed(() => {
   if (props.multiple && Array.isArray(props.modelValue)) {
     const selectedLabels = props.modelValue
@@ -154,7 +190,15 @@ const isSelected = (value: string | number) => {
 
 const toggleDropdown = () => {
   if (!props.disabled) {
-    isOpen.value = !isOpen.value
+    const newState = !isOpen.value
+    isOpen.value = newState
+    if (newState) {
+      emit('open')
+    } else {
+      // При закрытии сбрасываем режим поиска
+      isSearching.value = false
+      searchQuery.value = ''
+    }
   }
 }
 
@@ -173,10 +217,40 @@ const selectOption = (option: SelectOption) => {
   } else {
     newValue = option.value === props.modelValue ? null : option.value
     isOpen.value = false
+    // Сбрасываем поиск
+    isSearching.value = false
+    searchQuery.value = ''
   }
 
   emit('update:modelValue', newValue)
   emit('change', newValue)
+}
+
+// Обработка поиска в инпуте
+const debouncedSearch = useDebounceFn((value: string) => {
+  console.log('Select debounced search:', value)
+  searchQuery.value = value
+  emit('search', value)
+}, 300)
+
+const handleSearchInput = (value: string) => {
+  console.log('Select handleSearchInput:', value, 'searchable:', props.searchable)
+  if (!props.searchable) return
+
+  // Включаем режим поиска
+  isSearching.value = true
+
+  if (!isOpen.value) {
+    isOpen.value = true
+  }
+
+  debouncedSearch(value)
+
+  // Если поле пустое, сбрасываем поисковый запрос сразу
+  if (!value) {
+    searchQuery.value = ''
+    emit('search', '')
+  }
 }
 
 // Close dropdown when clicking outside
@@ -184,13 +258,16 @@ const handleClickOutside = (event: MouseEvent) => {
   const target = event.target as HTMLElement
   if (!target.closest('.relative')) {
     isOpen.value = false
+    isSearching.value = false
+    searchQuery.value = ''
   }
 }
 
-// Close on escape key
 const handleEscapeKey = (event: KeyboardEvent) => {
   if (event.key === 'Escape' && isOpen.value) {
     isOpen.value = false
+    isSearching.value = false
+    searchQuery.value = ''
   }
 }
 

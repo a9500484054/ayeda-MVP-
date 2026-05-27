@@ -45,17 +45,17 @@
           <!-- Categories -->
           <div class="bg-white rounded-xl border border-gray-200 p-5 dark:bg-darkMode-100 dark:border-darkMode-300">
             <CategorySelect
+              ref="categorySelectRef"
               v-model="formData.categoryIds"
-              :suggestions="categoryItems"
-              :loading="categoriesLoading"
               :max="5"
               label="Категории"
               placeholder="Введите название категории..."
               :error="touched.categoryIds && errors.categoryIds ? errors.categoryIds : ''"
               hint="Можно выбрать до 5 категорий"
               required
-              @search="handleCategorySearch"
+              :fetch-by-ids="fetchCategoriesByIds"
               @update:model-value="touched.categoryIds = true"
+              @search="handleCategorySearch"
             />
           </div>
 
@@ -101,14 +101,13 @@
           <!-- Ingredients -->
           <div class="bg-white rounded-xl border border-gray-200 p-5 dark:bg-darkMode-100 dark:border-darkMode-300">
             <IngredientsList
+              ref="ingredientsListRef"
               v-model="formData.ingredients"
               label="Ингредиенты"
-              :ingredients="searchIngredients"
-              :ingredients-loading="ingredientsLoading"
               :error="touched.ingredients && errors.ingredients ? errors.ingredients : ''"
               required
               @update:model-value="touched.ingredients = true"
-              @search-ingredients="handleIngredientSearch"
+              @search="handleIngredientSearch"
             />
           </div>
 
@@ -168,10 +167,9 @@ import Input from '~/shared/ui/input/Input.vue'
 import Slideover from '~/shared/ui/slideover/Slideover.vue'
 import StepsList from '~/shared/ui/steps-list/StepsList.vue'
 import Textarea from '~/shared/ui/textarea/Textarea.vue'
+import IngredientsList from '~/shared/ui/ingredients-list/IngredientsList.vue'
 import { transliterateRussian } from '~/shared/utils/strings'
 import { validateYouTubeUrl } from '~/shared/utils/video'
-import IngredientsList from '~/shared/ui/ingredients-list/IngredientsList.vue'
-
 
 interface Props {
   open: boolean
@@ -222,11 +220,9 @@ const categoriesLoading = ref(false)
 const ingredientsLoading = ref(false)
 const isSubmitting = ref(false)
 
-// Data
-const searchCategories = ref<any[]>([])
-const searchIngredients = ref<any[]>([])
-
-// Refs
+// Refs for child components
+const categorySelectRef = ref<InstanceType<typeof CategorySelect> | null>(null)
+const ingredientsListRef = ref<InstanceType<typeof IngredientsList> | null>(null)
 const stepsListRef = ref<InstanceType<typeof StepsList> | null>(null)
 
 // Computed
@@ -239,9 +235,76 @@ const isFormValid = computed(() => {
     formData.value.steps.length > 0)
 })
 
-const categoryItems = computed(() => {
-  return searchCategories.value.map(cat => ({ label: cat.name, value: cat.id }))
-})
+// ==================== Categories Handlers ====================
+const handleCategorySearch = async (query: string) => {
+  console.log('Category search:', query)
+  categoriesLoading.value = true
+
+  try {
+    let suggestions: { label: string; value: string }[] = []
+
+    if (!query || query.length < 2) {
+      // Загружаем первые 10 категорий
+      const response = await categoriesApi.getCategories(1, 10)
+      suggestions = (response.data || []).map((cat: any) => ({
+        label: cat.name,
+        value: cat.id
+      }))
+    } else {
+      // Поиск категорий
+      const response = await categoriesApi.searchCategories(query, { limit: 20 })
+      const data = response.data || response.categories || []
+      suggestions = data.map((cat: any) => ({
+        label: cat.name,
+        value: cat.id
+      }))
+    }
+
+    categorySelectRef.value?.setSuggestions(suggestions)
+  } catch (error) {
+    console.error('Error in category search:', error)
+  } finally {
+    categoriesLoading.value = false
+  }
+}
+
+// ==================== Ingredients Handlers ====================
+const handleIngredientSearch = async (query: string, index: number) => {
+  console.log('RecipeFormSlideover handleIngredientSearch:', query, 'for index:', index)
+  ingredientsLoading.value = true
+
+  try {
+    let suggestions: { id: string; name: string; unitId: string; unitName: string }[] = []
+
+    if (!query || query.length < 2) {
+      console.log('Loading initial ingredients...')
+      const response = await ingredientsApi.getIngredients(1, 10)
+      console.log('Initial ingredients loaded:', response.data || 0)
+      suggestions = (response.data || []).map((ing: any) => ({
+        id: ing.id,
+        name: ing.name,
+        unitId: ing.unitId || '',
+        unitName: ing.unit.name || ''
+      }))
+    } else {
+      console.log('Searching ingredients for:', query)
+      const response = await ingredientsApi.searchIngredients(query, 1, 20)
+      suggestions = (response.data || []).map((ing: any) => ({
+        id: ing.id,
+        name: ing.name,
+        unitId: ing.unitId || '',
+        unitName: ing.unit.name || ''
+      }))
+    }
+
+    console.log('Ingredients suggestions count:', suggestions.length)
+    ingredientsListRef.value?.setSuggestions(suggestions)
+  } catch (error) {
+    console.error('Error in ingredient search:', error)
+  } finally {
+    ingredientsLoading.value = false
+  }
+}
 
 // Methods
 const validateVideo = () => {
@@ -297,7 +360,7 @@ const loadRecipeToForm = (recipe: RecipeResponse) => {
       amount: typeof ing.amount === 'string' ? parseFloat(ing.amount) : (ing.amount || 0),
       unitId: ing.unitId || ing.ingredient?.unitId || '',
       notes: ing.notes || '',
-      unitName: ing.unitName || ing.ingredient?.unit?.shortName || ''
+      unitName: ing.unit?.short || ing.unit?.name || ing.unitName || '',
     })) || [],
     steps: recipe.steps?.map((step: any, idx: number) => ({
       sort: step.sort || idx + 1,
@@ -324,55 +387,6 @@ watch(() => props.open, (isOpen) => {
     }
   }
 })
-
-// Handlers
-const handleIngredientSearch = (query: string) => {
-  loadIngredients(query)
-}
-
-const loadIngredients = async (searchQuery: string = '') => {
-  ingredientsLoading.value = true
-
-  try {
-    if (!searchQuery || searchQuery.length < 2) {
-      const response = await ingredientsApi.getIngredients(1, 50)
-      searchIngredients.value = response.data || []
-      return
-    }
-
-    const response = await ingredientsApi.searchIngredients(searchQuery, 1, 20)
-    searchIngredients.value = response.data || []
-  } catch (error) {
-    console.error('Error loading ingredients:', error)
-    searchIngredients.value = []
-  } finally {
-    ingredientsLoading.value = false
-  }
-}
-
-const handleCategorySearch = (query: string) => {
-  loadCategories(query)
-}
-
-const loadCategories = async (searchQuery: string) => {
-  categoriesLoading.value = true
-
-  try {
-    if (!searchQuery || searchQuery.length < 2) {
-      const response = await categoriesApi.getCategories(1, 50)
-      searchCategories.value = response.data || []
-      return
-    }
-
-    const response = await categoriesApi.searchCategories(searchQuery, { limit: 20 })
-    searchCategories.value = response.data || response.categories || []
-  } catch (error) {
-    console.error('Error loading categories:', error)
-    searchCategories.value = []
-  } finally {
-    categoriesLoading.value = false
-  }
-}
 
 // File uploads
 const beforeUpload = (file: File): boolean => {
@@ -558,7 +572,24 @@ const handleClose = () => {
   }
 }
 
-// Initial load
-loadIngredients()
-loadCategories('')
+// Добавьте функцию для загрузки категорий по ID
+const fetchCategoriesByIds = async (ids: string[]) => {
+  if (!ids.length) return []
+
+  console.log('Fetching categories by IDs:', ids)
+  try {
+    // Загружаем все категории и фильтруем по ID
+    const response = await categoriesApi.getCategories(1, 100)
+    const allCategories = response.data || []
+    return allCategories
+      .filter((cat: any) => ids.includes(cat.id))
+      .map((cat: any) => ({
+        label: cat.name,
+        value: cat.id
+      }))
+  } catch (error) {
+    console.error('Error fetching categories by IDs:', error)
+    return []
+  }
+}
 </script>

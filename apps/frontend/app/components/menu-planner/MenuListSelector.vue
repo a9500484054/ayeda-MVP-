@@ -7,7 +7,7 @@
 
     <!-- Список карточек -->
     <div class="flex flex-wrap gap-3">
-      <button
+      <div
         v-for="list in sortedLists"
         :key="list.id"
         class="menu-list-card group relative flex items-center gap-2 rounded-xl px-4 py-2.5 transition-all cursor-pointer"
@@ -45,7 +45,7 @@
         >
           <UIcon name="i-lucide-more-vertical" class="h-3.5 w-3.5 text-zinc-500" />
         </button>
-      </button>
+      </div>
 
       <!-- Кнопка "Создать" если нет списков -->
       <button
