@@ -1,4 +1,3 @@
-<!-- apps\frontend\app\pages\cabinet\my-recipes.vue -->
 <template>
   <div class="mx-auto w-full max-w-7xl px-4 py-6 md:px-6">
     <!-- HEADER -->
@@ -164,7 +163,7 @@ import { useRecipesApi, type RecipeResponse } from '~/composables/useRecipesApi'
 import Button from '~/shared/ui/button/Button.vue'
 import ConfirmModal from '~/shared/ui/confirm-modal/ConfirmModal.vue'
 import { useRecipesFavorites } from '~/composables/useRecipesFavorites'
-
+import EmptyState from '~/shared/ui/emptyState/EmptyState.vue'
 
 definePageMeta({ layout: 'cabinet' })
 
@@ -176,6 +175,7 @@ const favoritesApi = useRecipesFavorites()
 
 // ==================== State ====================
 const recipes = ref<RecipeResponse[]>([])
+const favoritesData = ref<RecipeResponse[]>([]) // Хранилище избранного
 const loadingMore = ref(false)
 const searchQuery = ref('')
 const currentView = ref<'grid' | 'list'>('grid')
@@ -306,11 +306,10 @@ const fetchRecipes = async (reset = false) => {
   }
 }
 
-// Fetch Favorites
+// Fetch Favorites - загружает все избранное
 const fetchFavorites = async () => {
   if (!isAuthenticated.value || !user.value?.id) return
 
-  pending.value = true
   try {
     const favorites = await favoritesApi.getUserFavorites(user.value.id)
     const favoriteItems = favorites.data || favorites || []
@@ -324,16 +323,20 @@ const fetchFavorites = async () => {
       }
     })
 
-    recipes.value = recipesList
-    favoritesCount.value = recipes.value.length
-    hasNext.value = false
+    favoritesData.value = recipesList
+    favoritesCount.value = recipesList.length
   } catch (error) {
     console.error('Error fetching favorites:', error)
-    recipes.value = []
+    favoritesData.value = []
     favoritesCount.value = 0
-  } finally {
-    pending.value = false
   }
+}
+
+// Показ избранного (без повторного запроса)
+const showFavorites = () => {
+  recipes.value = favoritesData.value
+  pending.value = false
+  hasNext.value = false
 }
 
 const loadMore = async () => {
@@ -392,6 +395,7 @@ const handleSaveRecipe = async (data: any, modeType: string, id?: string) => {
     }
 
     await fetchRecipes(true)
+    await fetchFavorites() // Обновляем избранное
 
     toast.add({
       title: 'Успех',
@@ -439,6 +443,7 @@ const deleteRecipe = async () => {
     await recipesApi.deleteRecipe(recipeToDelete.value.id)
     showDeleteModal.value = false
     await fetchRecipes(true)
+    await fetchFavorites() // Обновляем избранное
     recipeToDelete.value = null
 
     toast.add({
@@ -488,6 +493,7 @@ const handleSubmitModeration = async () => {
     }
 
     await fetchRecipes(true)
+    await fetchFavorites()
 
     toast.add({
       title: 'Успех',
@@ -519,6 +525,7 @@ const handleMakePrivate = async () => {
     }
 
     await fetchRecipes(true)
+    await fetchFavorites()
 
     toast.add({
       title: 'Успех',
@@ -546,6 +553,10 @@ const removeFromFavorites = async (recipe: RecipeResponse) => {
     })
 
     await fetchFavorites()
+
+    if (activeTab.value === 'favorites') {
+      showFavorites()
+    }
   } catch (error: any) {
     console.error('Error removing from favorites:', error)
     toast.add({
@@ -559,7 +570,7 @@ const removeFromFavorites = async (recipe: RecipeResponse) => {
 // ==================== Watchers ====================
 watch(activeTab, (newTab) => {
   if (newTab === 'favorites') {
-    fetchFavorites()
+    showFavorites()
   } else {
     fetchRecipes(true)
   }
@@ -589,7 +600,11 @@ onMounted(async () => {
     currentView.value = savedView
   }
 
-  await fetchRecipes(true)
+  // Параллельная загрузка рецептов и избранного
+  await Promise.all([
+    fetchRecipes(true),
+    fetchFavorites()
+  ])
 
   nextTick(() => {
     updateIndicatorPosition()
