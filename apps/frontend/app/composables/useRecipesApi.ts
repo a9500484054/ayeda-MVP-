@@ -1,4 +1,4 @@
-// apps\frontend\app\composables\useRecipesApi.ts
+// apps/frontend/app/composables/useRecipesApi.ts
 import type { UserDto } from "~/shared/types/domain";
 import { useApi } from "./useApi";
 
@@ -85,6 +85,11 @@ export interface RecipesResponse {
   hasPrev: boolean;
 }
 
+export interface SearchRecipesParams {
+  page?: number;
+  limit?: number;
+}
+
 export function useRecipesApi() {
   const api = useApi();
 
@@ -117,15 +122,49 @@ export function useRecipesApi() {
       return await api(`/recipes/by-path/${srcPath}`);
     },
 
-    // Поиск рецептов
-    async searchRecipes(q: string, params?: {
-      page?: number;
-      limit?: number;
-    }): Promise<RecipesResponse> {
-      return await api('/recipes/search', {
+    // ==================== Поиск рецептов ====================
+    // tudo удалить
+    async searchRecipes(q: string, params?: SearchRecipesParams): Promise<RecipesResponse> {
+      return await api('/recipes/search/public', {
         method: 'GET',
         params: { q, page: 1, limit: 10, ...params }
       });
+    },
+    // 1. Публичный поиск (не требует авторизации)
+    async searchPublicRecipes(q: string, params?: SearchRecipesParams): Promise<RecipesResponse> {
+      return await api('/recipes/search/public', {
+        method: 'GET',
+        params: { q, page: 1, limit: 10, ...params }
+      });
+    },
+
+    // 2. Поиск по своим рецептам (требует авторизации)
+    async searchMyRecipes(q: string, params?: SearchRecipesParams): Promise<RecipesResponse> {
+      return await api('/recipes/search/my', {
+        method: 'GET',
+        params: { q, page: 1, limit: 10, ...params }
+      });
+    },
+
+    // 3. Поиск по избранным рецептам (требует авторизации)
+    async searchFavoritesRecipes(q: string, params?: SearchRecipesParams): Promise<RecipesResponse> {
+      return await api('/recipes/search/favorites', {
+        method: 'GET',
+        params: { q, page: 1, limit: 10, ...params }
+      });
+    },
+
+    // 4. Комбинированный поиск (публичные + свои) (требует авторизации)
+    async searchAllRecipes(q: string, params?: SearchRecipesParams): Promise<RecipesResponse> {
+      return await api('/recipes/search/all', {
+        method: 'GET',
+        params: { q, page: 1, limit: 10, ...params }
+      });
+    },
+
+    // Старый метод поиска (оставляем для обратной совместимости)
+    async searchRecipes(q: string, params?: SearchRecipesParams): Promise<RecipesResponse> {
+      return await this.searchPublicRecipes(q, params);
     },
 
     // Создать рецепт

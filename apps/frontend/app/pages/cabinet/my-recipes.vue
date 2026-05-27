@@ -275,9 +275,9 @@ const fetchRecipes = async (reset = false) => {
   try {
     let response
 
-    // Если есть поисковый запрос - используем searchRecipes
+    // Если есть поисковый запрос - используем searchMyRecipes
     if (searchQuery.value && searchQuery.value.trim()) {
-      response = await recipesApi.searchRecipes(searchQuery.value, {
+      response = await recipesApi.searchMyRecipes(searchQuery.value, {
         page: page.value,
         limit: 12,
       })
@@ -402,7 +402,7 @@ const handleSaveRecipe = async (data: any, modeType: string, id?: string) => {
       description: modeType === 'edit' ? 'Рецепт успешно обновлен' : 'Рецепт успешно создан',
       color: 'success'
     })
-    
+
     isModalOpen.value = false
 
     return { success: true }

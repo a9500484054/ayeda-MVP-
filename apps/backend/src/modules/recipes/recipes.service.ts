@@ -376,31 +376,30 @@ export class RecipesService {
     return this.recipesRepository.save(recipe);
   }
 
-  async search(query: string, paginationDto: any): Promise<[Recipe[], number]> {
-    const { page, limit } = paginationDto;
-    const skip = (page - 1) * limit;
+  // async search(query: string, paginationDto: any): Promise<[Recipe[], number]> {
+  //   const { page, limit } = paginationDto;
+  //   const skip = (page - 1) * limit;
 
-    const queryBuilder = this.recipesRepository
-      .createQueryBuilder('recipe')
-      .leftJoinAndSelect('recipe.author', 'author')
-      .leftJoinAndSelect('recipe.ingredients', 'ingredients')
-      .leftJoinAndSelect('ingredients.ingredient', 'ingredient')
-      .leftJoinAndSelect('recipe.categories', 'rc')
-      .leftJoinAndSelect('rc.category', 'category')
-      .where('recipe.deletedAt IS NULL')
-      .andWhere('recipe.status = :status', { status: RecipeStatus.PUBLIC })
-      .andWhere(
-        `recipe.search_vector @@ plainto_tsquery('russian', :query)`,
-        { query },
-      )
-      .orderBy('recipe.createdAt', 'DESC')
-      .skip(skip)
-      .take(limit);
+  //   const queryBuilder = this.recipesRepository
+  //     .createQueryBuilder('recipe')
+  //     .leftJoinAndSelect('recipe.author', 'author')
+  //     .leftJoinAndSelect('recipe.ingredients', 'ingredients')
+  //     .leftJoinAndSelect('ingredients.ingredient', 'ingredient')
+  //     .leftJoinAndSelect('recipe.categories', 'rc')
+  //     .leftJoinAndSelect('rc.category', 'category')
+  //     .where('recipe.deletedAt IS NULL')
+  //     .andWhere('recipe.status = :status', { status: RecipeStatus.PUBLIC })
+  //     .andWhere(
+  //       `recipe.search_vector @@ plainto_tsquery('russian', :query)`,
+  //       { query },
+  //     )
+  //     .orderBy('recipe.createdAt', 'DESC')
+  //     .skip(skip)
+  //     .take(limit);
 
-    return queryBuilder.getManyAndCount();
-  }
+  //   return queryBuilder.getManyAndCount();
+  // }
 
-  // Добавьте новый метод
   async incrementViews(id: string): Promise<void> {
     await this.recipesRepository.increment(
       { id },
@@ -511,5 +510,111 @@ export class RecipesService {
     // Это логично, так как автор решил сделать его приватным
 
     return this.recipesRepository.save(recipe);
+  }
+
+  // Добавьте эти методы в существующий RecipesService
+
+  // ==================== ПОИСК ====================
+
+  // 1. Публичный поиск (без авторизации)
+  async searchPublic(query: string, paginationDto: any): Promise<[Recipe[], number]> {
+    const { page, limit } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const queryBuilder = this.buildSearchQuery(query)
+      .andWhere('recipe.status = :status', { status: RecipeStatus.PUBLIC });
+
+    queryBuilder
+      .orderBy('recipe.createdAt', 'DESC')
+      .skip(skip)
+      .take(limit);
+
+    return queryBuilder.getManyAndCount();
+  }
+
+  // 2. Поиск по своим рецептам (все статусы)
+  async searchMyRecipes(userId: string, query: string, paginationDto: any): Promise<[Recipe[], number]> {
+    const { page, limit } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const queryBuilder = this.buildSearchQuery(query)
+      .andWhere('recipe.authorId = :userId', { userId })
+      .andWhere('recipe.deletedAt IS NULL');
+
+    queryBuilder
+      .orderBy('recipe.createdAt', 'DESC')
+      .skip(skip)
+      .take(limit);
+
+    return queryBuilder.getManyAndCount();
+  }
+
+  // 3. Поиск по избранным рецептам
+  async searchFavorites(userId: string, query: string, paginationDto: any): Promise<[Recipe[], number]> {
+    const { page, limit } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const queryBuilder = this.buildSearchQuery(query)
+      .innerJoin('favorite', 'favorite', 'favorite.recipe_id = recipe.id')
+      .andWhere('favorite.user_id = :userId', { userId })
+      .andWhere('recipe.status = :status', { status: RecipeStatus.PUBLIC })
+      .andWhere('recipe.deletedAt IS NULL');
+
+    queryBuilder
+      .orderBy('favorite.created_at', 'DESC')
+      .skip(skip)
+      .take(limit);
+
+    return queryBuilder.getManyAndCount();
+  }
+
+  // 4. Комбинированный поиск (публичные + свои рецепты)
+  async searchPublicAndMy(userId: string, query: string, paginationDto: any): Promise<[Recipe[], number]> {
+    const { page, limit } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const queryBuilder = this.buildSearchQuery(query)
+      .andWhere(
+        '(recipe.status = :publicStatus OR recipe.authorId = :userId)',
+        {
+          publicStatus: RecipeStatus.PUBLIC,
+          userId: userId,
+        }
+      )
+      .andWhere('recipe.deletedAt IS NULL');
+
+    queryBuilder
+      .orderBy('recipe.createdAt', 'DESC')
+      .skip(skip)
+      .take(limit);
+
+    return queryBuilder.getManyAndCount();
+  }
+
+  // Базовый метод построения поискового запроса (DRY принцип)
+  private buildSearchQuery(query: string) {
+    const queryBuilder = this.recipesRepository
+      .createQueryBuilder('recipe')
+      .leftJoinAndSelect('recipe.author', 'author')
+      .leftJoinAndSelect('recipe.ingredients', 'ingredients')
+      .leftJoinAndSelect('ingredients.ingredient', 'ingredient')
+      .leftJoinAndSelect('ingredients.unit', 'unit')
+      .leftJoinAndSelect('recipe.categories', 'rc')
+      .leftJoinAndSelect('rc.category', 'category');
+
+    if (query && query.trim()) {
+      const searchTerm = query.trim();
+      queryBuilder.andWhere(
+        '(recipe.title ILIKE :search OR recipe.description ILIKE :search)',
+        { search: `%${searchTerm}%` }
+      );
+    }
+
+    return queryBuilder;
+  }
+
+  // Для обратной совместимости (старый метод search)
+  async search(query: string, paginationDto: any): Promise<[Recipe[], number]> {
+    return this.searchPublic(query, paginationDto);
   }
 }

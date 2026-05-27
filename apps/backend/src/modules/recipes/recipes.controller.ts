@@ -240,4 +240,115 @@ export class RecipesController {
     const recipe = await this.recipesService.makePrivate(id, req.user.id);
     return this.recipesService.toResponseDto(recipe);
   }
+
+  // ==================== ПОИСКОВЫЕ ЭНДПОИНТЫ ====================
+
+  // 1. Публичный поиск (без авторизации)
+  @Get('search/public')
+  @ApiOperation({ summary: 'Публичный поиск рецептов (только опубликованные)' })
+  @ApiQuery({ name: 'q', description: 'Поисковый запрос', required: false })
+  @ApiQuery({ name: 'page', description: 'Номер страницы', required: false, example: 1 })
+  @ApiQuery({ name: 'limit', description: 'Рецептов на странице', required: false, example: 12 })
+  @ApiResponse({ status: HttpStatus.OK, type: PaginatedResponseDto<RecipeResponseDto> })
+  async searchPublic(
+    @Query('q') query: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 12,
+  ): Promise<PaginatedResponseDto<RecipeResponseDto>> {
+    const [recipes, total] = await this.recipesService.searchPublic(query, {
+      page: Number(page),
+      limit: Number(limit),
+    });
+
+    const recipeDtos = recipes.map((recipe) =>
+      this.recipesService.toResponseDto(recipe),
+    );
+
+    return new PaginatedResponseDto(recipeDtos, total, Number(page), Number(limit));
+  }
+
+  // 2. Поиск по своим рецептам (только авторизованные)
+  @Get('search/my')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Поиск по своим рецептам (все статусы)' })
+  @ApiQuery({ name: 'q', description: 'Поисковый запрос', required: false })
+  @ApiQuery({ name: 'page', description: 'Номер страницы', required: false, example: 1 })
+  @ApiQuery({ name: 'limit', description: 'Рецептов на странице', required: false, example: 12 })
+  @ApiResponse({ status: HttpStatus.OK, type: PaginatedResponseDto<RecipeResponseDto> })
+  async searchMyRecipes(
+    @Req() req: RequestWithUser,
+    @Query('q') query: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 12,
+  ): Promise<PaginatedResponseDto<RecipeResponseDto>> {
+    const [recipes, total] = await this.recipesService.searchMyRecipes(
+      req.user.id,
+      query,
+      { page: Number(page), limit: Number(limit) },
+    );
+
+    const recipeDtos = recipes.map((recipe) =>
+      this.recipesService.toResponseDto(recipe),
+    );
+
+    return new PaginatedResponseDto(recipeDtos, total, Number(page), Number(limit));
+  }
+
+  // 3. Поиск по избранным (только авторизованные)
+  @Get('search/favorites')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Поиск по избранным рецептам' })
+  @ApiQuery({ name: 'q', description: 'Поисковый запрос', required: false })
+  @ApiQuery({ name: 'page', description: 'Номер страницы', required: false, example: 1 })
+  @ApiQuery({ name: 'limit', description: 'Рецептов на странице', required: false, example: 12 })
+  @ApiResponse({ status: HttpStatus.OK, type: PaginatedResponseDto<RecipeResponseDto> })
+  async searchFavorites(
+    @Req() req: RequestWithUser,
+    @Query('q') query: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 12,
+  ): Promise<PaginatedResponseDto<RecipeResponseDto>> {
+    const [recipes, total] = await this.recipesService.searchFavorites(
+      req.user.id,
+      query,
+      { page: Number(page), limit: Number(limit) },
+    );
+
+    const recipeDtos = recipes.map((recipe) =>
+      this.recipesService.toResponseDto(recipe),
+    );
+
+    return new PaginatedResponseDto(recipeDtos, total, Number(page), Number(limit));
+  }
+
+  // 4. Комбинированный поиск (публичные + свои)
+  @Get('search/all')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Поиск по публичным + своим рецептам' })
+  @ApiQuery({ name: 'q', description: 'Поисковый запрос', required: false })
+  @ApiQuery({ name: 'page', description: 'Номер страницы', required: false, example: 1 })
+  @ApiQuery({ name: 'limit', description: 'Рецептов на странице', required: false, example: 12 })
+  @ApiResponse({ status: HttpStatus.OK, type: PaginatedResponseDto<RecipeResponseDto> })
+  async searchPublicAndMy(
+    @Req() req: RequestWithUser,
+    @Query('q') query: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 12,
+  ): Promise<PaginatedResponseDto<RecipeResponseDto>> {
+    const [recipes, total] = await this.recipesService.searchPublicAndMy(
+      req.user.id,
+      query,
+      { page: Number(page), limit: Number(limit) },
+    );
+
+    const recipeDtos = recipes.map((recipe) =>
+      this.recipesService.toResponseDto(recipe),
+    );
+
+    return new PaginatedResponseDto(recipeDtos, total, Number(page), Number(limit));
+  }
+
 }
