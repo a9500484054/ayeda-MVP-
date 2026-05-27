@@ -1,24 +1,26 @@
 <template>
-  <div class="flex items-center gap-2">
+  <div :class="['flex items-center gap-2', { 'w-full': fullWidth }]">
     <!-- Десятичные/целые кнопки (опционально) -->
     <div
       v-if="showIntegerToggle && !readonly"
       class="flex items-center rounded-lg border border-zinc-200 bg-white p-0.5 mr-1"
     >
-      <button
-        class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-zinc-600 transition hover:bg-zinc-100"
+      <Button
+        size="xs"
+        variant="ghost"
         :class="{ 'bg-zinc-100 text-emerald-600': !allowDecimal }"
         @click="setIntegerMode(true)"
       >
         <span class="text-xs font-medium">1</span>
-      </button>
-      <button
-        class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-zinc-600 transition hover:bg-zinc-100"
+      </Button>
+      <Button
+        size="xs"
+        variant="ghost"
         :class="{ 'bg-zinc-100 text-emerald-600': allowDecimal }"
         @click="setIntegerMode(false)"
       >
         <span class="text-xs font-medium">1.5</span>
-      </button>
+      </Button>
     </div>
 
     <!-- Stepper controls -->
@@ -26,17 +28,21 @@
       class="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white p-0.5 md:rounded-xl"
       :class="{
         'opacity-50 cursor-not-allowed': disabled,
-        'border-red-300': error
+        'border-red-300': error,
+        'w-full': fullWidth
       }"
     >
-      <button
+      <Button
         :disabled="disabled || (min !== undefined && value <= min)"
-        class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-zinc-600 transition hover:bg-zinc-100 disabled:opacity-50 disabled:cursor-not-allowed md:h-8 md:w-8"
-        :class="{ 'hover:bg-red-50 hover:text-red-600': value <= (min ?? 0) + 1 }"
+        variant="ghost"
+        size="sm"
+        :class="{
+          'hover:bg-red-50 hover:text-red-600': value <= (min ?? 0) + 1
+        }"
         @click="decrement"
       >
         <UIcon name="i-lucide-minus" class="h-3.5 w-3.5 md:h-4 md:w-4" />
-      </button>
+      </Button>
 
       <!-- Input field -->
       <input
@@ -47,7 +53,7 @@
         :min="min"
         :max="max"
         :disabled="disabled"
-        class="min-w-[60px] text-center text-xs font-medium outline-none focus:ring-0 disabled:bg-transparent md:min-w-[80px] md:text-sm"
+        class="min-w-[60px] text-center text-xs font-medium outline-none focus:ring-0 disabled:bg-transparent md:min-w-[80px] md:text-sm flex-1"
         :class="{
           'text-zinc-900': !disabled,
           'text-zinc-400': disabled,
@@ -59,19 +65,22 @@
 
       <span
         v-else
-        class="min-w-[60px] text-center text-xs font-medium text-zinc-900 md:min-w-[80px] md:text-sm"
+        class="min-w-[60px] text-center text-xs font-medium text-zinc-900 md:min-w-[80px] md:text-sm flex-1"
       >
         {{ displayValue }} {{ unit }}
       </span>
 
-      <button
+      <Button
         :disabled="disabled || (max !== undefined && value >= max)"
-        class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-zinc-600 transition hover:bg-zinc-100 disabled:opacity-50 disabled:cursor-not-allowed md:h-8 md:w-8"
-        :class="{ 'hover:bg-emerald-50 hover:text-emerald-600': value >= (max ?? Infinity) - 1 }"
+        variant="ghost"
+        size="sm"
+        :class="{
+          'hover:bg-emerald-50 hover:text-emerald-600': value >= (max ?? Infinity) - 1
+        }"
         @click="increment"
       >
         <UIcon name="i-lucide-plus" class="h-3.5 w-3.5 md:h-4 md:w-4" />
-      </button>
+      </Button>
     </div>
 
     <p v-if="error" class="text-xs text-red-500">{{ error }}</p>
@@ -80,6 +89,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import Button from '~/shared/ui/button/Button.vue'
 
 interface Props {
   /** Текущее значение */
@@ -104,6 +114,8 @@ interface Props {
   error?: string
   /** Показывать переключатель целые/десятичные */
   showIntegerToggle?: boolean
+  /** На всю ширину */
+  fullWidth?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -116,7 +128,8 @@ const props = withDefaults(defineProps<Props>(), {
   readonly: false,
   disabled: false,
   error: '',
-  showIntegerToggle: false
+  showIntegerToggle: false,
+  fullWidth: false
 })
 
 const emit = defineEmits<{
