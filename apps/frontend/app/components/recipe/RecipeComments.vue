@@ -1,154 +1,211 @@
 <template>
-  <div class="mt-8 rounded-xl border border-zinc-200 bg-white p-4 md:mt-10 md:rounded-2xl md:p-6">
-    <h3 class="mb-4 text-lg font-semibold text-zinc-900 md:mb-5 md:text-xl">
-      Комментарии ({{ total }})
-    </h3>
-
-    <!-- Форма добавления комментария -->
-    <div v-if="isAuthenticated" class="mb-6 md:mb-8">
-      <Textarea
-        v-model="newCommentText"
-        placeholder="Поделитесь своим мнением о рецепте..."
-        :rows="3"
-      />
-      <div class="mt-2 flex justify-end md:mt-3">
-        <Button
-          color="primary"
-          size="sm"
-          :loading="commentPending"
-          :disabled="!newCommentText.trim()"
-          @click="submitComment"
-        >
-          Отправить
-        </Button>
+  <div class="mt-8 rounded-2xl border border-zinc-200 bg-white overflow-hidden md:mt-10">
+    <!-- Заголовок -->
+    <div class="border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 md:px-6 md:py-4">
+      <div class="flex items-center gap-2">
+        <div class="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100">
+          <UIcon name="i-lucide-message-circle" class="h-4 w-4 text-emerald-600" />
+        </div>
+        <h3 class="text-base font-semibold text-zinc-900 md:text-lg">
+          Комментарии
+          <span class="ml-1.5 rounded-full bg-zinc-200 px-1.5 py-0.5 text-xs font-medium text-zinc-600">
+            {{ total }}
+          </span>
+        </h3>
       </div>
     </div>
 
-    <div v-else class="mb-6 rounded-lg bg-zinc-50 p-3 text-center md:mb-8 md:rounded-xl md:p-4">
-      <p class="text-xs text-zinc-600 md:text-sm">
-        <button @click="$emit('login')" class="cursor-pointer text-emerald-600 hover:underline">
-          Войдите
-        </button>, чтобы оставить комментарий
-      </p>
-    </div>
-
-    <!-- Состояние загрузки -->
-    <div v-if="loading" class="py-6 text-center md:py-8">
-      <Loader />
-    </div>
-
-    <!-- Пустое состояние -->
-    <EmptyState
-      v-else-if="comments.length === 0"
-      title="Нет комментариев"
-      description="Будьте первым, кто оставит комментарий!"
-      icon="i-lucide-message-circle"
-    />
-
-    <!-- Список комментариев -->
-    <div v-else class="space-y-4 md:space-y-5">
-      <div
-        v-for="comment in comments"
-        :key="comment.id"
-        class="border-b border-zinc-100 pb-4 last:border-0 md:pb-5"
-      >
-        <div class="flex items-start gap-2 md:gap-3">
-          <!-- Аватар -->
-          <div class="h-8 w-8 flex-shrink-0 overflow-hidden rounded-full bg-zinc-200 md:h-9 md:w-9">
-            <img
-              v-if="comment.author?.avatar"
-              :src="getImageUrl(comment.author.avatar)"
-              :alt="comment.author.username || 'Пользователь'"
-              class="h-full w-full object-cover"
-              @error="handleAvatarError"
-            />
-            <UIcon v-else name="i-lucide-user" class="h-full w-full p-1.5 text-zinc-500" />
+    <div class="p-4 md:p-6">
+      <!-- Форма добавления комментария -->
+      <div v-if="isAuthenticated" class="mb-6">
+        <div class="flex gap-3">
+          <div class="flex-shrink-0">
+            <div class="h-9 w-9 rounded-full overflow-hidden bg-gradient-to-br from-emerald-500 to-teal-500">
+              <img
+                v-if="userAvatar"
+                :src="userAvatar"
+                :alt="userName"
+                class="h-full w-full object-cover"
+                @error="handleUserAvatarError"
+              />
+              <div v-else class="h-full w-full flex items-center justify-center text-white text-sm font-medium">
+                {{ userInitial }}
+              </div>
+            </div>
           </div>
+          <div class="flex-1">
+            <Textarea
+              v-model="newCommentText"
+              placeholder="Написать комментарий..."
+              :rows="2"
+              class="!rounded-xl !border-zinc-200 focus:!border-emerald-300"
+            />
+            <div class="mt-2 flex justify-end">
+              <Button
+                size="sm"
+                color="primary"
+                :loading="commentPending"
+                :disabled="!newCommentText.trim()"
+                @click="submitComment"
+              >
+                <UIcon name="i-lucide-send" class="h-3.5 w-3.5" />
+                Отправить
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
 
-          <div class="min-w-0 flex-1">
-            <div class="flex flex-wrap items-center justify-between gap-1">
-              <div>
-                <span class="text-sm font-medium text-zinc-900 md:text-base">
+      <!-- Призыв войти -->
+      <div v-else class="mb-6 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 p-4 text-center">
+        <UIcon name="i-lucide-message-square" class="h-6 w-6 text-emerald-500 mx-auto mb-2" />
+        <p class="text-sm text-zinc-600">
+          <button @click="$emit('login')" class="font-medium text-emerald-600 hover:underline">
+            Войдите
+          </button>, чтобы поделиться своим мнением
+        </p>
+      </div>
+
+      <!-- Состояние загрузки -->
+      <div v-if="loading" class="py-8 text-center">
+        <Loader />
+      </div>
+
+      <!-- Пустое состояние -->
+      <div v-else-if="comments.length === 0" class="py-8 text-center">
+        <div class="flex justify-center mb-3">
+          <div class="rounded-full bg-zinc-100 p-3">
+            <UIcon name="i-lucide-messages-square" class="h-6 w-6 text-zinc-400" />
+          </div>
+        </div>
+        <p class="text-sm text-zinc-500">Пока нет комментариев</p>
+        <p class="text-xs text-zinc-400 mt-1">Будьте первым, кто оставит комментарий!</p>
+      </div>
+
+      <!-- Список комментариев -->
+      <div v-else class="space-y-4">
+        <div
+          v-for="comment in comments"
+          :key="comment.id"
+          class="group rounded-xl transition-all duration-200 hover:bg-zinc-50/50 p-3 -mx-3"
+        >
+          <div class="flex gap-3">
+            <!-- Аватар -->
+            <div class="flex-shrink-0">
+              <div class="h-9 w-9 rounded-full bg-gradient-to-br from-zinc-400 to-zinc-500 overflow-hidden">
+                <img
+                  v-if="comment.author?.avatar"
+                  :src="getImageUrl(comment.author.avatar)"
+                  :alt="getAuthorName(comment.author)"
+                  class="h-full w-full object-cover"
+                  @error="handleAvatarError"
+                />
+                <div v-else class="h-full w-full flex items-center justify-center text-white text-sm font-medium">
+                  {{ getInitial(comment.author) }}
+                </div>
+              </div>
+            </div>
+
+            <div class="flex-1 min-w-0">
+              <!-- Верхняя часть -->
+              <div class="flex flex-wrap items-baseline gap-1 mb-0.5">
+                <span class="text-sm font-semibold text-zinc-900">
                   {{ getAuthorName(comment.author) }}
                 </span>
-                <span class="ml-1.5 text-xs text-zinc-400 md:ml-2">
-                  {{ formatDate(comment.createdAt) }}
+                <span class="text-xs text-zinc-400">
+                  • {{ formatDate(comment.createdAt) }}
                 </span>
+
+                <!-- Действия с кнопками -->
+                <div class="flex gap-1 ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    v-if="canEditComment(comment)"
+                    variant="ghost"
+                    size="xs"
+                    class="!p-1 !h-auto text-zinc-400 hover:text-emerald-600 hover:bg-emerald-50"
+                    title="Редактировать"
+                    @click="startEditComment(comment)"
+                  >
+                    <UIcon name="i-lucide-pencil" class="h-3 w-3" />
+                  </Button>
+                  <Button
+                    v-if="canDeleteComment(comment)"
+                    variant="ghost"
+                    size="xs"
+                    class="!p-1 !h-auto text-zinc-400 hover:text-red-600 hover:bg-red-50"
+                    title="Удалить"
+                    @click="openDeleteModal(comment.id)"
+                  >
+                    <UIcon name="i-lucide-trash-2" class="h-3 w-3" />
+                  </Button>
+                </div>
               </div>
 
-              <div class="flex gap-2">
-                <button
-                  v-if="canEditComment(comment)"
-                  @click="startEditComment(comment)"
-                  class="cursor-pointer text-xs text-zinc-400 transition hover:text-zinc-600"
-                >
-                  Редактировать
-                </button>
-                <button
-                  v-if="canDeleteComment(comment)"
-                  @click="$emit('delete', comment.id)"
-                  class="cursor-pointer text-xs text-red-400 transition hover:text-red-600"
-                >
-                  Удалить
-                </button>
+              <!-- Режим редактирования -->
+              <div v-if="editingId === comment.id" class="mt-2">
+                <Textarea
+                  v-model="editingText"
+                  :rows="2"
+                  class="!rounded-lg !text-sm"
+                />
+                <div class="mt-2 flex gap-2 justify-end">
+                  <Button size="xs" variant="ghost" @click="cancelEdit">Отмена</Button>
+                  <Button
+                    size="xs"
+                    color="primary"
+                    :loading="editPending"
+                    @click="handleUpdateComment(comment.id)"
+                  >
+                    Сохранить
+                  </Button>
+                </div>
               </div>
+
+              <!-- Текст -->
+              <p v-else class="text-sm text-zinc-700 leading-relaxed">
+                {{ comment.isHidden ? 'Комментарий скрыт модератором' : comment.text }}
+              </p>
             </div>
-
-            <!-- Режим редактирования -->
-            <div v-if="editingId === comment.id" class="mt-2">
-              <Textarea
-                v-model="editingText"
-                :rows="2"
-              />
-              <div class="mt-2 flex gap-2">
-                <Button
-                  size="xs"
-                  color="primary"
-                  :loading="editPending"
-                  @click="$emit('update', comment.id, editingText)"
-                >
-                  Сохранить
-                </Button>
-                <Button
-                  size="xs"
-                  variant="ghost"
-                  @click="cancelEdit"
-                >
-                  Отмена
-                </Button>
-              </div>
-            </div>
-
-            <!-- Текст комментария -->
-            <p v-else class="mt-1 text-sm leading-relaxed text-zinc-700" :class="{ 'text-zinc-400 italic': comment.isHidden }">
-              {{ comment.isHidden ? 'Комментарий скрыт модератором' : comment.text }}
-            </p>
           </div>
+        </div>
+      </div>
+
+      <!-- Пагинация -->
+      <div v-if="totalPages > 1" class="mt-6 pt-2 flex justify-center">
+        <div class="flex gap-1">
+          <Button
+            v-for="page in totalPages"
+            :key="page"
+            :variant="currentPage === page ? 'solid' : 'outline'"
+            size="xs"
+            @click="() => $emit('page-change', page)"
+          >
+            {{ page }}
+          </Button>
         </div>
       </div>
     </div>
 
-    <!-- Пагинация -->
-    <div v-if="totalPages > 1" class="mt-5 flex flex-wrap justify-center gap-1.5 md:mt-6 md:gap-2">
-      <button
-        v-for="page in totalPages"
-        :key="page"
-        @click="$emit('page-change', page)"
-        class="cursor-pointer rounded-md px-2.5 py-1 text-xs transition md:rounded-lg md:px-3.5 md:py-1.5 md:text-sm"
-        :class="currentPage === page ? 'bg-zinc-900 text-white' : 'border border-zinc-200 hover:bg-zinc-50'"
-      >
-        {{ page }}
-      </button>
-    </div>
+    <!-- Модальное окно подтверждения удаления -->
+    <ConfirmModal
+      :open="showDeleteModal"
+      title="Удалить комментарий?"
+      description="Вы уверены, что хотите удалить этот комментарий? Это действие нельзя отменить."
+      confirm-text="Удалить"
+      confirm-color="danger"
+      :loading="deletePending"
+      @update:open="showDeleteModal = false"
+      @confirm="confirmDelete"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import Button from '~/shared/ui/button/Button.vue'
 import Textarea from '~/shared/ui/textarea/Textarea.vue'
 import Loader from '~/shared/ui/loader/Loader.vue'
-import EmptyState from '~/shared/ui/emptyState/EmptyState.vue'
+import ConfirmModal from '~/shared/ui/confirm-modal/ConfirmModal.vue'
 
 interface Author {
   id: string
@@ -176,13 +233,17 @@ interface Props {
   isAuthenticated?: boolean
   userId?: string
   userRole?: string
+  userName?: string
+  userAvatar?: string | null  // Добавлен пропс для аватара
 }
 
 const props = withDefaults(defineProps<Props>(), {
   loading: false,
   commentPending: false,
   editPending: false,
-  isAuthenticated: false
+  isAuthenticated: false,
+  userName: '',
+  userAvatar: null
 })
 
 const emit = defineEmits<{
@@ -197,11 +258,36 @@ const config = useRuntimeConfig()
 const newCommentText = ref('')
 const editingId = ref<string | null>(null)
 const editingText = ref('')
+const showDeleteModal = ref(false)
+const deletePending = ref(false)
+const commentToDelete = ref<string | null>(null)
+
+const userInitial = computed(() => {
+  if (props.userName) {
+    return props.userName.charAt(0).toUpperCase()
+  }
+  return '?'
+})
+
+const getInitial = (author?: Author | null) => {
+  if (author?.username) return author.username.charAt(0).toUpperCase()
+  if (author?.email) return author.email.charAt(0).toUpperCase()
+  return '?'
+}
 
 // Сброс формы после отправки
 watch(() => props.commentPending, (newVal, oldVal) => {
   if (oldVal === true && newVal === false) {
     newCommentText.value = ''
+  }
+})
+
+// Сброс режима редактирования после успешного обновления
+watch(() => props.editPending, (newVal, oldVal) => {
+  if (oldVal === true && newVal === false) {
+    // Если редактирование завершено - выходим из режима
+    editingId.value = null
+    editingText.value = ''
   }
 })
 
@@ -230,15 +316,22 @@ const formatDate = (date: string) => {
     const hours = Math.floor(diff / (1000 * 60 * 60))
     if (hours === 0) {
       const minutes = Math.floor(diff / (1000 * 60))
-      return `${minutes} мин назад`
+      if (minutes === 0) return 'только что'
+      return `${minutes} мин`
     }
-    return `${hours} ч назад`
+    return `${hours} ч`
   } else if (days === 1) {
     return 'вчера'
   } else if (days < 7) {
-    return `${days} дн назад`
+    return `${days} дн`
+  } else if (days < 30) {
+    const weeks = Math.floor(days / 7)
+    return `${weeks} нед`
+  } else if (days < 365) {
+    const months = Math.floor(days / 30)
+    return `${months} мес`
   }
-  return d.toLocaleDateString('ru-RU')
+  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
 }
 
 const canEditComment = (comment: Comment) => {
@@ -264,16 +357,61 @@ const cancelEdit = () => {
   editingText.value = ''
 }
 
+const handleUpdateComment = (commentId: string) => {
+  if (!editingText.value.trim()) return
+  emit('update', commentId, editingText.value.trim())
+}
+
+const openDeleteModal = (commentId: string) => {
+  commentToDelete.value = commentId
+  showDeleteModal.value = true
+}
+
+const confirmDelete = () => {
+  if (commentToDelete.value) {
+    deletePending.value = true
+    emit('delete', commentToDelete.value)
+    setTimeout(() => {
+      showDeleteModal.value = false
+      deletePending.value = false
+      commentToDelete.value = null
+    }, 500)
+  }
+}
+
 const handleAvatarError = (e: Event) => {
   const target = e.target as HTMLImageElement
   target.style.display = 'none'
   const parent = target.parentElement
   if (parent) {
-    const icon = document.createElement('div')
-    icon.className = 'h-full w-full flex items-center justify-center bg-zinc-200'
-    icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 text-zinc-500"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
-    parent.appendChild(icon)
+    const fallback = document.createElement('div')
+    fallback.className = 'h-full w-full flex items-center justify-center text-white text-sm font-medium bg-gradient-to-br from-zinc-400 to-zinc-500'
+    fallback.textContent = '?'
+    parent.appendChild(fallback)
     target.remove()
   }
 }
+
+
+// Вычисляемое свойство для аватара
+const userAvatar = computed(() => {
+  if (!props.userAvatar) return null
+  return getImageUrl(props.userAvatar)
+})
+
+// Обработчик ошибки загрузки аватара
+const handleUserAvatarError = (e: Event) => {
+  const target = e.target as HTMLImageElement
+  target.style.display = 'none'
+  const parent = target.parentElement
+  if (parent) {
+    const fallback = document.createElement('div')
+    fallback.className = 'h-full w-full flex items-center justify-center text-white text-sm font-medium'
+    fallback.textContent = userInitial.value
+    parent.appendChild(fallback)
+    target.remove()
+  }
+}
+
+
 </script>

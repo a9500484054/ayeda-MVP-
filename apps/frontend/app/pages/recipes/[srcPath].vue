@@ -73,6 +73,8 @@
         :is-authenticated="isAuthenticated"
         :user-id="user?.id"
         :user-role="user?.role"
+        :user-name="user?.username || user?.email?.split('@')[0]"
+        :user-avatar="user?.avatar"
         @submit="submitComment"
         @update="updateComment"
         @delete="deleteComment"
@@ -343,27 +345,51 @@ const loadComments = async (page: number) => {
   commentsLoading.value = true
   try {
     const response = await commentsApi.getComments(recipe.value.id, page, 10)
+    console.log('📝 Comments API response:', response)
+
+    // Проверяем структуру ответа и извлекаем данные
+    let commentsData: CommentDto[] = []
+    let totalData = 0
+    let pagesData = 1
+    let currentPageData = page
+
     if (response && typeof response === 'object') {
-      if (Array.isArray(response.items)) {
-        comments.value = response.items
-        commentsTotal.value = response.total || response.items.length
-        commentsTotalPages.value = response.pages || 1
-        currentCommentsPage.value = response.page || page
-      } else if (Array.isArray(response)) {
-        comments.value = response
-        commentsTotal.value = response.length
-        commentsTotalPages.value = 1
-        currentCommentsPage.value = page
-      } else {
-        comments.value = []
-        commentsTotal.value = 0
-        commentsTotalPages.value = 1
+      // Формат: { data: [...], total, page, pages }
+      if (Array.isArray(response.data)) {
+        commentsData = response.data
+        totalData = response.total || response.data.length
+        pagesData = response.pages || Math.ceil(totalData / 10) || 1
+        currentPageData = response.page || page
       }
-    } else {
-      comments.value = []
-      commentsTotal.value = 0
-      commentsTotalPages.value = 1
+      // Формат: { items: [...], total, pages }
+      else if (Array.isArray(response.items)) {
+        commentsData = response.items
+        totalData = response.total || response.items.length
+        pagesData = response.pages || 1
+        currentPageData = response.page || page
+      }
+      // Формат: просто массив
+      else if (Array.isArray(response)) {
+        commentsData = response
+        totalData = response.length
+        pagesData = 1
+        currentPageData = page
+      }
+      // Если данные лежат в response.result
+      else if (Array.isArray(response.result)) {
+        commentsData = response.result
+        totalData = response.total || response.result.length
+        pagesData = response.pages || 1
+        currentPageData = response.page || page
+      }
     }
+
+    comments.value = commentsData
+    commentsTotal.value = totalData
+    commentsTotalPages.value = pagesData
+    currentCommentsPage.value = currentPageData
+
+    console.log(`✅ Loaded ${commentsData.length} comments, total: ${totalData}, pages: ${pagesData}`)
   } catch (err) {
     console.error('Ошибка загрузки комментариев:', err)
     comments.value = []
@@ -413,19 +439,18 @@ const deleteComment = async (commentId: string) => {
 }
 
 // Список покупок
-const addToShoppingList = async (items: Array<{ name: string; amount: number; unit: string }>) => {
+const addToShoppingList = async (items: Array<{ name: string; quantity: number; unit: string }>) => {
   if (!isAuthenticated.value) {
     navigateToLogin()
     return
   }
+
+  console.log('📦 Received items:', items)
+
   try {
     await shoppingListsApi.createList({
       title: `Ингредиенты для "${recipe.value?.title}"`,
-      items: items.map(item => ({
-        name: item.name,
-        quantity: item.amount,
-        unit: item.unit
-      }))
+      items
     })
     toast.add({
       title: 'Добавлено в список покупок',
