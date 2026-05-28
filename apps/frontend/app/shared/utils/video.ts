@@ -75,15 +75,24 @@ export function validateVkUrl(url: string): boolean {
   if (!url) return true;
 
   const patterns = [
+    // vk.com домен
     /vk\.com\/video(-?\d+_\d+)/,
     /vk\.com\/video-?\d+_\d+/,
     /vk\.com\/(?:video|clip)(-?\d+_\d+)/,
     /vk\.com\/video(-?\d+_\d+)(?:\?.*)?$/,
-    // новый паттерн для ссылок с ?z=video-...
+    // ссылки с ?z=video-...
     /vk\.com\/.*[?&]z=video(-?\d+_\d+)/,
     /vk\.com\/vkvideo\?z=video(-?\d+_\d+)/,
     // общий паттерн для любых параметров
-    /[?&]z=video(-?\d+_\d+)/
+    /[?&]z=video(-?\d+_\d+)/,
+    // vkvideo.ru домен (новый)
+    /vkvideo\.ru\/video(-?\d+_\d+)/,
+    /vkvideo\.ru\/video-?\d+_\d+/,
+    /vkvideo\.ru\/(?:video|clip)(-?\d+_\d+)/,
+    /vkvideo\.ru\/video(-?\d+_\d+)(?:\?.*)?$/,
+    // vkvideo.ru с параметрами
+    /vkvideo\.ru\/.*[?&]z=video(-?\d+_\d+)/,
+    /vkvideo\.ru\/vkvideo\?z=video(-?\d+_\d+)/
   ];
 
   return patterns.some(pattern => pattern.test(url));

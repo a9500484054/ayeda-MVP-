@@ -19,9 +19,8 @@
           <img
             :src="getImageUrl(step.image)"
             :alt="`Шаг ${step.sort || idx + 1}`"
-            class="w-full cursor-pointer transition hover:scale-105"
+            class="w-full"
             loading="lazy"
-            @click="openImage(step.image)"
           />
         </div>
       </div>

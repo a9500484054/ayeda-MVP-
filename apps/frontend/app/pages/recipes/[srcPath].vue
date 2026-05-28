@@ -2,15 +2,15 @@
   <div class="mx-auto w-full max-w-7xl px-4 py-4 md:px-6 md:py-6">
     <RecipeHeader :title="recipe?.title" @back="goBack" />
 
-    <RecipeLoading v-if="pending && !recipe" />
+    <RecipeLoading v-if="recipe && !canViewRecipe" />
 
-    <RecipeAccessDenied
+    <!-- <RecipeAccessDenied
       v-else-if="recipe && !canViewRecipe"
       :message="accessDeniedMessage"
       :show-login="!isAuthenticated"
       @back="goBack"
       @login="navigateToLogin"
-    />
+    /> -->
 
     <RecipeNotFound
       v-else-if="fetchError || !recipe"
@@ -41,6 +41,9 @@
         @share="shareRecipe"
       />
 
+      <RecipeVideo :video-url="recipe.video" />
+
+
       <div class="grid gap-6 md:gap-8 lg:grid-cols-[380px_1fr]">
         <!-- Левая колонка - sticky -->
         <div class="lg:sticky lg:top-10 lg:self-start">
@@ -49,6 +52,7 @@
             :base-servings="recipe.servings || 1"
             :units-cache="unitsCache"
             :units-loading="unitsLoading"
+            :recipe-title="recipe.title"
             @update:servings="handleServingsChange"
             @add-to-shopping-list="addToShoppingList"
           />
@@ -120,8 +124,7 @@ const toast = useToast()
 
 // ✅ Берём токен из кук напрямую на странице
 const accessToken = useCookie<string | null>('access_token')
-console.log('🔑 accessToken value:', accessToken.value)
-console.log('🔑 accessToken type:', typeof accessToken.value)
+
 
 // Получаем параметр srcPath из маршрута
 const srcPath = computed(() => {
@@ -129,7 +132,6 @@ const srcPath = computed(() => {
   return Array.isArray(path) ? path[0] : path
 })
 
-console.log('📍 srcPath:', srcPath.value)
 
 // ============ SSR DATA FETCHING ============
 const { data: recipeData, pending, error: fetchError } = await useAsyncData(
@@ -418,7 +420,7 @@ const addToShoppingList = async (items: Array<{ name: string; amount: number; un
   }
   try {
     await shoppingListsApi.createList({
-      name: `Ингредиенты для "${recipe.value?.title}"`,
+      title: `Ингредиенты для "${recipe.value?.title}"`,
       items: items.map(item => ({
         name: item.name,
         quantity: item.amount,

@@ -1,7 +1,7 @@
 <template>
-  <div class="absolute left-3 top-3 sm:left-4 sm:top-4 md:left-5 md:top-5">
-    <div class="flex cursor-default items-center gap-2 rounded-full bg-white/90 px-2 py-1 shadow-sm backdrop-blur-sm transition-all hover:bg-white/95 md:gap-2.5 md:px-3 md:py-1.5">
-      <div class="h-5 w-5 overflow-hidden rounded-full bg-zinc-200 md:h-6 md:w-6">
+  <div class="absolute left-3 top-4 sm:left-4 sm:top-4 md:left-5 md:top-5">
+    <div class="flex cursor-default items-center gap-1.5 rounded-full bg-white/100 px-2 py-1 shadow-sm backdrop-blur-sm transition-all hover:bg-white/95 md:gap-2 md:px-1.5">
+      <div class="h-4 w-4 overflow-hidden rounded-full bg-zinc-200 md:h-5 md:w-5">
         <img
           v-if="author?.avatar"
           :src="getImageUrl(author.avatar)"
@@ -9,14 +9,11 @@
           class="h-full w-full object-cover"
           @error="handleAvatarError"
         />
-        <UIcon v-else name="i-lucide-user" class="h-full w-full p-0.5 text-zinc-500 md:p-1" />
+        <UIcon v-else name="i-lucide-user" class="h-full w-full p-0.5 text-zinc-500 md:p-0.5" />
       </div>
-      <div class="flex items-baseline gap-1">
-        <span class="max-w-[100px] truncate text-xs font-medium text-zinc-800 md:max-w-[150px] md:text-sm">
-          {{ authorName }}
-        </span>
-        <span class="hidden text-[10px] text-emerald-600 md:inline-block md:text-xs">• автор</span>
-      </div>
+      <span class="max-w-[80px] truncate text-[10px] font-medium text-zinc-800 md:max-w-[120px] md:text-xs">
+        {{ authorName }}
+      </span>
     </div>
   </div>
 </template>
@@ -60,7 +57,7 @@ const handleAvatarError = (e: Event) => {
   if (parent) {
     const icon = document.createElement('div')
     icon.className = 'h-full w-full flex items-center justify-center bg-zinc-200'
-    icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 text-zinc-500 md:h-5 md:w-5"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
+    icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3 text-zinc-500 md:h-4 md:w-4"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
     parent.appendChild(icon)
     target.remove()
   }

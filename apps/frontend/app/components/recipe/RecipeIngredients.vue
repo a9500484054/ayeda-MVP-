@@ -50,7 +50,7 @@
           variant="solid"
           color="primary"
           :disabled="!ingredients?.length"
-          @click="addToShoppingList"
+          @click="openConfirmModal"
           block
         >
           <UIcon name="i-lucide-shopping-cart" class="h-4 w-4" />
@@ -58,6 +58,15 @@
         </Button>
       </div>
     </div>
+
+    <!-- Модальное окно подтверждения -->
+    <AddToShoppingListModal
+      v-model:open="showConfirmModal"
+      :items="shoppingItems"
+      :recipe-title="recipeTitle"
+      :loading="isAddingToList"
+      @confirm="handleAddToShoppingList"
+    />
   </div>
 </template>
 
@@ -66,6 +75,7 @@ import { ref, computed, watch } from 'vue'
 import Button from '~/shared/ui/button/Button.vue'
 import Loader from '~/shared/ui/loader/Loader.vue'
 import RecipeServingsControl from './RecipeServingsControl.vue'
+import AddToShoppingListModal from './AddToShoppingListModal.vue'
 
 interface Ingredient {
   id?: string
@@ -83,21 +93,34 @@ interface Props {
   baseServings: number
   unitsCache?: Map<string, { id: string; short?: string; name?: string; code?: string }>
   unitsLoading?: boolean
+  recipeTitle?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   ingredients: () => [],
   unitsLoading: false,
-  unitsCache: () => new Map()
+  unitsCache: () => new Map(),
+  recipeTitle: 'Рецепт'
 })
 
 const emit = defineEmits<{
   'update:servings': [value: number]
-  'add-to-shopping-list': [items: Array<{ name: string; amount: number; unit: string }>]
+  'add-to-shopping-list': [items: Array<{ name: string; quantity: number; unit: string }>]
 }>()
 
 const servings = ref(props.baseServings)
 const checkedIngredients = ref<boolean[]>([])
+const showConfirmModal = ref(false)
+const isAddingToList = ref(false)
+
+// Формируем список товаров для модалки
+const shoppingItems = computed(() => {
+  return adjustedIngredients.value.map(ing => ({
+    name: getIngredientName(ing),
+    quantity: ing.amount,
+    unit: getUnitDisplay(ing)
+  }))
+})
 
 // Инициализация чекбоксов
 watch(
@@ -126,20 +149,16 @@ const getIngredientName = (ing: Ingredient) => {
 
 // Получение единицы измерения из данных
 const getUnitDisplay = (ing: Ingredient): string => {
-  // Приоритет 1: из вложенного объекта unit (как в ваших данных)
   if (ing.unit?.short) return ing.unit.short
   if (ing.unit?.code) return ing.unit.code
   if (ing.unit?.name) return ing.unit.name
 
-  // Приоритет 2: из кэша по unitId
   if (ing.unitId && props.unitsCache.has(ing.unitId)) {
     const unitObj = props.unitsCache.get(ing.unitId)
     return unitObj?.short || unitObj?.code || unitObj?.name || ''
   }
 
-  // Приоритет 3: unitName из данных (если есть)
   if ((ing as any).unitName) return (ing as any).unitName
-
   return ''
 }
 
@@ -148,7 +167,7 @@ const formatIngredientAmount = (ing: Ingredient) => {
   const unit = getUnitDisplay(ing)
   const notes = ing.notes ? ` (${ing.notes})` : ''
   const amountStr = amount.toString().replace('.', ',')
-  console.log('ing', ing);
+
   if (unit) {
     return `${amountStr} ${unit}${notes}`.trim()
   }
@@ -164,12 +183,20 @@ const toggleIngredient = (index: number) => {
   checkedIngredients.value[index] = !checkedIngredients.value[index]
 }
 
-const addToShoppingList = () => {
-  const items = adjustedIngredients.value.map(ing => ({
-    name: getIngredientName(ing),
-    amount: ing.amount,
-    unit: getUnitDisplay(ing)
-  }))
-  emit('add-to-shopping-list', items)
+const openConfirmModal = () => {
+  showConfirmModal.value = true
+}
+
+const handleAddToShoppingList = () => {
+  isAddingToList.value = true
+
+  // Эмитим событие с товарами
+  emit('add-to-shopping-list', shoppingItems.value)
+
+  // Закрываем модалку после отправки
+  setTimeout(() => {
+    showConfirmModal.value = false
+    isAddingToList.value = false
+  }, 100)
 }
 </script>
