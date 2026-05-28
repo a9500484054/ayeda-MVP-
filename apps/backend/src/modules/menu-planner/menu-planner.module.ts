@@ -7,11 +7,13 @@ import { MenuDay } from './entities/menu-day.entity';
 import { MenuSlot } from './entities/menu-slot.entity';
 import { MenuSlotItem } from './entities/menu-slot-item.entity';
 import { RecipesModule } from '../recipes/recipes.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([MenuList, MenuDay, MenuSlot, MenuSlotItem]),
     RecipesModule,
+    UsersModule, // ← Добавить
   ],
   controllers: [MenuPlannerController],
   providers: [MenuPlannerService],

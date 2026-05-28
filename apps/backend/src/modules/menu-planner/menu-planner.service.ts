@@ -24,6 +24,7 @@ import { MenuDayResponseDto } from './dto/menu-day-response.dto';
 import { DisplayType } from './enums/display-type.enum';
 import { SlotType } from './enums/slot-type.enum';
 import { MealType } from './enums/meal-type.enum';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class MenuPlannerService {
@@ -37,6 +38,7 @@ export class MenuPlannerService {
     @InjectRepository(MenuSlotItem)
     private menuSlotItemRepository: Repository<MenuSlotItem>,
     private recipesService: RecipesService,
+    private usersService: UsersService, // ← Добавить
     private dataSource: DataSource,
   ) {}
 
@@ -328,9 +330,14 @@ export class MenuPlannerService {
   ): Promise<MenuSlotItemResponseDto> {
     const slot = await this.findOneSlot(userId, slotId);
 
-    await this.recipesService.findOne(dto.recipeId);
+    // 🔥 ПЕРЕДАЕМ userId И userRole В findOne
+    // Сначала получаем пользователя и его роль
+    const user = await this.usersService.findOne(userId);
 
-    // Проверяем существование активной записи (без soft delete теперь просто проверяем наличие)
+    // Проверяем доступ к рецепту (передаем userId и userRole)
+    const recipe = await this.recipesService.findOne(dto.recipeId, userId, user.role);
+
+    // Проверяем существование активной записи
     const existingItem = await this.menuSlotItemRepository.findOne({
       where: { slotId, recipeId: dto.recipeId },
     });
