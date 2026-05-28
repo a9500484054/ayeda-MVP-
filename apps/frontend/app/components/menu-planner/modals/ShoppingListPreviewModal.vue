@@ -1,29 +1,31 @@
-<!-- components/menu-planner/modals/ShoppingListPreviewModal.vue -->
 <template>
-  <UModal
-    v-model:open="isOpen"
-    title="Предпросмотр списка покупок"
-    :ui="{
-      content: 'sm:max-w-2xl',
-      body: 'p-0',
-      footer: 'px-4 py-3 bg-zinc-50'
-    }"
+  <Modal
+    :open="isOpen"
+    size="xl"
+    @update:open="closeModal"
   >
-    <template #body>
-      <div class="max-h-[60vh] overflow-y-auto p-4">
-        <!-- Количество ингредиентов -->
-        <div class="mb-4 flex items-center justify-between border-b border-zinc-100 pb-3">
+    <div class="flex flex-col max-h-[90vh] bg-white dark:bg-darkMode-100 rounded-2xl">
+      <!-- Header -->
+      <div class="flex items-center justify-between">
+        <h2 class="text-xl font-semibold">
+          Предпросмотр списка покупок
+        </h2>
+      </div>
+
+      <!-- Body -->
+      <div class="flex-1">
+        <!-- Количество ингредиентов и кнопка редактирования -->
+        <div class="mb-4 flex items-center justify-between pb-3">
           <div class="text-sm text-zinc-500">
             Всего ингредиентов:
             <span class="font-semibold text-zinc-900">{{ editableIngredients.length }}</span>
           </div>
 
-          <!-- Режим редактирования -->
           <div class="flex items-center gap-2">
             <Button
               v-if="!isEditing"
-              color="white"
-              size="sm"
+              variant="outline"
+              size="xs"
               @click="startEditing"
             >
               <UIcon name="i-lucide-pencil" class="h-3.5 w-3.5" />
@@ -31,15 +33,15 @@
             </Button>
             <div v-else class="flex gap-2">
               <Button
-                color="white"
-                size="sm"
+                variant="ghost"
+                size="xs"
                 @click="cancelEditing"
               >
                 Отмена
               </Button>
               <Button
                 color="primary"
-                size="sm"
+                size="xs"
                 @click="saveEditing"
                 :loading="isSaving"
               >
@@ -57,26 +59,26 @@
             <div
               v-for="ingredient in editableIngredients"
               :key="ingredient.key"
-              class="flex items-center justify-between rounded-lg border border-zinc-100 bg-white p-3 transition-all hover:border-zinc-200 hover:shadow-sm"
+              class="flex items-center justify-between rounded-lg border border-zinc-100 bg-white p-3 transition-all hover:border-zinc-200 hover:shadow-sm dark:border-darkMode-300 dark:bg-darkMode-100"
             >
               <div class="flex items-center gap-3">
-                <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-green-50">
-                  <UIcon name="i-lucide-shopping-basket" class="h-4 w-4 text-green-600" />
+                <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
+                  <UIcon name="i-lucide-shopping-basket" class="h-4 w-4 text-emerald-600" />
                 </div>
                 <div>
-                  <p class="font-medium text-zinc-900">
+                  <p class="font-medium text-zinc-900 dark:text-darkMode-700">
                     {{ ingredient.name }}
                   </p>
-                  <p class="text-xs text-zinc-400">
+                  <p class="text-xs text-zinc-400 dark:text-darkMode-500">
                     {{ ingredient.unit || 'шт' }}
                   </p>
                 </div>
               </div>
               <div class="flex items-center gap-2">
-                <span class="text-lg font-semibold text-green-600">
+                <span class="text-lg font-semibold text-emerald-600 dark:text-emerald-400">
                   {{ ingredient.amount }}
                 </span>
-                <span class="text-sm text-zinc-500">
+                <span class="text-sm text-zinc-500 dark:text-darkMode-500">
                   {{ ingredient.unit || 'шт' }}
                 </span>
               </div>
@@ -88,22 +90,22 @@
             <div
               v-for="(ingredient, index) in editableIngredients"
               :key="ingredient.key"
-              class="group rounded-lg border border-zinc-200 bg-white p-3 transition-all hover:border-green-200"
+              class="group rounded-lg border border-zinc-200 bg-white p-3 transition-all hover:border-emerald-200 dark:border-darkMode-300 dark:bg-darkMode-100"
             >
               <div class="flex items-center gap-3">
                 <!-- Drag handle -->
-                <div class="cursor-grab text-zinc-400 active:cursor-grabbing">
+                <!-- <div class="cursor-grab text-zinc-400 active:cursor-grabbing">
                   <UIcon name="i-lucide-grip-vertical" class="h-4 w-4" />
-                </div>
+                </div> -->
 
                 <!-- Иконка -->
-                <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-green-50">
-                  <UIcon name="i-lucide-shopping-basket" class="h-4 w-4 text-green-600" />
+                <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
+                  <UIcon name="i-lucide-shopping-basket" class="h-4 w-4 text-emerald-600" />
                 </div>
 
                 <!-- Название -->
                 <div class="flex-1">
-                  <UInput
+                  <Input
                     v-model="ingredient.name"
                     size="sm"
                     class="font-medium"
@@ -112,7 +114,7 @@
 
                 <!-- Количество -->
                 <div class="flex w-32 items-center gap-2">
-                  <UInput
+                  <Input
                     v-model.number="ingredient.amount"
                     type="number"
                     size="sm"
@@ -120,122 +122,117 @@
                     min="0"
                     class="w-20 text-center"
                   />
-                  <span class="text-sm text-zinc-500">{{ ingredient.unit || 'шт' }}</span>
+                  <span class="text-sm text-zinc-500 dark:text-darkMode-500">{{ ingredient.unit || 'шт' }}</span>
                 </div>
 
                 <!-- Кнопка удаления -->
-                <button
-                  class="rounded p-1 text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                <Button
+                  variant="ghost"
+                  color="danger"
+                  size="sm"
+                  icon="i-lucide-trash-2"
+                  icon-only
                   @click="removeIngredient(index)"
-                >
-                  <UIcon name="i-lucide-trash-2" class="h-4 w-4" />
-                </button>
+                />
               </div>
             </div>
           </div>
         </div>
       </div>
-    </template>
 
-    <template #footer>
-      <div class="flex justify-end gap-3 w-full">
-        <Button
-          color="white"
-          @click="closeModal"
-        >
-          Отмена
-        </Button>
-        <Button
-          color="primary"
-          @click="handleConfirm"
-          :loading="isCreating"
-        >
-          Создать список покупок
-        </Button>
+      <!-- Footer -->
+      <div class="dark:border-darkMode-300 bg-white dark:bg-darkMode-100 mt-4">
+        <div class="flex justify-end gap-3">
+          <Button
+            variant="ghost"
+            @click="closeModal"
+          >
+            Отмена
+          </Button>
+          <Button
+            color="primary"
+            @click="handleConfirm"
+            :loading="isCreating"
+          >
+            Создать список покупок
+          </Button>
+        </div>
       </div>
-    </template>
-  </UModal>
+    </div>
+  </Modal>
 </template>
 
 <script setup lang="ts">
-import { useDraggable } from '@vueuse/core';
-import Button from '~/shared/ui/button/Button.vue';
+import { ref, computed, watch } from 'vue'
+import Modal from '~/shared/ui/modal/Modal.vue'
+import Button from '~/shared/ui/button/Button.vue'
+import Input from '~/shared/ui/input/Input.vue'
 
 const props = defineProps<{
-  open: boolean;
-  ingredients: Array<{ id: string; name: string; amount: number; unit: string }>;
-}>();
+  open: boolean
+  ingredients: Array<{ id: string; name: string; amount: number; unit: string }>
+}>()
 
 const emit = defineEmits<{
-  'update:open': [value: boolean];
-  confirm: [ingredients: Array<{ id: string; name: string; amount: number; unit: string }>];
-}>();
+  'update:open': [value: boolean]
+  confirm: [ingredients: Array<{ id: string; name: string; amount: number; unit: string }>]
+}>()
 
-const isCreating = ref(false);
-const isEditing = ref(false);
-const isSaving = ref(false);
-const isIngredientModalOpen = ref(false);
-const editingIndex = ref<number | null>(null);
+const isCreating = ref(false)
+const isEditing = ref(false)
+const isSaving = ref(false)
 
-// Состояние для редактируемого ингредиента
-const editingIngredient = ref({
-  name: '',
-  amount: 0,
-  unit: '',
-  key: ''
-});
+// Состояние для редактируемых ингредиентов
+const editableIngredients = ref<Array<{
+  key: string
+  id: string
+  name: string
+  amount: number
+  unit: string
+}>>([])
 
 // Исходные ингредиенты для отмены
-let originalIngredients: Array<any> = [];
+let originalIngredients: Array<any> = []
 
 const isOpen = computed({
   get: () => props.open,
   set: (value) => {
     if (!value) {
-      isEditing.value = false;
+      isEditing.value = false
     }
-    emit('update:open', value);
+    emit('update:open', value)
   }
-});
-
-// Группировка и редактируемые ингредиенты
-const editableIngredients = ref<Array<{
-  key: string;
-  id: string;
-  name: string;
-  amount: number;
-  unit: string;
-}>>([]);
+})
 
 // Инициализация при открытии
 watch(() => props.open, (open) => {
   if (open) {
-    initIngredients();
+    initIngredients()
   }
-});
+})
 
 function initIngredients() {
   const map = new Map<string, {
-    key: string;
-    id: string;
-    name: string;
-    amount: number;
-    unit: string;
-  }>();
+    key: string
+    id: string
+    name: string
+    amount: number
+    unit: string
+  }>()
 
   props.ingredients.forEach(ingredient => {
-    let amount = 0;
+    let amount = 0
     if (typeof ingredient.amount === 'number') {
-      amount = ingredient.amount;
+      amount = ingredient.amount
     } else if (typeof ingredient.amount === 'string') {
-      amount = parseFloat(ingredient.amount) || 0;
+      amount = parseFloat(ingredient.amount) || 0
     }
 
-    const key = `${ingredient.name}_${ingredient.unit}`;
+    const key = `${ingredient.name}_${ingredient.unit}`
 
     if (map.has(key)) {
-      const existing = map.get(key)!;
-      existing.amount = Number((existing.amount + amount).toFixed(2));
+      const existing = map.get(key)!
+      existing.amount = Number((existing.amount + amount).toFixed(2))
     } else {
       map.set(key, {
         key,
@@ -243,91 +240,47 @@ function initIngredients() {
         name: ingredient.name,
         amount: amount,
         unit: ingredient.unit || 'шт'
-      });
+      })
     }
-  });
+  })
 
-  editableIngredients.value = Array.from(map.values());
+  editableIngredients.value = Array.from(map.values())
 }
 
 function startEditing() {
-  // Сохраняем копию для отмены
-  originalIngredients = JSON.parse(JSON.stringify(editableIngredients.value));
-  isEditing.value = true;
+  originalIngredients = JSON.parse(JSON.stringify(editableIngredients.value))
+  isEditing.value = true
 }
 
 function cancelEditing() {
-  editableIngredients.value = originalIngredients;
-  isEditing.value = false;
+  editableIngredients.value = originalIngredients
+  isEditing.value = false
 }
 
 async function saveEditing() {
-  isSaving.value = true;
-  // Здесь можно добавить валидацию
-  await new Promise(resolve => setTimeout(resolve, 300)); // Имитация сохранения
-  isEditing.value = false;
-  isSaving.value = false;
-}
-
-function addNewIngredient() {
-  editingIndex.value = null;
-  editingIngredient.value = {
-    name: '',
-    amount: 0,
-    unit: 'шт',
-    key: ''
-  };
-  isIngredientModalOpen.value = true;
-}
-
-function editIngredient(index: number) {
-  editingIndex.value = index;
-  const ingredient = editableIngredients.value[index];
-  editingIngredient.value = { ...ingredient };
-  isIngredientModalOpen.value = true;
-}
-
-function saveIngredient() {
-  if (!editingIngredient.value.name.trim()) {
-    return;
-  }
-
-  const newIngredient = {
-    key: `${editingIngredient.value.name}_${editingIngredient.value.unit}`,
-    id: Date.now().toString(),
-    name: editingIngredient.value.name,
-    amount: editingIngredient.value.amount || 0,
-    unit: editingIngredient.value.unit || 'шт'
-  };
-
-  if (editingIndex.value !== null) {
-    // Редактируем существующий
-    editableIngredients.value[editingIndex.value] = newIngredient;
-  } else {
-    // Добавляем новый
-    editableIngredients.value.push(newIngredient);
-  }
-
-  isIngredientModalOpen.value = false;
+  isSaving.value = true
+  // Имитация сохранения
+  await new Promise(resolve => setTimeout(resolve, 300))
+  isEditing.value = false
+  isSaving.value = false
 }
 
 function removeIngredient(index: number) {
-  editableIngredients.value.splice(index, 1);
+  editableIngredients.value.splice(index, 1)
 }
 
 function closeModal() {
-  isOpen.value = false;
+  isOpen.value = false
 }
 
 async function handleConfirm() {
-  isCreating.value = true;
+  isCreating.value = true
   try {
-    // Убираем key из финального результата
-    const finalIngredients = editableIngredients.value.map(({ key, ...rest }) => rest);
-    emit('confirm', finalIngredients);
-    closeModal();
+    const finalIngredients = editableIngredients.value.map(({ key, ...rest }) => rest)
+    emit('confirm', finalIngredients)
+    closeModal()
   } finally {
-    isCreating.value = false;
+    isCreating.value = false
   }
 }
 </script>

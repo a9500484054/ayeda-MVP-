@@ -125,115 +125,27 @@
     </div>
 
     <!-- Модалка переименования -->
-    <UModal v-model:open="isRenameModalOpen">
-      <template #header>
-        <div class="flex items-center justify-between w-full">
-          <h3 class="text-lg font-semibold text-zinc-900">
-            Переименовать день
-          </h3>
-          <Button
-            icon="i-lucide-x"
-            color="neutral"
-            variant="ghost"
-            size="sm"
-            icon-only
-            class="-my-1 rounded-full hover:bg-zinc-100"
-            @click="isRenameModalOpen = false"
-          />
-        </div>
-      </template>
-
-      <template #body>
-        <div>
-          <UInput
-            v-model="newTitle"
-            placeholder="Название дня"
-            autofocus
-            class="w-full"
-            :ui="{
-              base: 'rounded-lg border-zinc-200 focus:border-green-500 focus:ring-green-500'
-            }"
-          />
-        </div>
-      </template>
-
-      <template #footer>
-        <div class="flex justify-end gap-2 w-full">
-          <Button
-            color="neutral"
-            variant="ghost"
-            size="md"
-            @click="isRenameModalOpen = false"
-          >
-            Отмена
-          </Button>
-          <Button
-            color="primary"
-            size="md"
-            :disabled="!newTitle.trim() || newTitle === day.title"
-            @click="saveRename"
-          >
-            Сохранить
-          </Button>
-        </div>
-      </template>
-    </UModal>
+    <PromptModal
+      v-model:open="isRenameModalOpen"
+      title="Переименовать день"
+      label="Название дня"
+      placeholder="Введите новое название"
+      :initial-value="day?.title || ''"
+      confirm-text="Сохранить"
+      :validate="validateDayName"
+      @confirm="handleRenameConfirm"
+    />
 
     <!-- Модалка подтверждения удаления -->
-    <UModal v-model:open="isDeleteModalOpen">
-      <template #header>
-        <div class="flex items-center justify-between w-full">
-          <h3 class="text-lg font-semibold text-zinc-900">
-            Удалить день?
-          </h3>
-          <Button
-            icon="i-lucide-x"
-            color="neutral"
-            variant="ghost"
-            size="sm"
-            icon-only
-            class="-my-1 rounded-full hover:bg-zinc-100"
-            @click="isDeleteModalOpen = false"
-          />
-        </div>
-      </template>
-
-      <template #body>
-        <div class="p-4">
-          <div class="flex items-start gap-3">
-            <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-100">
-              <UIcon name="i-lucide-alert-triangle" class="h-5 w-5 text-red-600" />
-            </div>
-            <div class="flex-1">
-              <p class="text-sm text-zinc-600">
-                Вы уверены, что хотите удалить день "{{ day.title }}"? Все рецепты в этом дне также будут удалены.
-              </p>
-            </div>
-          </div>
-        </div>
-      </template>
-
-      <template #footer>
-        <div class="flex justify-end gap-2 w-full">
-          <Button
-            color="neutral"
-            variant="ghost"
-            size="md"
-            @click="isDeleteModalOpen = false"
-          >
-            Отмена
-          </Button>
-          <Button
-            color="danger"
-            size="md"
-            icon="i-lucide-trash-2"
-            @click="confirmDelete"
-          >
-            Удалить
-          </Button>
-        </div>
-      </template>
-    </UModal>
+    <ConfirmModal
+      :open="isDeleteModalOpen"
+      title="Удалить день?"
+      :description="`Вы уверены, что хотите удалить день ${day?.title}? Все рецепты в этом дне также будут удалены.`"
+      confirm-text="Удалить"
+      confirm-color="danger"
+      @update:open="isDeleteModalOpen = $event"
+      @confirm="confirmDelete"
+    />
 
     <!-- Модальное окно предпросмотра для дня -->
     <ShoppingListPreviewModal
@@ -250,6 +162,8 @@ import type { MenuDay, MenuSlot, MealType } from '~/composables/useMenuPlannerAp
 import MealSlot from './MealSlot.vue';
 import ShoppingListPreviewModal from '../modals/ShoppingListPreviewModal.vue';
 import Button from '~/shared/ui/button/Button.vue';
+import ConfirmModal from '~/shared/ui/confirm-modal/ConfirmModal.vue';
+import PromptModal from '~/shared/ui/prompt-modal/PromptModal.vue';
 
 const props = defineProps<{
   day: MenuDay;
@@ -277,7 +191,8 @@ const emit = defineEmits<{
 const toast = useToast();
 const isRenameModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
-const newTitle = ref('');
+const dayToRename = ref<MenuDay | null>(null);
+const dayToDelete = ref<MenuDay | null>(null);
 
 // Состояние для модалки предпросмотра дня
 const showDayPreviewModal = ref(false);
@@ -290,6 +205,13 @@ const dragOverStates = ref({
   dinner: false,
   snack: false,
 });
+
+// Валидация названия дня
+const validateDayName = (value: string): boolean | string => {
+  if (!value.trim()) return 'Название не может быть пустым';
+  if (value.length > 50) return 'Название не должно превышать 50 символов';
+  return true;
+};
 
 // Функция сбора ингредиентов из слотов
 function collectIngredientsFromSlots(slots: (MenuSlot | undefined)[]): Array<{ id: string; name: string; amount: number; unit: string }> {
@@ -405,11 +327,51 @@ const menuItems = computed(() => {
   return [items];
 });
 
+// ============ Методы для модалок ============
+
+// Переименование
+function openRenameModal() {
+  dayToRename.value = props.day;
+  isRenameModalOpen.value = true;
+}
+
+function handleRenameConfirm(newTitle: string) {
+  if (dayToRename.value) {
+    emit('renameDay', dayToRename.value.id, newTitle);
+    dayToRename.value = null;
+  }
+  isRenameModalOpen.value = false;
+}
+
+// Удаление
+function openDeleteModal() {
+  if (!props.canDelete) {
+    toast.add({
+      title: 'Нельзя удалить',
+      description: 'Должен остаться хотя бы один день',
+      color: 'warning',
+    });
+    return;
+  }
+  dayToDelete.value = props.day;
+  isDeleteModalOpen.value = true;
+}
+
+function handleDeleteConfirm() {
+  if (dayToDelete.value) {
+    emit('deleteDay', dayToDelete.value.id);
+    dayToDelete.value = null;
+  }
+  isDeleteModalOpen.value = false;
+}
+
 // Обработчик подтверждения из модалки дня
 function handleDayConfirm(ingredients: Array<{ id: string; name: string; amount: number; unit: string }>) {
   emit('addToShoppingList', ingredients);
   showDayPreviewModal.value = false;
 }
+
+// ============ Drag and Drop методы ============
 
 function handleSlotContainerDragOver(event: DragEvent) {
   event.preventDefault();
@@ -479,34 +441,7 @@ function getSlotByMeal(mealType: MealType): MenuSlot | undefined {
   }
 }
 
-function openRenameModal() {
-  newTitle.value = props.day.title;
-  isRenameModalOpen.value = true;
-}
-
-function saveRename() {
-  if (newTitle.value.trim() && newTitle.value !== props.day.title) {
-    emit('renameDay', props.day.id, newTitle.value.trim());
-  }
-  isRenameModalOpen.value = false;
-}
-
-function openDeleteModal() {
-  if (!props.canDelete) {
-    toast.add({
-      title: 'Нельзя удалить',
-      description: 'Должен остаться хотя бы один день',
-      color: 'warning',
-    });
-    return;
-  }
-  isDeleteModalOpen.value = true;
-}
-
-function confirmDelete() {
-  emit('deleteDay', props.day.id);
-  isDeleteModalOpen.value = false;
-}
+// ============ Обработчики событий от MealSlot ============
 
 function handleRemoveRecipe(itemId: string) {
   emit('removeRecipe', itemId);
