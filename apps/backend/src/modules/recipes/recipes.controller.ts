@@ -31,6 +31,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
 import { RecipeStatus } from './enums/recipe.enums';
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 
 interface RequestWithUser extends Request {
   user: {
@@ -107,6 +108,7 @@ export class RecipesController {
   }
 
   @Get('by-path/:srcPath')
+  @UseGuards(OptionalJwtAuthGuard)
   @ApiOperation({ summary: 'Получить рецепт по srcPath (slug)' })
   @ApiParam({ name: 'srcPath', description: 'ЧПУ рецепта' })
   @ApiResponse({ status: HttpStatus.OK, type: RecipeResponseDto })
@@ -114,6 +116,8 @@ export class RecipesController {
     @Param('srcPath') srcPath: string,
     @Req() req: RequestWithUser,
   ): Promise<RecipeResponseDto> {
+    console.log('CONTROLLER req.user:', req.user);
+
     const userId = req.user?.id;
     const userRole = req.user?.role;
 

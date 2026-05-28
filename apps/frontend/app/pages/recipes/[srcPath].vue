@@ -117,24 +117,69 @@ const shoppingListsApi = useShoppingListsApi()
 const { isAuthenticated, user } = useAuth()
 const toast = useToast()
 
+
+// ✅ Берём токен из кук напрямую на странице
+const accessToken = useCookie<string | null>('access_token')
+console.log('🔑 accessToken value:', accessToken.value)
+console.log('🔑 accessToken type:', typeof accessToken.value)
+
 // Получаем параметр srcPath из маршрута
 const srcPath = computed(() => {
   const path = route.params.srcPath
   return Array.isArray(path) ? path[0] : path
 })
 
+console.log('📍 srcPath:', srcPath.value)
+
 // ============ SSR DATA FETCHING ============
 const { data: recipeData, pending, error: fetchError } = await useAsyncData(
   `recipe-${srcPath.value}`,
   async () => {
+    console.log('🚀 useAsyncData started')
+
     if (!srcPath.value) {
+      console.error('❌ No srcPath provided')
       throw new Error('Путь к рецепту не указан')
     }
-    const response = await recipesApi.getRecipeBySrcPath(srcPath.value)
-    if (!response || !response.id) {
-      throw new Error('Рецепт не найден')
+
+    const apiBase = config.public.apiBase || 'http://localhost:3001'
+    const url = `${apiBase}/recipes/by-path/${srcPath.value}`
+    console.log('📡 Request URL:', url)
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
     }
-    return response
+
+    if (accessToken.value) {
+      headers['Authorization'] = `Bearer ${accessToken.value}`
+      console.log('✅ Token added to headers')
+    } else {
+      console.log('⚠️ No access token available')
+    }
+
+    try {
+      console.log('🌐 Fetching recipe...')
+      const response = await $fetch(url, {
+        method: 'GET',
+        headers,
+      })
+
+      console.log('✅ Response received:', response)
+      console.log('📦 Recipe ID:', response?.id)
+
+      if (!response?.id) {
+        console.error('❌ Recipe has no id')
+        throw new Error('Рецепт не найден')
+      }
+
+      return response
+    } catch (err: any) {
+      console.error('❌ Fetch error:', err)
+      console.error('❌ Error status:', err.status)
+      console.error('❌ Error message:', err.message)
+      console.error('❌ Error data:', err.data)
+      throw err
+    }
   },
   {
     server: true,
@@ -143,7 +188,19 @@ const { data: recipeData, pending, error: fetchError } = await useAsyncData(
   }
 )
 
+console.log('📊 useAsyncData result:', {
+  hasData: !!recipeData.value,
+  pending: pending.value,
+  hasError: !!fetchError.value,
+  errorMessage: fetchError.value?.message
+})
+
 const recipe = computed(() => recipeData.value)
+
+// Если есть ошибка, показываем её в консоли
+if (fetchError.value) {
+  console.error('🚨 Fetch error in component:', fetchError.value)
+}
 
 // ============ КЛИЕНТСКИЕ СОСТОЯНИЯ ============
 const unitsCache = ref<Map<string, Unit>>(new Map())

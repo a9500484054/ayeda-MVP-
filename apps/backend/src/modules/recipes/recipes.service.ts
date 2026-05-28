@@ -171,26 +171,56 @@ export class RecipesService {
     return this.findOneWithRelations(id, userId, userRole);
   }
 
-  async findBySrcPath(srcPath: string, userId?: string, userRole?: string): Promise<Recipe> {
+  async findBySrcPath(
+    srcPath: string,
+    userId?: string,
+    userRole?: string,
+  ): Promise<Recipe> {
+
+    console.log('========== findBySrcPath ==========');
+    console.log('srcPath:', srcPath);
+    console.log('userId:', userId);
+    console.log('userRole:', userRole);
+
     const recipe = await this.recipesRepository
       .createQueryBuilder('recipe')
       .leftJoinAndSelect('recipe.author', 'author')
       .leftJoinAndSelect('recipe.ingredients', 'ingredients')
       .leftJoinAndSelect('ingredients.ingredient', 'ingredient')
-      .leftJoinAndSelect('ingredient.unit', 'unit')  // ← ИСПРАВЛЕНО: загружаем unit из ingredient
+      .leftJoinAndSelect('ingredient.unit', 'unit')
       .leftJoinAndSelect('recipe.categories', 'rc')
       .leftJoinAndSelect('rc.category', 'category')
       .where('recipe.srcPath = :srcPath', { srcPath })
       .andWhere('recipe.deletedAt IS NULL')
       .getOne();
 
+    console.log('recipe found:', !!recipe);
+
     if (!recipe) {
       throw new NotFoundException('Рецепт не найден');
     }
 
-    const isOwner = userId && recipe.authorId === userId;
-    const isAdminOrModerator = userRole === UserRole.ADMIN || userRole === UserRole.MODERATOR;
+    console.log('recipe.authorId:', recipe.authorId);
+    console.log('recipe.status:', recipe.status);
+
+    const isOwner = !!userId && recipe.authorId === userId;
+
+    const isAdminOrModerator =
+      userRole === UserRole.ADMIN ||
+      userRole === UserRole.MODERATOR;
+
     const isPublic = recipe.status === RecipeStatus.PUBLIC;
+
+    console.log('isOwner:', isOwner);
+    console.log('isAdminOrModerator:', isAdminOrModerator);
+    console.log('isPublic:', isPublic);
+
+    console.log('UserRole.ADMIN:', UserRole.ADMIN);
+    console.log('UserRole.MODERATOR:', UserRole.MODERATOR);
+
+    console.log('ACCESS RESULT:', {
+      denied: !isPublic && !isOwner && !isAdminOrModerator,
+    });
 
     if (!isPublic && !isOwner && !isAdminOrModerator) {
       throw new ForbiddenException('У вас нет доступа к этому рецепту');
