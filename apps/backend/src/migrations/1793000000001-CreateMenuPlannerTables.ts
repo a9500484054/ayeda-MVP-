@@ -1,8 +1,8 @@
-// migration: 1703000000001-CreateMenuPlannerTables.ts
+// migration: 1793000000001-CreateMenuPlannerTables.ts
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateMenuPlannerTables1703000000001 implements MigrationInterface {
-  name = 'CreateMenuPlannerTables1703000000001';
+export class CreateMenuPlannerTables1793000000001 implements MigrationInterface {
+  name = 'CreateMenuPlannerTables1793000000001';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // ============================================

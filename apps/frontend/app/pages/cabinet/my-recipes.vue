@@ -155,7 +155,6 @@ import { getDeclension } from '~/shared/utils/strings'
 // Components
 import RecipeFilters from '~/components/my-recipe/RecipeFilters.vue'
 import RecipeCard from '~/components/my-recipe/RecipeCard.vue'
-import Skeleton from '~/shared/ui/skeleton/Skeleton.vue'
 import RecipeFormSlideover from '~/components/my-recipe/forms/RecipeFormSlideover.vue'
 import SubmitModerationModal from '~/components/my-recipe/modals/SubmitModerationModal.vue'
 import MakePrivateModal from '~/components/my-recipe/modals/MakePrivateModal.vue'
@@ -164,6 +163,7 @@ import Button from '~/shared/ui/button/Button.vue'
 import ConfirmModal from '~/shared/ui/confirm-modal/ConfirmModal.vue'
 import { useRecipesFavorites } from '~/composables/useRecipesFavorites'
 import EmptyState from '~/shared/ui/emptyState/EmptyState.vue'
+import Skeleton from '~/shared/ui/skeleton/skeleton.vue'
 
 definePageMeta({ layout: 'cabinet' })
 

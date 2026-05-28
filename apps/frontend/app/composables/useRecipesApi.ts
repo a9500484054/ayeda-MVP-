@@ -124,12 +124,12 @@ export function useRecipesApi() {
 
     // ==================== Поиск рецептов ====================
     // tudo удалить
-    async searchRecipes(q: string, params?: SearchRecipesParams): Promise<RecipesResponse> {
-      return await api('/recipes/search/public', {
-        method: 'GET',
-        params: { q, page: 1, limit: 10, ...params }
-      });
-    },
+    // async searchRecipes(q: string, params?: SearchRecipesParams): Promise<RecipesResponse> {
+    //   return await api('/recipes/search/public', {
+    //     method: 'GET',
+    //     params: { q, page: 1, limit: 10, ...params }
+    //   });
+    // },
     // 1. Публичный поиск (не требует авторизации)
     async searchPublicRecipes(q: string, params?: SearchRecipesParams): Promise<RecipesResponse> {
       return await api('/recipes/search/public', {

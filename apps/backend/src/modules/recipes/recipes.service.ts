@@ -56,98 +56,53 @@ export class RecipesService {
 
     // Используем транзакцию для создания рецепта со связями
     const savedRecipe = await this.dataSource.transaction(async (manager) => {
-      // 1. Создаем рецепт
+      // Создаем рецепт
       const recipe = manager.create(Recipe, {
         ...createRecipeDto,
         authorId: userId,
-       status: createRecipeDto.status
-                ? createRecipeDto.status
-                : (createRecipeDto.type === RecipeType.COMMUNITY
-                    ? RecipeStatus.PENDING
-                    : RecipeStatus.PRIVATE),
+        status: createRecipeDto.status
+          ? createRecipeDto.status
+          : (createRecipeDto.type === RecipeType.COMMUNITY
+              ? RecipeStatus.PENDING
+              : RecipeStatus.PRIVATE),
       });
       const saved = await manager.save(recipe);
-
-      // // 2. Добавляем ингредиенты (с защитой от дубликатов)
-      // if (createRecipeDto.ingredients?.length) {
-      //   // Удаляем дубликаты по ingredientId + unitId
-      //   const uniqueIngredients = createRecipeDto.ingredients.filter(
-      //     (item, index, self) =>
-      //       index ===
-      //       self.findIndex(
-      //         (t) =>
-      //           t.ingredientId === item.ingredientId &&
-      //           t.unitId === item.unitId,
-      //       ),
-      //   );
-
-      //   const recipeIngredients = await Promise.all(
-      //     uniqueIngredients.map(async (item) => {
-      //       // Проверяем существование ингредиента
-      //       await this.ingredientsService.findOne(item.ingredientId);
-
-      //       // Если указана единица измерения, проверяем её
-      //       if (item.unitId) {
-      //         await this.unitsService.findOne(item.unitId);
-      //       }
-
-      //       return manager.create(RecipeIngredient, {
-      //         recipeId: saved.id,
-      //         ingredientId: item.ingredientId,
-      //         amount: item.amount,
-      //         unitId: item.unitId,
-      //         notes: item.notes,
-      //       });
-      //     }),
-      //   );
-      //   await manager.save(recipeIngredients);
-      // }
-
-      // // 3. Добавляем категории (с защитой от дубликатов)
-      // if (createRecipeDto.categoryIds?.length) {
-      //   // Удаляем дубликаты categoryIds
-      //   const uniqueCategoryIds = [...new Set(createRecipeDto.categoryIds)];
-
-      //   const recipeCategories = await Promise.all(
-      //     uniqueCategoryIds.map(async (categoryId) => {
-      //       // Проверяем существование категории
-      //       await this.categoriesService.findOne(categoryId);
-
-      //       return manager.create(RecipeCategory, {
-      //         recipeId: saved.id,
-      //         categoryId,
-      //       });
-      //     }),
-      //   );
-      //   await manager.save(recipeCategories);
-      // }
-
       return saved;
     });
 
-    // После транзакции загружаем все связи
-    return this.findOneWithRelations(savedRecipe.id);
+    // После транзакции загружаем все связи (используем внутренний метод без проверки прав)
+    return this.findOneWithRelationsInternal(savedRecipe.id);
   }
 
-  async findOneWithRelations(id: string): Promise<Recipe> {
-    const recipe = await this.recipesRepository
-      .createQueryBuilder('recipe')
-      .leftJoinAndSelect('recipe.author', 'author')
-      .leftJoinAndSelect('recipe.ingredients', 'ingredients')
-      .leftJoinAndSelect('ingredients.ingredient', 'ingredient')
-      .leftJoinAndSelect('ingredients.unit', 'unit') // ← Добавляем загрузку unit
-      .leftJoinAndSelect('recipe.categories', 'rc')
-      .leftJoinAndSelect('rc.category', 'category')
-      .where('recipe.id = :id', { id })
-      .andWhere('recipe.deletedAt IS NULL')
-      .getOne();
+  // async findOneWithRelations(id: string, userId?: string, userRole?: string): Promise<Recipe> {
+  //   const queryBuilder = this.recipesRepository
+  //     .createQueryBuilder('recipe')
+  //     .leftJoinAndSelect('recipe.author', 'author')
+  //     .leftJoinAndSelect('recipe.ingredients', 'ingredients')
+  //     .leftJoinAndSelect('ingredients.ingredient', 'ingredient')
+  //     .leftJoinAndSelect('ingredients.unit', 'unit')
+  //     .leftJoinAndSelect('recipe.categories', 'rc')
+  //     .leftJoinAndSelect('rc.category', 'category')
+  //     .where('recipe.id = :id', { id })
+  //     .andWhere('recipe.deletedAt IS NULL');
 
-    if (!recipe) {
-      throw new NotFoundException('Рецепт не найден');
-    }
+  //   const recipe = await queryBuilder.getOne();
 
-    return recipe;
-  }
+  //   if (!recipe) {
+  //     throw new NotFoundException('Рецепт не найден');
+  //   }
+
+  //   // Проверка прав доступа
+  //   const isOwner = userId && recipe.authorId === userId;
+  //   const isAdminOrModerator = userRole === UserRole.ADMIN || userRole === UserRole.MODERATOR;
+  //   const isPublic = recipe.status === RecipeStatus.PUBLIC;
+
+  //   if (!isPublic && !isOwner && !isAdminOrModerator) {
+  //     throw new ForbiddenException('У вас нет доступа к этому рецепту');
+  //   }
+
+  //   return recipe;
+  // }
 
   async findAll(query: RecipeQueryDto): Promise<[Recipe[], number]> {
     const {
@@ -212,16 +167,17 @@ export class RecipesService {
     return queryBuilder.getManyAndCount();
   }
 
-  async findOne(id: string): Promise<Recipe> {
-    return this.findOneWithRelations(id);
+  async findOne(id: string, userId?: string, userRole?: string): Promise<Recipe> {
+    return this.findOneWithRelations(id, userId, userRole);
   }
 
-  async findBySrcPath(srcPath: string): Promise<Recipe> {
+  async findBySrcPath(srcPath: string, userId?: string, userRole?: string): Promise<Recipe> {
     const recipe = await this.recipesRepository
       .createQueryBuilder('recipe')
       .leftJoinAndSelect('recipe.author', 'author')
       .leftJoinAndSelect('recipe.ingredients', 'ingredients')
       .leftJoinAndSelect('ingredients.ingredient', 'ingredient')
+      .leftJoinAndSelect('ingredient.unit', 'unit')  // ← ИСПРАВЛЕНО: загружаем unit из ingredient
       .leftJoinAndSelect('recipe.categories', 'rc')
       .leftJoinAndSelect('rc.category', 'category')
       .where('recipe.srcPath = :srcPath', { srcPath })
@@ -232,6 +188,14 @@ export class RecipesService {
       throw new NotFoundException('Рецепт не найден');
     }
 
+    const isOwner = userId && recipe.authorId === userId;
+    const isAdminOrModerator = userRole === UserRole.ADMIN || userRole === UserRole.MODERATOR;
+    const isPublic = recipe.status === RecipeStatus.PUBLIC;
+
+    if (!isPublic && !isOwner && !isAdminOrModerator) {
+      throw new ForbiddenException('У вас нет доступа к этому рецепту');
+    }
+
     return recipe;
   }
 
@@ -240,12 +204,10 @@ export class RecipesService {
     id: string,
     updateRecipeDto: UpdateRecipeDto,
   ): Promise<Recipe> {
-    const recipe = await this.findOneWithRelations(id);
-
-    // Получаем информацию о пользователе (его роль)
+    // Получаем пользователя и рецепт с проверкой прав
     const user = await this.usersService.findOne(userId);
+    const recipe = await this.findOneWithRelations(id, userId, user.role);
 
-    // Проверка прав: владелец ИЛИ админ/модератор
     const isOwner = recipe.authorId === userId;
     const isAdminOrModerator = user.role === UserRole.ADMIN || user.role === UserRole.MODERATOR;
 
@@ -263,7 +225,6 @@ export class RecipesService {
     }
 
     await this.dataSource.transaction(async (manager) => {
-      // 1. Получаем текущий рецепт
       const recipeToUpdate = await manager.findOne(Recipe, {
         where: { id },
       });
@@ -272,7 +233,6 @@ export class RecipesService {
         throw new NotFoundException('Рецепт не найден');
       }
 
-      // 2. Обновляем поля рецепта
       const { ingredients, categoryIds, ...recipeFields } = updateRecipeDto;
 
       Object.entries(recipeFields).forEach(([key, value]) => {
@@ -281,7 +241,6 @@ export class RecipesService {
         }
       });
 
-      // Если статус меняется на PUBLIC - устанавливаем дату публикации
       if (updateRecipeDto.status === RecipeStatus.PUBLIC && recipeToUpdate.status !== RecipeStatus.PUBLIC) {
         recipeToUpdate.publishedAt = new Date();
       }
@@ -289,7 +248,6 @@ export class RecipesService {
       recipeToUpdate.updatedAt = new Date();
       await manager.save(recipeToUpdate);
 
-      // 3. Обновляем ингредиенты (если они переданы)
       if (updateRecipeDto.ingredients) {
         await manager.delete(RecipeIngredient, { recipeId: id });
 
@@ -314,7 +272,6 @@ export class RecipesService {
         }
       }
 
-      // 4. Обновляем категории (если они переданы)
       if (updateRecipeDto.categoryIds) {
         await manager.delete(RecipeCategory, { recipeId: id });
 
@@ -333,13 +290,14 @@ export class RecipesService {
       }
     });
 
-    return this.findOneWithRelations(id);
+    // Возвращаем обновленный рецепт (используем внутренний метод)
+    return this.findOneWithRelationsInternal(id);
   }
 
   async remove(userId: string, id: string): Promise<void> {
-    const recipe = await this.findOneWithRelations(id);
-
     const user = await this.usersService.findOne(userId);
+    const recipe = await this.findOneWithRelations(id, userId, user.role);
+
     const isOwner = recipe.authorId === userId;
     const isAdminOrModerator = user.role === UserRole.ADMIN || user.role === UserRole.MODERATOR;
 
@@ -351,7 +309,8 @@ export class RecipesService {
   }
 
   async publish(id: string, moderatorId: string): Promise<Recipe> {
-    const recipe = await this.findOneWithRelations(id);
+    const moderator = await this.usersService.findOne(moderatorId);
+    const recipe = await this.findOneWithRelations(id, moderatorId, moderator.role);
 
     if (recipe.status !== RecipeStatus.PENDING) {
       throw new BadRequestException('Рецепт должен быть на модерации');
@@ -360,7 +319,6 @@ export class RecipesService {
     recipe.status = RecipeStatus.PUBLIC;
     recipe.publishedAt = new Date();
 
-    // Автоматически меняем тип на COMMUNITY при публикации
     if (recipe.type === RecipeType.PERSONAL) {
       recipe.type = RecipeType.COMMUNITY;
     }
@@ -369,7 +327,8 @@ export class RecipesService {
   }
 
   async reject(id: string, moderatorId: string): Promise<Recipe> {
-    const recipe = await this.findOneWithRelations(id);
+    const moderator = await this.usersService.findOne(moderatorId);
+    const recipe = await this.findOneWithRelations(id, moderatorId, moderator.role);
 
     if (recipe.status !== RecipeStatus.PENDING) {
       throw new BadRequestException('Рецепт должен быть на модерации');
@@ -427,7 +386,7 @@ export class RecipesService {
         id: ri.id,
         ingredient: ri.ingredient,
         amount: ri.amount,
-        unit: ri.unit || null, // Получаем unit из связанного ингредиента
+        unit: ri.ingredient.unit || null, // Получаем unit из связанного ингредиента
         notes: ri.notes,
       })) || [];
 
@@ -468,7 +427,7 @@ export class RecipesService {
       );
     }
 
-    // Проверяем, что рецепт еще не опубликован
+    // Нельзя отправить на модерацию уже опубликованный рецепт
     if (recipe.status === RecipeStatus.PUBLIC) {
       throw new BadRequestException(
         'Опубликованный рецепт нельзя отправить на модерацию',
@@ -480,7 +439,7 @@ export class RecipesService {
       throw new BadRequestException('Рецепт уже на модерации');
     }
 
-    // Меняем статус на PENDING (из любого статуса, кроме PUBLIC и PENDING)
+    // Меняем статус
     recipe.status = RecipeStatus.PENDING;
     recipe.updatedAt = new Date();
 
@@ -648,5 +607,44 @@ export class RecipesService {
   // Для обратной совместимости (старый метод search)
   async search(query: string, paginationDto: any): Promise<[Recipe[], number]> {
     return this.searchPublic(query, paginationDto);
+  }
+
+  // ==================== ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ====================
+
+  // Приватный метод для внутреннего использования (БЕЗ проверки прав)
+  private async findOneWithRelationsInternal(id: string): Promise<Recipe> {
+    const queryBuilder = this.recipesRepository
+      .createQueryBuilder('recipe')
+      .leftJoinAndSelect('recipe.author', 'author')
+      .leftJoinAndSelect('recipe.ingredients', 'ingredients')
+      .leftJoinAndSelect('ingredients.ingredient', 'ingredient')
+      .leftJoinAndSelect('ingredient.unit', 'unit')  // ← ИСПРАВЛЕНО
+      .leftJoinAndSelect('recipe.categories', 'rc')
+      .leftJoinAndSelect('rc.category', 'category')
+      .where('recipe.id = :id', { id })
+      .andWhere('recipe.deletedAt IS NULL');
+
+    const recipe = await queryBuilder.getOne();
+
+    if (!recipe) {
+      throw new NotFoundException('Рецепт не найден');
+    }
+
+    return recipe;
+  }
+
+  // Публичный метод для API (С проверкой прав)
+  async findOneWithRelations(id: string, userId?: string, userRole?: string): Promise<Recipe> {
+    const recipe = await this.findOneWithRelationsInternal(id);
+
+    const isOwner = userId && recipe.authorId === userId;
+    const isAdminOrModerator = userRole === UserRole.ADMIN || userRole === UserRole.MODERATOR;
+    const isPublic = recipe.status === RecipeStatus.PUBLIC;
+
+    if (!isPublic && !isOwner && !isAdminOrModerator) {
+      throw new ForbiddenException('У вас нет доступа к этому рецепту');
+    }
+
+    return recipe;
   }
 }

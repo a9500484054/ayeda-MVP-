@@ -7,7 +7,8 @@
     >
       <Button
         size="xs"
-        variant="ghost"
+        variant="solid"
+        color="primary"
         :class="{ 'bg-zinc-100 text-emerald-600': !allowDecimal }"
         @click="setIntegerMode(true)"
       >
@@ -15,7 +16,8 @@
       </Button>
       <Button
         size="xs"
-        variant="ghost"
+        variant="solid"
+        color="primary"
         :class="{ 'bg-zinc-100 text-emerald-600': allowDecimal }"
         @click="setIntegerMode(false)"
       >

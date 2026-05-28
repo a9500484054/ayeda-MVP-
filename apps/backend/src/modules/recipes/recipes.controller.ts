@@ -11,7 +11,6 @@ import {
   Query,
   HttpStatus,
   HttpCode,
-  Ip,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -31,6 +30,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
+import { RecipeStatus } from './enums/recipe.enums';
 
 interface RequestWithUser extends Request {
   user: {
@@ -84,47 +84,25 @@ export class RecipesController {
     return new PaginatedResponseDto(recipeDtos, total, page, limit);
   }
 
-  @Get('search')
-  @ApiOperation({ summary: 'Полнотекстовый поиск рецептов' })
-  @ApiQuery({ name: 'q', description: 'Поисковый запрос' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    type: PaginatedResponseDto<RecipeResponseDto>,
-  })
-  async search(
-    @Query('q') query: string,
-    @Query() paginationDto: any,
-  ): Promise<PaginatedResponseDto<RecipeResponseDto>> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    const page = Number(paginationDto.page) || 1;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    const limit = Number(paginationDto.limit) || 10;
-
-    const [recipes, total] = await this.recipesService.search(query, {
-      page,
-      limit,
-    });
-
-    const recipeDtos = recipes.map((recipe) =>
-      this.recipesService.toResponseDto(recipe),
-    );
-
-    return new PaginatedResponseDto(recipeDtos, total, page, limit);
-  }
-
   @Get(':id')
   @ApiOperation({ summary: 'Получить рецепт по ID' })
   @ApiParam({ name: 'id', description: 'UUID рецепта' })
   @ApiResponse({ status: HttpStatus.OK, type: RecipeResponseDto })
   async findOne(
     @Param('id') id: string,
-    @Ip() ipAddress?: string, // Опционально для логирования
+    @Req() req: RequestWithUser,
   ): Promise<RecipeResponseDto> {
-    // Увеличиваем счетчик просмотров (не ждем результата)
-    this.recipesService.incrementViews(id).catch(err => {
-      console.error('Failed to increment views:', err);
-    });
-    const recipe = await this.recipesService.findOne(id);
+    const userId = req.user?.id;
+    const userRole = req.user?.role;
+
+    const recipe = await this.recipesService.findOne(id, userId, userRole);
+
+    if (recipe.status === RecipeStatus.PUBLIC) {
+      this.recipesService.incrementViews(id).catch(err => {
+        console.error('Failed to increment views:', err);
+      });
+    }
+
     return this.recipesService.toResponseDto(recipe);
   }
 
@@ -134,22 +112,25 @@ export class RecipesController {
   @ApiResponse({ status: HttpStatus.OK, type: RecipeResponseDto })
   async findBySrcPath(
     @Param('srcPath') srcPath: string,
+    @Req() req: RequestWithUser,
   ): Promise<RecipeResponseDto> {
-    // Увеличиваем счетчик просмотров
-    const recipe = await this.recipesService.findBySrcPath(srcPath);
+    const userId = req.user?.id;
+    const userRole = req.user?.role;
 
-    // Увеличиваем просмотры после получения рецепта (знаем id)
-    this.recipesService.incrementViews(recipe.id).catch(err => {
-      console.error('Failed to increment views:', err);
-    });
+    const recipe = await this.recipesService.findBySrcPath(srcPath, userId, userRole);
+
+    if (recipe.status === RecipeStatus.PUBLIC) {
+      this.recipesService.incrementViews(recipe.id).catch(err => {
+        console.error('Failed to increment views:', err);
+      });
+    }
 
     return this.recipesService.toResponseDto(recipe);
   }
 
-
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
-  @Roles(UserRole.ADMIN, UserRole.MODERATOR) // Разрешаем админу и модератору
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Обновить рецепт' })
   @ApiParam({ name: 'id', description: 'UUID рецепта' })
@@ -243,7 +224,6 @@ export class RecipesController {
 
   // ==================== ПОИСКОВЫЕ ЭНДПОИНТЫ ====================
 
-  // 1. Публичный поиск (без авторизации)
   @Get('search/public')
   @ApiOperation({ summary: 'Публичный поиск рецептов (только опубликованные)' })
   @ApiQuery({ name: 'q', description: 'Поисковый запрос', required: false })
@@ -267,7 +247,6 @@ export class RecipesController {
     return new PaginatedResponseDto(recipeDtos, total, Number(page), Number(limit));
   }
 
-  // 2. Поиск по своим рецептам (только авторизованные)
   @Get('search/my')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -295,7 +274,6 @@ export class RecipesController {
     return new PaginatedResponseDto(recipeDtos, total, Number(page), Number(limit));
   }
 
-  // 3. Поиск по избранным (только авторизованные)
   @Get('search/favorites')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -323,7 +301,6 @@ export class RecipesController {
     return new PaginatedResponseDto(recipeDtos, total, Number(page), Number(limit));
   }
 
-  // 4. Комбинированный поиск (публичные + свои)
   @Get('search/all')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -351,4 +328,24 @@ export class RecipesController {
     return new PaginatedResponseDto(recipeDtos, total, Number(page), Number(limit));
   }
 
+  @Get('search')
+  @ApiOperation({ summary: 'Поиск рецептов (устаревший, используйте /search/public)' })
+  @ApiQuery({ name: 'q', description: 'Поисковый запрос' })
+  @ApiResponse({ status: HttpStatus.OK, type: PaginatedResponseDto<RecipeResponseDto> })
+  async searchLegacy(
+    @Query('q') query: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 12,
+  ): Promise<PaginatedResponseDto<RecipeResponseDto>> {
+    const [recipes, total] = await this.recipesService.search(query, {
+      page: Number(page),
+      limit: Number(limit),
+    });
+
+    const recipeDtos = recipes.map((recipe) =>
+      this.recipesService.toResponseDto(recipe),
+    );
+
+    return new PaginatedResponseDto(recipeDtos, total, Number(page), Number(limit));
+  }
 }

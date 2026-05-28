@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddCommentsCountToRecipes1748000000001 implements MigrationInterface {
-  name = 'AddCommentsCountToRecipes1748000000001';
+export class AddCommentsCountToRecipes1794000000001 implements MigrationInterface {
+  name = 'AddCommentsCountToRecipes1794000000001';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Добавляем поле comments_count в таблицу recipes
