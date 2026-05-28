@@ -418,7 +418,11 @@ export class RecipesService {
   }
 
   async submitForModeration(id: string, userId: string): Promise<Recipe> {
-    const recipe = await this.findOneWithRelations(id);
+    // Получаем пользователя для его роли
+    const user = await this.usersService.findOne(userId);
+
+    // Передаем userId и userRole в findOneWithRelations
+    const recipe = await this.findOneWithRelations(id, userId, user.role);
 
     // Проверяем, что пользователь - автор рецепта
     if (recipe.authorId !== userId) {
@@ -447,7 +451,11 @@ export class RecipesService {
   }
 
   async makePrivate(id: string, userId: string): Promise<Recipe> {
-    const recipe = await this.findOneWithRelations(id);
+    // Получаем пользователя для его роли
+    const user = await this.usersService.findOne(userId);
+
+    // Передаем userId и userRole в findOneWithRelations
+    const recipe = await this.findOneWithRelations(id, userId, user.role);
 
     // Проверяем, что пользователь - автор рецепта
     if (recipe.authorId !== userId) {
@@ -467,9 +475,6 @@ export class RecipesService {
     // Меняем статус на PRIVATE
     recipe.status = RecipeStatus.PRIVATE;
     recipe.updatedAt = new Date();
-
-    // Если рецепт был на модерации - снимаем с модерации
-    // Это логично, так как автор решил сделать его приватным
 
     return this.recipesRepository.save(recipe);
   }
