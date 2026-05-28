@@ -232,7 +232,6 @@ const handleInput = (event: Event) => {
 const handleBlur = () => {
   // Приводим к допустимому формату
   let newValue = localValue.value
-
   if (!props.allowDecimal && isIntegerMode.value) {
     newValue = Math.round(newValue)
   }

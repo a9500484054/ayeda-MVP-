@@ -67,7 +67,7 @@
               <!-- Время приготовления -->
               <div>
                 <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Время приготовления
+                  Время (мин)
                 </label>
                 <NumberStepper
                   v-model="formData.cookingTime"
@@ -82,7 +82,7 @@
               <!-- Количество порций -->
               <div>
                 <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Количество порций
+                  Порций (шт)
                 </label>
                 <NumberStepper
                   v-model="formData.servings"

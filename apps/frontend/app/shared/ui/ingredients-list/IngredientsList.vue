@@ -63,6 +63,8 @@
             type="number"
             placeholder="0"
             class="w-24"
+            :min="0"
+            :max="9999"
             :disabled="disabled"
             @update:model-value="emitUpdate"
           />
