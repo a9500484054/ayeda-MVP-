@@ -42,6 +42,7 @@
           <div class="flex flex-shrink-0 gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
             <Button
               variant="ghost"
+              color="neutral"
               size="xs"
               icon="i-lucide-file-text"
               icon-only
@@ -51,15 +52,17 @@
             />
             <Button
               variant="ghost"
+              color="info"
               size="xs"
               icon="i-lucide-external-link"
               icon-only
-              class="!p-1 !h-6 !w-6 text-zinc-400 hover:text-emerald-600"
+              class="!p-1 !h-6 !w-6"
               title="Открыть рецепт"
               @click.stop="openRecipe"
             />
             <Button
               variant="ghost"
+              color="danger"
               size="xs"
               icon="i-lucide-x"
               icon-only

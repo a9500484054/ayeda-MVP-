@@ -82,11 +82,17 @@
               <button
                 v-for="type in displayTypeOptions"
                 :key="type.value"
-                class="rounded-xl border-2 p-2.5 text-center transition-all duration-200 hover:scale-[0.98] cursor-pointer"
-                :class="form.displayType === type.value
-                  ? 'border-emerald-500 bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/30 dark:to-emerald-900/20 text-emerald-700 dark:text-emerald-400'
-                  : 'border-gray-200 dark:border-zinc-700 hover:border-emerald-300 dark:hover:border-emerald-700 bg-white dark:bg-zinc-800/50'"
-                @click="onDisplayTypeChange(type.value)"
+                :disabled="type.disabled"
+                class="rounded-xl border-2 p-2.5 text-center transition-all duration-200 cursor-pointer"
+                :class="[
+                  form.displayType === type.value
+                    ? 'border-emerald-500 bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/30 dark:to-emerald-900/20 text-emerald-700 dark:text-emerald-400'
+                    : 'border-gray-200 dark:border-zinc-700 hover:border-emerald-300 dark:hover:border-emerald-700 bg-white dark:bg-zinc-800/50',
+                  type.disabled
+                    ? 'opacity-40 cursor-not-allowed hover:scale-100 hover:border-gray-200 dark:hover:border-zinc-700 filter grayscale'
+                    : 'hover:scale-[0.98]'
+                ]"
+                @click="!type.disabled && onDisplayTypeChange(type.value)"
               >
                 <div class="flex flex-col items-center gap-1">
                   <UIcon :name="type.icon" class="h-5 w-5" />
@@ -205,9 +211,9 @@ const dayPresets = [
 const isEditing = computed(() => !!props.list)
 
 const displayTypeOptions = [
-  { value: 'days', label: 'Дни', icon: 'i-lucide-calendar-days' },
-  { value: 'calendar', label: 'Календарь', icon: 'i-lucide-calendar' },
-  { value: 'banquet', label: 'Банкет', icon: 'i-lucide-utensils' },
+  { value: 'days', label: 'Дни', icon: 'i-lucide-calendar-days', disabled: false },
+  { value: 'calendar', label: 'Календарь', icon: 'i-lucide-calendar', disabled: true },
+  { value: 'banquet', label: 'Банкет', icon: 'i-lucide-utensils', disabled: true },
 ]
 
 const form = reactive({

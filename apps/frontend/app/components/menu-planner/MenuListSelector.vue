@@ -1,9 +1,9 @@
 <template>
   <div class="menu-list-selector">
     <!-- Заголовок -->
-    <div class="mb-3 flex items-center justify-between">
+    <!-- <div class="mb-3 flex items-center justify-between">
       <label class="text-sm font-medium text-zinc-700">Список меню</label>
-    </div>
+    </div> -->
 
     <!-- Список карточек -->
     <div class="flex flex-wrap gap-3">
