@@ -10,25 +10,13 @@
     @dragleave="handleDragLeave"
     @drop.prevent="handleDrop"
   >
-    <!-- Заголовок -->
     <div class="mb-2 flex items-center justify-between border-b border-zinc-100 pb-1">
       <span class="text-xs font-medium text-zinc-500">{{ mealLabel }}</span>
-      <span v-if="itemsLength > 0" class="text-xs text-zinc-400">{{ itemsLength }}/10</span>
+      <span v-if="itemsLength > 0" class="text-xs text-zinc-400">{{ itemsLength }}/{{ MAX_RECIPES }}</span>
     </div>
 
-    <!-- Пустой слот -->
-    <div v-if="isEmpty" class="flex min-h-[60px] flex-col items-center justify-center">
-      <button
-        class="flex flex-col items-center gap-1 text-zinc-400 transition-colors hover:text-green-600 cursor-pointer"
-        @click="emit('addRecipe')"
-      >
-        <UIcon name="i-lucide-plus-circle" class="h-6 w-6" />
-        <span class="text-xs">Добавить рецепт</span>
-      </button>
-    </div>
-
-    <!-- Рецепты -->
-    <div v-else class="space-y-2">
+    <!-- Список рецептов -->
+    <div v-if="!isEmpty" class="space-y-2">
       <div
         v-for="(item, index) in sortedItems"
         :key="item.id"
@@ -40,6 +28,7 @@
           :is-draggable="true"
           :slot-id="slotId"
           :drag-index="index"
+          :max-items="MAX_RECIPES"
           @remove="emit('removeRecipe', item.id)"
           @edit-notes="(notes) => emit('editNotes', item.id, notes)"
           @drag-start="handleChildDragStart"
@@ -50,171 +39,364 @@
       </div>
     </div>
 
-    <!-- Кнопка добавления (для непустого слота) -->
+    <!-- Пустой слот -->
+    <div v-if="isEmpty && !isSearchMode" class="flex min-h-[60px] flex-col items-center justify-center">
+      <button
+        class="flex flex-col items-center gap-1 text-zinc-400 transition-colors hover:text-emerald-600 cursor-pointer"
+        @click="startSearch"
+      >
+        <UIcon name="i-lucide-plus-circle" class="h-6 w-6" />
+        <span class="text-xs">Добавить рецепт</span>
+      </button>
+    </div>
+
+    <!-- Кнопка добавления -->
     <button
-      v-if="!isEmpty && itemsLength < 10"
+      v-if="!isEmpty && !isSearchMode && itemsLength < MAX_RECIPES"
       class="mt-2 flex w-full items-center justify-center gap-1 rounded-lg py-1.5 text-xs text-zinc-400 transition-colors hover:bg-zinc-50 hover:text-zinc-600 cursor-pointer"
-      @click="emit('addRecipe')"
+      @click="startSearch"
     >
       <UIcon name="i-lucide-plus" class="h-3 w-3" />
       Добавить рецепт
     </button>
 
-    <div v-if="itemsLength >= 10" class="mt-1 text-center text-xs text-orange-500">
-      Максимум 10 рецептов
+    <!-- Режим поиска -->
+    <div v-if="isSearchMode" ref="searchContainerRef" class="mt-2">
+      <Select
+        ref="selectRef"
+        v-model="selectedRecipeId"
+        :options="recipeOptions"
+        placeholder="Поиск рецептов..."
+        searchable
+        :loading="isSearching"
+        @search="handleSearch"
+        @close="handleSelectClose"
+        @open="handleSelectOpen"
+      >
+        <template #options="{ options }">
+          <button
+            v-for="option in options"
+            :key="option.value"
+            type="button"
+            class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-gray-100"
+            @click="() => selectRecipe(option)"
+          >
+            <div class="h-8 w-8 flex-shrink-0 overflow-hidden rounded-lg bg-zinc-100">
+              <img
+                v-if="option.image"
+                :src="option.image"
+                class="h-full w-full object-cover"
+              />
+              <UIcon v-else name="i-lucide-cooking-pot" class="h-full w-full p-1.5 text-zinc-400" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="truncate font-medium text-zinc-900">{{ option.label }}</p>
+              <p class="text-xs text-zinc-500">
+                {{ option.cookingTime }} мин • {{ option.servings }} порц
+              </p>
+            </div>
+            <div v-if="isRecipeAlreadyAdded(option.value)" class="text-emerald-600">
+              <UIcon name="i-lucide-check" class="h-4 w-4" />
+            </div>
+          </button>
+        </template>
+
+        <template #empty>
+          <div class="py-4 text-center">
+            <p class="text-xs text-zinc-400">Ничего не найдено</p>
+          </div>
+        </template>
+      </Select>
+    </div>
+
+    <!-- Лимит -->
+    <div v-if="itemsLength >= MAX_RECIPES && !isSearchMode" class="mt-1 text-center text-xs text-orange-500">
+      Максимум {{ MAX_RECIPES }} рецептов
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { MenuSlotItem } from '~/composables/useMenuPlannerApi';
-import RecipeCardInSlot from './RecipeCardInSlot.vue';
+import { ref, computed, watch, nextTick } from 'vue'
+import { onClickOutside, useDebounceFn } from '@vueuse/core'
+import type { MenuSlotItem } from '~/composables/useMenuPlannerApi'
+import type { RecipeResponse } from '~/composables/useRecipesApi'
+import RecipeCardInSlot from './RecipeCardInSlot.vue'
+import Select from '~/shared/ui/select/Select.vue'
+import type { SelectOption } from '~/shared/ui/select/Select.vue'
+
+const MAX_RECIPES = 5
 
 const props = defineProps<{
-  slotId?: string;
-  items?: MenuSlotItem[];
-  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
-  isDragOver?: boolean;
-}>();
+  slotId?: string
+  items?: MenuSlotItem[]
+  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack'
+  isDragOver?: boolean
+}>()
 
 const emit = defineEmits<{
-  addRecipe: [];
-  removeRecipe: [itemId: string];
-  editNotes: [itemId: string, notes: string];
-  moveRecipe: [itemId: string, sourceSlotId: string, targetSlotId: string];
-  reorder: [slotId: string, items: { id: string; order: number }[]];
-  requestCreateSlot: [dayId: string, mealType: string, recipeId: string, notes?: string];
-  dragOverState: [state: boolean];
-}>();
+  addRecipe: [recipeId: string, notes?: string]
+  removeRecipe: [itemId: string]
+  editNotes: [itemId: string, notes: string]
+  moveRecipe: [itemId: string, sourceSlotId: string, targetSlotId: string]
+  reorder: [slotId: string, items: { id: string; order: number }[]]
+  requestCreateSlot: [dayId: string, mealType: string, recipeId: string, notes?: string]
+  dragOverState: [state: boolean]
+}>()
+
+const config = useRuntimeConfig()
+const selectRef = ref<InstanceType<typeof Select> | null>(null)
+const searchContainerRef = ref<HTMLElement | null>(null)
+
+const isSearchMode = ref(false)
+const searchQuery = ref('')
+const searchResults = ref<RecipeResponse[]>([])
+const isSearching = ref(false)
+const selectedRecipeId = ref<string | null>(null)
+const localDragOver = ref(false)
 
 const mealLabels: Record<string, string> = {
   breakfast: '🍳 Завтрак',
   lunch: '🍲 Обед',
   dinner: '🍽️ Ужин',
   snack: '🍎 Перекус',
-};
+}
 
-const mealLabel = computed(() => mealLabels[props.mealType]);
+const mealLabel = computed(() => mealLabels[props.mealType])
 
 const sortedItems = computed(() => {
-  if (!props.items) return [];
-  return [...props.items].sort((a, b) => a.order - b.order);
-});
+  if (!props.items) return []
+  return [...props.items].sort((a, b) => a.order - b.order)
+})
 
-const itemsLength = computed(() => props.items?.length || 0);
-const isEmpty = computed(() => itemsLength.value === 0);
+const itemsLength = computed(() => props.items?.length || 0)
+const isEmpty = computed(() => itemsLength.value === 0)
 
-// Локальное состояние drag-over для анимации
-const localDragOver = ref(false);
+const recipeOptions = computed<SelectOption[]>(() => {
+  return searchResults.value.map(recipe => ({
+    value: recipe.id,
+    label: recipe.title,
+    cookingTime: recipe.cookingTime,
+    servings: recipe.servings,
+    image: getImageUrl(recipe),
+  }))
+})
 
-// Следим за внешним состоянием
 watch(() => props.isDragOver, (newValue) => {
-  localDragOver.value = newValue;
-});
+  localDragOver.value = newValue
+})
 
-function getDragData(event: DragEvent) {
-  if (!event.dataTransfer) return null;
-  const raw = event.dataTransfer.getData('text/plain');
-  if (!raw) return null;
+const getImageUrl = (recipe: RecipeResponse) => {
+  const src = recipe.photo?.src
+  if (!src) return ''
+  if (src.startsWith('http')) return src
+  const apiUrl = config.public.apiUrl || 'http://localhost:3001'
+  if (src.startsWith('/')) return `${apiUrl}${src}`
+  return `${apiUrl}/${src}`
+}
+
+
+const isRecipeAlreadyAdded = (recipeId: string) => {
+  return props.items?.some(item => item.recipeId === recipeId) || false
+}
+
+// Загрузка популярных рецептов
+const loadPopularRecipes = async () => {
+  if (searchResults.value.length > 0) return
+
+  isSearching.value = true
   try {
-    return JSON.parse(raw);
-  } catch {
-    return null;
+    const { useRecipesApi } = await import('~/composables/useRecipesApi')
+    const api = useRecipesApi()
+    const result = await api.getRecipes({ page: 1, limit: 10 })
+
+    let recipesData: RecipeResponse[] = []
+    if (result?.data && Array.isArray(result.data)) {
+      recipesData = result.data
+    } else if (Array.isArray(result)) {
+      recipesData = result
+    }
+
+    searchResults.value = recipesData
+  } catch (error) {
+    console.error('Error loading popular recipes:', error)
+    searchResults.value = []
+  } finally {
+    isSearching.value = false
   }
 }
 
-// Обработчики для переупорядочивания (drop на рецепт)
-function handleItemDragOver(event: DragEvent) {
-  event.preventDefault();
-  if (event.dataTransfer) {
-    event.dataTransfer.dropEffect = 'move';
+// При открытии дропдауна
+const handleSelectOpen = () => {
+  if (searchResults.value.length === 0 && !searchQuery.value) {
+    loadPopularRecipes()
   }
-  const target = event.currentTarget as HTMLElement;
-  target.classList.add('drag-over');
+}
+
+const searchRecipes = useDebounceFn(async () => {
+  if (!searchQuery.value.trim()) {
+    searchResults.value = []
+    isSearching.value = false
+    return
+  }
+
+  isSearching.value = true
+
+  try {
+    const { useRecipesApi } = await import('~/composables/useRecipesApi')
+    const api = useRecipesApi()
+    const result = await api.searchAllRecipes(searchQuery.value, { page: 1, limit: 10 })
+
+    let recipesData: RecipeResponse[] = []
+    if (result?.data && Array.isArray(result.data)) {
+      recipesData = result.data
+    } else if (Array.isArray(result)) {
+      recipesData = result
+    }
+
+    searchResults.value = recipesData
+  } catch (error) {
+    console.error('Search error:', error)
+    searchResults.value = []
+  } finally {
+    isSearching.value = false
+  }
+}, 400)
+
+const handleSearch = (query: string) => {
+  searchQuery.value = query
+  searchRecipes()
+}
+
+const handleSelectClose = () => {
+  if (isSearchMode.value) {
+    cancelSearch()
+  }
+}
+
+const cancelSearch = () => {
+  isSearchMode.value = false
+  searchQuery.value = ''
+  searchResults.value = []
+  selectedRecipeId.value = null
+  isSearching.value = false
+}
+
+const startSearch = () => {
+  isSearchMode.value = true
+  searchQuery.value = ''
+  searchResults.value = []
+
+  nextTick(() => {
+    selectRef.value?.open()
+  })
+}
+
+const selectRecipe = (option: SelectOption) => {
+  const recipeId = option.value as string
+  if (isRecipeAlreadyAdded(recipeId)) return
+  if (itemsLength.value >= MAX_RECIPES) return
+
+  emit('addRecipe', recipeId)
+  selectedRecipeId.value = null
+  cancelSearch()
+}
+
+onClickOutside(searchContainerRef, () => {
+  if (isSearchMode.value) {
+    cancelSearch()
+  }
+})
+
+function getDragData(event: DragEvent) {
+  if (!event.dataTransfer) return null
+  const raw = event.dataTransfer.getData('text/plain')
+  if (!raw) return null
+  try {
+    return JSON.parse(raw)
+  } catch {
+    return null
+  }
+}
+
+function handleItemDragOver(event: DragEvent) {
+  event.preventDefault()
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = 'move'
+  }
+  const target = event.currentTarget as HTMLElement
+  target.classList.add('drag-over')
 }
 
 function handleItemDrop(event: DragEvent, targetIndex: number) {
-  event.preventDefault();
-  event.stopPropagation();
-  const target = event.currentTarget as HTMLElement;
-  target.classList.remove('drag-over');
+  event.preventDefault()
+  event.stopPropagation()
+  const target = event.currentTarget as HTMLElement
+  target.classList.remove('drag-over')
 
-  const dragData = getDragData(event);
-  if (!dragData || !props.slotId) return;
+  const dragData = getDragData(event)
+  if (!dragData || !props.slotId) return
 
   if (dragData.slotId !== props.slotId) {
-    emit('moveRecipe', dragData.itemId, dragData.slotId, props.slotId);
-    return;
+    emit('moveRecipe', dragData.itemId, dragData.slotId, props.slotId)
+    return
   }
 
-  // Только переупорядочивание внутри одного слота
   if (dragData.slotId === props.slotId && dragData.dragIndex !== undefined) {
-    const fromIndex = dragData.dragIndex;
-    if (fromIndex === targetIndex) return;
+    const fromIndex = dragData.dragIndex
+    if (fromIndex === targetIndex) return
 
-    const newItems = [...sortedItems.value];
-    const [movedItem] = newItems.splice(fromIndex, 1);
-    newItems.splice(targetIndex, 0, movedItem);
+    const newItems = [...sortedItems.value]
+    const [movedItem] = newItems.splice(fromIndex, 1)
+    newItems.splice(targetIndex, 0, movedItem)
 
     const reorderedItems = newItems.map((item, idx) => ({
       id: item.id,
       order: idx,
-    }));
+    }))
 
-    emit('reorder', props.slotId!, reorderedItems);
+    emit('reorder', props.slotId!, reorderedItems)
   }
 }
 
-// Обработчики для перемещения между слотами (drop на сам слот)
 function handleDragOver(event: DragEvent) {
-  event.preventDefault();
+  event.preventDefault()
   if (event.dataTransfer) {
-    event.dataTransfer.dropEffect = 'move';
+    event.dataTransfer.dropEffect = 'move'
   }
-  localDragOver.value = true;
-  emit('dragOverState', true);
+  localDragOver.value = true
+  emit('dragOverState', true)
 }
 
 function handleDragLeave(event: DragEvent) {
-  const relatedTarget = event.relatedTarget as HTMLElement | null;
+  const relatedTarget = event.relatedTarget as HTMLElement | null
   if (relatedTarget && (event.currentTarget as HTMLElement).contains(relatedTarget)) {
-    return;
+    return
   }
-  localDragOver.value = false;
-  emit('dragOverState', false);
+  localDragOver.value = false
+  emit('dragOverState', false)
 }
 
 function handleDrop(event: DragEvent) {
-  event.preventDefault();
-  localDragOver.value = false;
-  emit('dragOverState', false);
+  event.preventDefault()
+  localDragOver.value = false
+  emit('dragOverState', false)
 
-  const dragData = getDragData(event);
-  if (!dragData || !props.slotId) return;
-  event.stopPropagation();
+  const dragData = getDragData(event)
+  if (!dragData || !props.slotId) return
+  event.stopPropagation()
 
-  // Перемещение между слотами (только если source и target разные)
   if (dragData.slotId !== props.slotId) {
-    console.log('Moving recipe via MealSlot drop:', {
-      itemId: dragData.itemId,
-      sourceSlotId: dragData.slotId,
-      targetSlotId: props.slotId
-    });
-    emit('moveRecipe', dragData.itemId, dragData.slotId, props.slotId);
+    emit('moveRecipe', dragData.itemId, dragData.slotId, props.slotId)
   }
 }
 
-// Обработчики от дочернего компонента
-function handleChildDragStart() {
-  // Можно добавить логику при начале перетаскивания
-}
-
+function handleChildDragStart() {}
 function handleChildDragEnd() {
-  // Убеждаемся, что после перетаскивания фон сбрасывается
   setTimeout(() => {
-    localDragOver.value = false;
-    emit('dragOverState', false);
-  }, 100);
+    localDragOver.value = false
+    emit('dragOverState', false)
+  }, 100)
 }
 </script>
 
