@@ -61,53 +61,56 @@
     </button>
 
     <!-- Режим поиска -->
-    <div v-if="isSearchMode" ref="searchContainerRef" class="mt-2">
-      <Select
-        ref="selectRef"
-        v-model="selectedRecipeId"
-        :options="recipeOptions"
-        placeholder="Поиск рецептов..."
-        searchable
-        :loading="isSearching"
-        @search="handleSearch"
-        @close="handleSelectClose"
-        @open="handleSelectOpen"
-      >
-        <template #options="{ options }">
-          <button
-            v-for="option in options"
-            :key="option.value"
-            type="button"
-            class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-gray-100"
-            @click="() => selectRecipe(option)"
-          >
-            <div class="h-8 w-8 flex-shrink-0 overflow-hidden rounded-lg bg-zinc-100">
-              <img
-                v-if="option.image"
-                :src="option.image"
-                class="h-full w-full object-cover"
-              />
-              <UIcon v-else name="i-lucide-cooking-pot" class="h-full w-full p-1.5 text-zinc-400" />
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="truncate font-medium text-zinc-900">{{ option.label }}</p>
-              <p class="text-xs text-zinc-500">
-                {{ option.cookingTime }} мин • {{ option.servings }} порц
-              </p>
-            </div>
-            <div v-if="isRecipeAlreadyAdded(option.value)" class="text-emerald-600">
-              <UIcon name="i-lucide-check" class="h-4 w-4" />
-            </div>
-          </button>
-        </template>
+    <!-- Режим поиска с плавной анимацией -->
+    <Transition name="search-slide">
+      <div v-if="isSearchMode" ref="searchContainerRef" class="mt-2">
+        <Select
+          ref="selectRef"
+          v-model="selectedRecipeId"
+          :options="recipeOptions"
+          placeholder="Поиск рецептов..."
+          searchable
+          :loading="isSearching"
+          @search="handleSearch"
+          @close="handleSelectClose"
+          @open="handleSelectOpen"
+        >
+          <template #options="{ options }">
+            <button
+              v-for="option in options"
+              :key="option.value"
+              type="button"
+              class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-gray-100"
+              @click="() => selectRecipe(option)"
+            >
+              <div class="h-8 w-8 flex-shrink-0 overflow-hidden rounded-lg bg-zinc-100">
+                <img
+                  v-if="option.image"
+                  :src="option.image"
+                  class="h-full w-full object-cover"
+                />
+                <UIcon v-else name="i-lucide-cooking-pot" class="h-full w-full p-1.5 text-zinc-400" />
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="truncate font-medium text-zinc-900">{{ option.label }}</p>
+                <p class="text-xs text-zinc-500">
+                  {{ option.cookingTime }} мин • {{ option.servings }} порц
+                </p>
+              </div>
+              <div v-if="isRecipeAlreadyAdded(option.value)" class="text-emerald-600">
+                <UIcon name="i-lucide-check" class="h-4 w-4" />
+              </div>
+            </button>
+          </template>
 
-        <template #empty>
-          <div class="py-4 text-center">
-            <p class="text-xs text-zinc-400">Ничего не найдено</p>
-          </div>
-        </template>
-      </Select>
-    </div>
+          <template #empty>
+            <div class="py-4 text-center">
+              <p class="text-xs text-zinc-400">Ничего не найдено</p>
+            </div>
+          </template>
+        </Select>
+      </div>
+    </Transition>
 
     <!-- Лимит -->
     <div v-if="itemsLength >= MAX_RECIPES && !isSearchMode" class="mt-1 text-center text-xs text-orange-500">
@@ -414,5 +417,19 @@ function handleChildDragEnd() {
 .recipe-item.drag-over {
   transform: translateY(4px);
   border-top: 2px solid #22c55e;
+}
+
+/* Только появление, без анимации исчезновения */
+.search-slide-enter-active {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.search-slide-leave-active {
+  transition: none; /* Мгновенное исчезновение */
+}
+
+.search-slide-enter-from {
+  opacity: 0;
+  transform: translateY(-8px);
 }
 </style>
