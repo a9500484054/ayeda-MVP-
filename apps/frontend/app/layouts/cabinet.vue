@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-1">
-    <!-- Хедер для мобильных устройств (всегда виден) -->
+    <!-- Хедер для мобильных устройств -->
     <header
       class="fixed top-0 left-0 right-0 z-30 bg-gradient-to-br from-emerald-700 to-teal-800 shadow-md lg:hidden"
     >
@@ -49,14 +49,13 @@
     >
       <!-- Градиентный фон -->
       <div class="absolute inset-0 bg-gradient-to-br from-emerald-700 to-teal-800">
-        <!-- Декоративные элементы -->
         <div class="absolute -top-40 -right-40 w-80 h-80 bg-emerald-400 rounded-full blur-3xl opacity-30"></div>
         <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-teal-400 rounded-full blur-3xl opacity-30"></div>
       </div>
 
       <div class="relative z-10 flex flex-col h-full text-white">
         <div class="flex flex-col h-full p-5">
-          <!-- Логотип (скрыт на мобильных, так как есть в хедере) -->
+          <!-- Логотип -->
           <div class="mb-8">
             <NuxtLink to="/" class="block">
               <div class="flex items-center gap-2.5">
@@ -73,7 +72,7 @@
 
           <!-- Навигация -->
           <nav class="flex-1 -mx-2 overflow-y-auto">
-            <!-- Основные ссылки -->
+            <!-- Основные ссылки (для авторизованных) -->
             <div v-if="isAuth" class="space-y-1">
               <NuxtLink
                 v-for="link in mainLinks"
@@ -104,6 +103,107 @@
                 <UIcon :name="link.icon" class="w-4 h-4" />
                 <span>{{ link.label }}</span>
               </NuxtLink>
+            </div>
+
+            <!-- Админ панель (только для модераторов и админов) -->
+            <div v-if="isAdminOrModerator" class="mt-4 space-y-1">
+              <div class="text-xs font-semibold text-emerald-200 uppercase tracking-wider px-3 pt-2 pb-1">
+                Управление
+              </div>
+              <NuxtLink
+                v-for="link in adminLinks"
+                :key="link.to"
+                :to="link.to"
+                class="flex items-center gap-3 px-3 py-2 text-sm text-emerald-100 rounded-lg hover:bg-white/10 hover:text-white transition-colors"
+                active-class="!bg-white/20 !text-white"
+                @click="isMobileMenuOpen = false"
+              >
+                <UIcon :name="link.icon" class="w-4 h-4" />
+                <span>{{ link.label }}</span>
+              </NuxtLink>
+            </div>
+
+            <!-- Демо стенд (только для модераторов и админов, скрыт в проде) -->
+            <div v-if="isAdminOrModerator && isDevMode" class="mt-2 space-y-1">
+              <button
+                @click="isDemoOpen = !isDemoOpen"
+                class="flex items-center justify-between w-full px-3 py-2 text-sm text-emerald-100 rounded-lg hover:bg-white/10 hover:text-white transition-colors"
+              >
+                <div class="flex items-center gap-3">
+                  <UIcon name="i-lucide-flask-conical" class="w-4 h-4" />
+                  <span>Демо стенд</span>
+                  <span class="text-xs text-emerald-300">({{ totalDemoComponents }})</span>
+                </div>
+                <UIcon
+                  :name="isDemoOpen ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
+                  class="w-4 h-4 transition-transform duration-200"
+                />
+              </button>
+
+              <!-- Вложенное меню демо стенда -->
+              <Transition name="slide-down">
+                <div v-if="isDemoOpen" class="ml-6 space-y-3">
+                  <!-- Базовые компоненты -->
+                  <div>
+                    <div class="text-[11px] font-semibold text-emerald-300 uppercase tracking-wider px-3 pb-1">
+                      Базовые компоненты
+                    </div>
+                    <div class="space-y-0.5">
+                      <NuxtLink
+                        v-for="link in baseComponents"
+                        :key="link.to"
+                        :to="link.to"
+                        class="flex items-center gap-3 px-3 py-1.5 text-sm text-emerald-100 rounded-lg hover:bg-white/10 hover:text-white transition-colors"
+                        active-class="!bg-white/20 !text-white"
+                        @click="isMobileMenuOpen = false"
+                      >
+                        <UIcon :name="link.icon" class="w-3.5 h-3.5 opacity-70" />
+                        <span>{{ link.label }}</span>
+                      </NuxtLink>
+                    </div>
+                  </div>
+
+                  <!-- Составные компоненты -->
+                  <div>
+                    <div class="text-[11px] font-semibold text-emerald-300 uppercase tracking-wider px-3 pb-1">
+                      Составные компоненты
+                    </div>
+                    <div class="space-y-0.5">
+                      <NuxtLink
+                        v-for="link in complexComponents"
+                        :key="link.to"
+                        :to="link.to"
+                        class="flex items-center gap-3 px-3 py-1.5 text-sm text-emerald-100 rounded-lg hover:bg-white/10 hover:text-white transition-colors"
+                        active-class="!bg-white/20 !text-white"
+                        @click="isMobileMenuOpen = false"
+                      >
+                        <UIcon :name="link.icon" class="w-3.5 h-3.5 opacity-70" />
+                        <span>{{ link.label }}</span>
+                      </NuxtLink>
+                    </div>
+                  </div>
+
+                  <!-- UI элементы -->
+                  <div>
+                    <div class="text-[11px] font-semibold text-emerald-300 uppercase tracking-wider px-3 pb-1">
+                      UI элементы
+                    </div>
+                    <div class="space-y-0.5">
+                      <NuxtLink
+                        v-for="link in uiElements"
+                        :key="link.to"
+                        :to="link.to"
+                        class="flex items-center gap-3 px-3 py-1.5 text-sm text-emerald-100 rounded-lg hover:bg-white/10 hover:text-white transition-colors"
+                        active-class="!bg-white/20 !text-white"
+                        @click="isMobileMenuOpen = false"
+                      >
+                        <UIcon :name="link.icon" class="w-3.5 h-3.5 opacity-70" />
+                        <span>{{ link.label }}</span>
+                      </NuxtLink>
+                    </div>
+                  </div>
+                </div>
+              </Transition>
             </div>
 
             <!-- Поддержка внизу -->
@@ -171,7 +271,6 @@
 
     <!-- Основной контент -->
     <main class="flex-1 flex flex-col min-h-screen">
-      <!-- Отступ для мобильного хедера -->
       <div class="lg:mt-0 mt-16">
         <slot />
       </div>
@@ -212,36 +311,48 @@
 
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
-import { useUserStore } from "~/stores/userStore";
-import { useAuth } from "~/composables/useAuth";
-import Button from '~/shared/ui/button/Button.vue';
+import { useUserStore } from "~/stores/userStore"
+import { useAuth } from "~/composables/useAuth"
+import Button from '~/shared/ui/button/Button.vue'
 
-const userStore = useUserStore();
-const { logout } = useAuth();
-const router = useRouter();
-const isMobileMenuOpen = ref(false);
-const showLogoutModal = ref(false);
+const userStore = useUserStore()
+const { logout } = useAuth()
+const router = useRouter()
+const isMobileMenuOpen = ref(false)
+const showLogoutModal = ref(false)
+const isDemoOpen = ref(false)
 
-const isAuth = computed(() => !!userStore.user);
+// Проверка на режим разработки
+const isDevMode = computed(() => {
+  return process.env.NODE_ENV === 'development' || import.meta.env.DEV
+})
 
-const toast = useToast();
+// Проверка прав администратора/модератора
+const isAdminOrModerator = computed(() => {
+  const role = userStore.user?.role
+  return role === 'admin' || role === 'moderator'
+})
+
+const isAuth = computed(() => !!userStore.user)
+
+const toast = useToast()
 
 const handleLogoutClick = () => {
-  showLogoutModal.value = true;
-};
+  showLogoutModal.value = true
+}
 
 const confirmLogout = async () => {
-  showLogoutModal.value = false;
+  showLogoutModal.value = false
   try {
-    await logout();
+    await logout()
     toast.add({
       title: 'Выход выполнен',
       description: 'Вы успешно вышли из аккаунта',
       color: 'success',
       icon: 'i-lucide-check-circle',
       timeout: 3000
-    });
-    router.push('/');
+    })
+    router.push('/')
   } catch (error) {
     toast.add({
       title: 'Ошибка',
@@ -249,17 +360,17 @@ const confirmLogout = async () => {
       color: 'error',
       icon: 'i-lucide-alert-circle',
       timeout: 3000
-    });
+    })
   }
-};
+}
 
 const cancelLogout = () => {
-  showLogoutModal.value = false;
-};
+  showLogoutModal.value = false
+}
 
 const handleLogin = () => {
-  router.push('/login');
-};
+  router.push('/login')
+}
 
 const dropdownItems = computed<DropdownMenuItem[][]>(() => [
   [
@@ -269,6 +380,24 @@ const dropdownItems = computed<DropdownMenuItem[][]>(() => [
       to: '/cabinet/settings'
     }
   ],
+  ...(isAdminOrModerator.value ? [[
+    {
+      label: 'Админ панель',
+      icon: 'i-lucide-shield',
+      to: '/cabinet/admin',
+      class: 'text-emerald-600',
+      iconClass: 'text-emerald-600'
+    }
+  ]] : []),
+  ...(isAdminOrModerator.value && isDevMode.value ? [[
+    {
+      label: 'Демо стенд',
+      icon: 'i-lucide-flask-conical',
+      to: '/demo',
+      class: 'text-purple-600',
+      iconClass: 'text-purple-600'
+    }
+  ]] : []),
   [
     {
       label: 'Выйти',
@@ -278,34 +407,75 @@ const dropdownItems = computed<DropdownMenuItem[][]>(() => [
       iconClass: 'text-red-600'
     }
   ]
-]);
+])
 
+// Основные ссылки для авторизованных пользователей
 const mainLinks = [
   { to: '/cabinet/my-recipes', label: 'Мои рецепты', icon: 'i-lucide-book-open' },
   { to: '/cabinet/menu-planner', label: 'Планировщик меню', icon: 'i-lucide-calendar-days' },
-  { to: '/cabinet/shopping-lists', label: 'Списки покупок', icon: 'i-lucide-shopping-cart' }, 
-];
+  { to: '/cabinet/shopping-lists', label: 'Списки покупок', icon: 'i-lucide-shopping-cart' },
+]
 
+// Общие ссылки (доступны всем)
 const exploreLinks = [
   { to: '/recipes', label: 'База рецептов', icon: 'i-lucide-lightbulb' },
   { to: '/blog', label: 'Блог', icon: 'i-lucide-newspaper' },
-];
+]
 
+// Ссылки для администратора/модератора
+const adminLinks = [
+  { to: '/admin', label: 'Админ панель', icon: 'i-lucide-shield' },
+]
+
+// Группировка демо компонентов
+const baseComponents = [
+  { to: '/demo/button', label: 'Button', icon: 'i-lucide-square' },
+  { to: '/demo/input', label: 'Input', icon: 'i-lucide-square' },
+  { to: '/demo/textarea', label: 'Textarea', icon: 'i-lucide-square' },
+  { to: '/demo/select', label: 'Select', icon: 'i-lucide-square' },
+  { to: '/demo/checkbox', label: 'Checkbox', icon: 'i-lucide-square' },
+  { to: '/demo/number-stepper', label: 'Number Stepper', icon: 'i-lucide-square' },
+]
+
+const complexComponents = [
+  { to: '/demo/category-select', label: 'Category Select', icon: 'i-lucide-square' },
+  { to: '/demo/ingredients-list', label: 'Ingredients List', icon: 'i-lucide-square' },
+  { to: '/demo/steps-list', label: 'Steps List', icon: 'i-lucide-square' },
+  { to: '/demo/image-uploader', label: 'Image Uploader', icon: 'i-lucide-square' },
+]
+
+const uiElements = [
+  { to: '/demo/modal', label: 'Modal', icon: 'i-lucide-square' },
+  { to: '/demo/slideover', label: 'Slideover', icon: 'i-lucide-square' },
+  { to: '/demo/confirm-modal', label: 'Confirm Modal', icon: 'i-lucide-square' },
+  { to: '/demo/empty-state', label: 'Empty State', icon: 'i-lucide-square' },
+  { to: '/demo/skeleton', label: 'Skeleton', icon: 'i-lucide-square' },
+  { to: '/demo/loader', label: 'Loader', icon: 'i-lucide-square' },
+  { to: '/demo/view-toggle', label: 'View Toggle', icon: 'i-lucide-square' },
+  { to: '/demo/search-input', label: 'Search Input', icon: 'i-lucide-square' },
+  { to: '/demo/icons', label: 'Icons', icon: 'i-lucide-square' },
+]
+
+// Ссылки поддержки
 const supportLinks = [
   { to: '/support', label: 'Помощь', icon: 'i-lucide-help-circle' },
-];
+]
+
+// Подсчет общего количества демо-компонентов
+const totalDemoComponents = computed(() => {
+  return baseComponents.length + complexComponents.length + uiElements.length
+})
 
 const avatarPreview = computed(() => {
-  const avatar = userStore.user?.avatar;
-  if (!avatar) return null;
-  if (avatar.startsWith('http')) return avatar;
-  const API_BASE_URL = 'http://localhost:3001';
-  return `${API_BASE_URL}${avatar}`;
-});
+  const avatar = userStore.user?.avatar
+  if (!avatar) return null
+  if (avatar.startsWith('http')) return avatar
+  const API_BASE_URL = 'http://localhost:3001'
+  return `${API_BASE_URL}${avatar}`
+})
 </script>
 
 <style scoped>
-/* Минималистичный скроллбар */
 aside ::-webkit-scrollbar {
   width: 3px;
 }
@@ -324,12 +494,37 @@ aside ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.5);
 }
 
-/* Стили для красной иконки в выпадающем меню */
 :deep(.text-red-600) {
   color: #dc2626 !important;
 }
 
 :deep(.text-red-600 .icon) {
   color: #dc2626 !important;
+}
+
+:deep(.text-emerald-600) {
+  color: #059669 !important;
+}
+
+:deep(.text-purple-600) {
+  color: #9333ea !important;
+}
+
+/* Анимация для раскрытия меню */
+.slide-down-enter-active,
+.slide-down-leave-active {
+  transition: all 0.25s ease;
+}
+
+.slide-down-enter-from,
+.slide-down-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.slide-down-enter-to,
+.slide-down-leave-from {
+  opacity: 1;
+  transform: translateY(0);
 }
 </style>
