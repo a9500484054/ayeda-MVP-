@@ -1,361 +1,175 @@
-<!-- apps\frontend\app\pages\recipes\index.vue -->
 <template>
   <div class="mx-auto w-full max-w-7xl px-4 py-6 md:px-6">
     <!-- HEADER -->
-    <div
-      class="mb-8 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between"
-    >
+    <div class="mb-8 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
       <div>
         <h1 class="text-3xl font-semibold tracking-tight text-zinc-900">
           Рецепты
         </h1>
-
-        <p
-          v-if="totalRecipes > 0"
-          class="mt-2 text-sm text-zinc-500"
-        >
-          {{ totalRecipes }}
-          {{ getDeclension(totalRecipes, ['рецепт', 'рецепта', 'рецептов']) }}
+        <p v-if="totalRecipes > 0" class="mt-2 text-sm text-zinc-500">
+          {{ totalRecipes }} {{ getDeclension(totalRecipes, ['рецепт', 'рецепта', 'рецептов']) }}
         </p>
       </div>
 
-      <!-- Controls -->
-      <div class="flex w-full flex-col gap-3 sm:flex-row lg:w-auto">
-        <!-- Search -->
-        <div class="relative min-w-[280px]">
-          <UIcon
-            name="i-lucide-search"
-            class="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
-          />
-
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Поиск рецептов..."
-            class="h-11 w-full rounded-2xl border border-zinc-200 bg-white pl-11 pr-10 text-sm text-zinc-900 outline-none transition-all placeholder:text-zinc-400 focus:border-zinc-900"
-            @input="onSearchInput"
-          />
-
-          <button
-            v-if="searchQuery"
-            class="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1 text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700"
-            @click="clearSearch"
-          >
-            <UIcon
-              name="i-lucide-x"
-              class="h-4 w-4"
-            />
-          </button>
-        </div>
-
-        <!-- View Switch -->
-        <div class="hidden sm:block ml-auto">
-          <div class="flex h-11 items-center rounded-2xl border border-zinc-200 bg-white p-1">
-            <button
-              v-for="view in views"
-              :key="view.value"
-              class="flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-200 cursor-pointer"
-              :class="currentView === view.value ? 'bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 focus:ring-emerald-500 active:bg-emerald-800' : 'text-zinc-500 hover:bg-emerald-50 hover:text-emerald-600'"
-              :title="view.title"
-              @click="setView(view.value)"
-            >
-              <UIcon :name="view.icon" class="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Loading -->
-    <div
-      v-if="pending && page === 1"
-      class="flex flex-col items-center justify-center py-28"
-    >
-      <div
-        class="h-10 w-10 animate-spin rounded-full border-2 border-zinc-200 border-t-zinc-900"
+      <RecipeFilters
+        :search-query="searchQuery"
+        :current-view="currentView"
+        @update:search-query="handleSearchUpdate"
+        @update:current-view="setView"
       />
-
-      <p class="mt-4 text-sm text-zinc-500">
-        Загрузка рецептов...
-      </p>
     </div>
 
-    <!-- Empty -->
-    <div
-      v-else-if="recipes.length === 0"
-      class="flex flex-col items-center justify-center rounded-3xl border border-dashed border-zinc-200 bg-white py-24 min-h-[70vh]"
-    >
-      <UIcon
-        name="i-lucide-cooking-pot"
-        class="h-16 w-16 text-zinc-300"
-      />
-
-      <h2 class="mt-5 text-xl font-semibold text-zinc-900">
-        Рецепты не найдены
-      </h2>
-
-      <p class="mt-2 text-sm text-zinc-500">
-        Попробуйте изменить поисковый запрос
-      </p>
-
-      <button
-        v-if="searchQuery"
-        class="mt-6 rounded-2xl bg-zinc-900 px-5 py-3 text-sm font-medium text-white transition hover:opacity-90"
-        @click="clearSearch"
-      >
-        Очистить поиск
-      </button>
+    <!-- Loading Skeletons (показываем только при клиентской загрузке) -->
+    <div v-if="isClientLoading && recipes.length === 0" :class="containerClass">
+      <RecipeSkeleton v-for="i in 6" :key="i" :view-mode="currentView" />
     </div>
 
-    <!-- Recipes -->
-    <div
-      v-else
-      :class="containerClass"
-    >
+    <!-- Recipes Grid/List -->
+    <div v-else-if="recipes.length" :class="containerClass">
       <RecipeCard
         v-for="recipe in recipes"
         :key="recipe.id"
         :recipe="recipe"
-        :view-mode="currentView === 'list' ? 'list' : 'grid'"
-        :compact="currentView === 'grid-small'"
-        class="transition-transform duration-200 hover:-translate-y-1"
-        @click="goToRecipe(recipe)"
+        :view-mode="currentView"
+        @open="goToRecipe"
+        @favorite="handleFavorite"
+        @like="handleLike"
       />
     </div>
 
-    <!-- Load More -->
-    <div
-      v-if="hasNext"
-      class="mt-14 flex justify-center"
-    >
-      <button
-        class="flex h-12 items-center gap-2 rounded-2xl border border-zinc-200 bg-white px-6 text-sm font-medium text-zinc-800 transition-all hover:border-zinc-300 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50"
-        :disabled="loadingMore"
-        @click="loadMore"
-      >
-        <UIcon
-          v-if="loadingMore"
-          name="i-lucide-loader-circle"
-          class="h-4 w-4 animate-spin"
-        />
+    <!-- Empty State -->
+    <EmptyState
+      v-else
+      title="Рецепты не найдены"
+      description="Попробуйте изменить поисковый запрос"
+      icon="i-lucide-cooking-pot"
+      :action-text="searchQuery ? 'Очистить поиск' : ''"
+      @action="clearSearch"
+    />
 
-        <span>
-          {{ loadingMore ? 'Загрузка...' : 'Загрузить еще' }}
-        </span>
-      </button>
+    <!-- Load More -->
+    <div v-if="hasNext && !isClientLoading" class="mt-14 flex justify-center">
+      <Button
+        @click="loadMore"
+        :loading="loadingMore"
+        color="neutral"
+        variant="outline"
+      >
+        {{ loadingMore ? 'Загрузка...' : 'Загрузить еще' }}
+      </Button>
     </div>
 
     <!-- End -->
-    <div
-      v-else-if="recipes.length"
-      class="mt-14 flex items-center justify-center gap-2 py-8 text-sm text-zinc-400"
-    >
-      <UIcon
-        name="i-lucide-check-check"
-        class="h-4 w-4"
-      />
-
+    <div v-else-if="recipes.length && !hasNext" class="mt-14 flex items-center justify-center gap-2 py-8 text-sm text-zinc-400">
+      <UIcon name="i-lucide-check-check" class="h-4 w-4" />
       <span>Вы просмотрели все рецепты</span>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import {
-  useRecipesApi,
-  type RecipeResponse,
-} from '~/composables/useRecipesApi'
+import { ref, computed, onMounted } from 'vue'
+import RecipeCard from '~/components/ricepes/RecipeCard.vue'
+import RecipeFilters from '~/components/ricepes/RecipeFilters.vue'
+import RecipeSkeleton from '~/components/ricepes/RecipeSkeleton.vue'
+import { useRecipesApi } from '~/composables/useRecipesApi'
+import { useRecipesSearch } from '~/composables/useRecipesSearch'
+import Button from '~/shared/ui/button/Button.vue'
+import EmptyState from '~/shared/ui/emptyState/EmptyState.vue'
+import { getDeclension } from '~/shared/utils/strings'
 
-definePageMeta({
-  layout: 'cabinet',
+definePageMeta({ layout: 'cabinet' })
+
+const config = useRuntimeConfig()
+
+// Начальный вид по умолчанию
+const currentView = ref<'grid-large' | 'grid-small' | 'list'>('grid-large')
+const isClientLoading = ref(false)
+
+// Используем composable
+const {
+  recipes,
+  loadingMore,
+  searchQuery,
+  page,
+  hasNext,
+  totalRecipes,
+  fetchRecipes,
+  loadMore,
+  resetSearch,
+} = useRecipesSearch()
+
+// Computed
+const containerClass = computed(() => {
+  if (currentView.value === 'list') {
+    return 'grid grid-cols-1 gap-4 md:grid-cols-2'
+  }
+  if (currentView.value === 'grid-small') {
+    return 'grid grid-cols-1 gap-5 sm:grid-cols-3 xl:grid-cols-4'
+  }
+  return 'grid grid-cols-1 md:grid-cols-2 gap-6 lg:grid-cols-2 xl:grid-cols-3'
 })
 
-const recipesApi = useRecipesApi()
-
-const getInitialView = (): 'grid-large' | 'grid-small' | 'list' => {
-  if (process.client) {
-    const saved = localStorage.getItem('recipesView')
-
-    if (
-      saved === 'grid-large' ||
-      saved === 'grid-small' ||
-      saved === 'list'
-    ) {
-      return saved
-    }
-  }
-
-  return 'grid-large'
-}
-
-
-const views = [
-  { value: 'grid-small', title: 'Компактная сетка', icon: 'i-lucide-grid-3x3' },
-  { value: 'grid-large', title: 'Большая сетка', icon: 'i-lucide-grid-2x2' },
-  { value: 'list', title: 'Список', icon: 'i-lucide-list' }
-]
-
-// State
-const recipes = ref<RecipeResponse[]>([])
-const loadingMore = ref(false)
-const searchQuery = ref('')
-const currentView = ref<'grid-large' | 'grid-small' | 'list'>(
-  getInitialView(),
-)
-
-const page = ref(1)
-const total = ref(0)
-const hasNext = ref(false)
-
-let searchDebounceTimer: NodeJS.Timeout | null = null
-
-// SSR
-const { data, pending } = await useAsyncData(
-  'recipes',
+// SSR данные
+const { data: ssrData, pending: ssrPending } = await useAsyncData(
+  'recipes-public',
   async () => {
-    const response = await recipesApi.getRecipes({
-      status: "public",
+    const api = useRecipesApi()
+    const response = await api.getRecipes({
+      status: 'public',
       page: 1,
       limit: 12,
     })
-
     return response
   },
   {
     server: true,
     lazy: false,
-  },
+  }
 )
 
-// Init data
-if (data.value) {
-  recipes.value = data.value.data
-  total.value = data.value.total
-  hasNext.value = data.value.hasNext
+// Инициализируем данные из SSR
+if (ssrData.value) {
+  recipes.value = ssrData.value.data
+  totalRecipes.value = ssrData.value.total
+  hasNext.value = ssrData.value.hasNext
+  page.value = ssrData.value.page
 }
-
-// Computed
-const totalRecipes = computed(() => total.value)
-
-const containerClass = computed(() => {
-  if (currentView.value === 'list') {
-    return 'grid grid-cols-1 gap-4 md:grid-cols-2'
-  }
-
-  if (currentView.value === 'grid-small') {
-    return 'grid grid-cols-1 gap-5 sm:grid-cols-3 xl:grid-cols-4'
-  }
-
-  return 'grid grid-cols-1 md:grid-cols-2 gap-6 lg:grid-cols-2 xl:grid-cols-3'
-})
 
 // Methods
-const getDeclension = (
-  count: number,
-  words: [string, string, string],
-): string => {
-  const cases = [2, 0, 1, 1, 1, 2]
-
-  return words[
-    count % 100 > 4 && count % 100 < 20
-      ? 2
-      : cases[count % 10 < 5 ? count % 10 : 5]
-  ]
-}
-
-const fetchRecipes = async (reset = false) => {
-  if (reset) {
-    page.value = 1
-    recipes.value = []
-  }
-
-  const isLoadingMore = !reset && page.value > 1
-
-  if (isLoadingMore) {
-    loadingMore.value = true
-  } else {
-    pending.value = true
-  }
-
-  try {
-    const response = await recipesApi.getRecipes({
-      page: page.value,
-      limit: 12,
-      search: searchQuery.value || undefined,
-    })
-
-    if (reset || page.value === 1) {
-      recipes.value = response.data
-    } else {
-      recipes.value.push(...response.data)
-    }
-
-    total.value = response.total
-    hasNext.value = response.hasNext
-  } catch (error) {
-    console.error('Error fetching recipes:', error)
-  } finally {
-    if (isLoadingMore) {
-      loadingMore.value = false
-    } else {
-      pending.value = false
-    }
-  }
-}
-
-const loadMore = async () => {
-  if (loadingMore.value || !hasNext.value) {
-    return
-  }
-
-  page.value++
-
-  await fetchRecipes(false)
-}
-
-const onSearchInput = () => {
-  if (searchDebounceTimer) {
-    clearTimeout(searchDebounceTimer)
-  }
-
-  searchDebounceTimer = setTimeout(() => {
-    fetchRecipes(true)
-  }, 400)
+const handleSearchUpdate = (value: string) => {
+  searchQuery.value = value
+  isClientLoading.value = true
+  fetchRecipes(true).finally(() => {
+    isClientLoading.value = false
+  })
 }
 
 const clearSearch = () => {
-  searchQuery.value = ''
-  fetchRecipes(true)
+  resetSearch()
+  isClientLoading.value = true
+  fetchRecipes(true).finally(() => {
+    isClientLoading.value = false
+  })
 }
 
-const setView = (
-  view: 'grid-large' | 'grid-small' | 'list',
-) => {
+const setView = (view: 'grid-large' | 'grid-small' | 'list') => {
   currentView.value = view
-
-  if (process.client) {
-    localStorage.setItem('recipesView', view)
-  }
 }
 
-const goToRecipe = (recipe: RecipeResponse) => {
+const goToRecipe = (recipe: any) => {
   if (recipe.srcPath) {
     navigateTo(`/recipes/${recipe.srcPath}`)
   } else {
     navigateTo(`/recipes/${recipe.id}`)
   }
 }
+
+const handleFavorite = async (recipe: any, state: boolean) => {
+  console.log('Favorite:', recipe.id, state)
+}
+
+const handleLike = async (recipe: any, state: boolean) => {
+  console.log('Like:', recipe.id, state)
+}
 </script>
-
-<style scoped>
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-</style>
