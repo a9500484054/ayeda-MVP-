@@ -21,7 +21,7 @@
     </Input>
 
     <!-- View Switch -->
-    <div class="hidden sm:block ml-auto">
+    <div class="ml-auto">
       <ViewToggle
         :model-value="currentView"
         :options="viewOptions"

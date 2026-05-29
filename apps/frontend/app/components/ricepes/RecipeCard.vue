@@ -3,8 +3,10 @@
     :class="[
       'group relative overflow-hidden rounded-xl border border-zinc-200/80 bg-white transition-all duration-500 hover:shadow-lg hover:shadow-zinc-200/50',
       isListView
-        ? 'flex flex-col md:flex-row hover:-translate-y-0'
+        ? 'flex flex-col hover:-translate-y-0'
         : 'flex flex-col cursor-pointer hover:-translate-y-1',
+      isSmallGrid ? 'hover:-translate-y-1' : '',
+      isLargeGrid ? 'hover:-translate-y-1' : '',
     ]"
     @click="openRecipe"
   >
@@ -12,10 +14,13 @@
     <div
       :class="[
         'relative overflow-hidden bg-zinc-100',
-        isListView ? 'md:w-[200px] md:flex-shrink-0' : 'w-full',
+        isListView ? 'w-full' : 'w-full',
       ]"
     >
-      <div :class="[isListView ? 'aspect-[3/2] h-full' : 'w-full aspect-[3/2]']">
+      <div :class="[
+        isListView ? 'aspect-[16/10] w-full' : 'w-full aspect-[3/2]',
+        isLargeGrid ? 'md:aspect-[16/10]' : ''
+      ]">
         <img
           :src="recipeImage"
           :alt="recipe.title"
@@ -38,30 +43,36 @@
     <div
       class="transition-all duration-500"
       :class="[
-        isListView
-          ? 'flex-1 p-3 md:p-4 bg-white'
-          : 'absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-3',
+        isListView ? 'p-4 bg-white' : 'absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-3',
+        isSmallGrid ? 'p-2' : '',
+        isLargeGrid ? 'p-4' : '',
       ]"
     >
       <!-- Title -->
       <h3
-        class="line-clamp-2 text-sm font-semibold leading-tight transition-colors duration-300"
-        :class="[isListView ? 'text-black' : 'text-white']"
+        class="font-semibold leading-tight transition-colors duration-300 line-clamp-2"
+        :class="[
+          isListView ? 'text-black text-base md:text-lg' : 'text-white text-sm',
+          isSmallGrid ? 'text-xs' : '',
+          isLargeGrid ? 'text-base md:text-lg' : '',
+        ]"
       >
         {{ recipe.title }}
       </h3>
 
-      <!-- Description -->
+      <!-- Description - показываем только в large grid и list -->
       <p
-        class="mt-1 text-xs leading-relaxed transition-colors duration-300"
+        v-if="!isSmallGrid"
+        class="mt-1 leading-relaxed transition-colors duration-300 line-clamp-2"
         :class="[
-          isListView ? 'text-gray-600 line-clamp-2' : 'text-gray-300 line-clamp-2',
+          isListView ? 'text-gray-600 text-sm' : 'text-gray-300 text-xs',
+          isLargeGrid ? 'text-xs md:text-sm' : '',
         ]"
       >
         {{ recipe.description }}
       </p>
 
-      <!-- Hover content (only for grid mode) -->
+      <!-- Hover content (only for grid modes) -->
       <div
         v-if="!isListView"
         :class="[
@@ -69,12 +80,24 @@
           'max-h-0 opacity-0 mt-0 group-hover:max-h-[400px] group-hover:opacity-100 group-hover:mt-2',
         ]"
       >
-        <RecipeMetaInfo :recipe="recipe" :is-list-view="false" @favorite="toggleFavorite" @like="toggleLike" />
+        <RecipeMetaInfo
+          :recipe="recipe"
+          :is-list-view="false"
+          :size="cardSize"
+          @favorite="toggleFavorite"
+          @like="toggleLike"
+        />
       </div>
 
       <!-- List mode content (always visible) -->
-      <div v-if="isListView" class="mt-2">
-        <RecipeMetaInfo :recipe="recipe" :is-list-view="true" @favorite="toggleFavorite" @like="toggleLike" />
+      <div v-if="isListView" class="mt-3">
+        <RecipeMetaInfo
+          :recipe="recipe"
+          :is-list-view="true"
+          :size="cardSize"
+          @favorite="toggleFavorite"
+          @like="toggleLike"
+        />
       </div>
     </div>
   </article>
@@ -99,6 +122,14 @@ const emit = defineEmits<{
 const config = useRuntimeConfig()
 
 const isListView = computed(() => props.viewMode === 'list')
+const isSmallGrid = computed(() => props.viewMode === 'grid-small')
+const isLargeGrid = computed(() => props.viewMode === 'grid-large')
+
+const cardSize = computed(() => {
+  if (isSmallGrid.value) return 'small'
+  if (isLargeGrid.value) return 'large'
+  return 'list'
+})
 
 // Состояния лайков и избранного
 const isFavorited = ref(props.recipe.isFavorited || false)
