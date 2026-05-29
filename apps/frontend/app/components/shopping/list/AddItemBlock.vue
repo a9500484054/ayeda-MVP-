@@ -13,6 +13,7 @@
     <!-- Поле ввода -->
     <div class="relative flex w-full flex-col">
       <SearchInput
+        size="xs"
         v-model="searchValue"
         placeholder="например, молоко"
         id="product-search"
@@ -125,7 +126,7 @@
 <script setup lang="ts">
 import { useIngredientsApi, type Ingredient } from '~/composables/useIngredientsApi';
 import Button from '~/shared/ui/button/Button.vue';
-import SearchInput from '~/shared/ui/SearchInput/SearchInput.vue';
+import SearchInput from '~/shared/ui/search-input/SearchInput.vue';
 
 const emit = defineEmits<{
   quickAdd: [name: string];

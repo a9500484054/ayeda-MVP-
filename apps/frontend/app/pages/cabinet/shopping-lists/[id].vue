@@ -147,7 +147,7 @@ import { useShoppingListPrint } from '~/composables/useShoppingListPrint';
 import { useApi } from "~/composables/useApi";
 import ShoppingListHeader from '~/components/shopping/list/ShoppingListHeader.vue';
 
-definePageMeta({ layout: 'cabinet' });
+definePageMeta({ layout: 'cabinet' ,   ssr: false });
 
 const route = useRoute();
 const router = useRouter();

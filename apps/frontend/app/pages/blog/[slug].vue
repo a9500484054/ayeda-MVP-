@@ -1,111 +1,7 @@
-<!-- pages/blog/[slug].vue -->
-<script setup lang="ts">
-import { useArticlesApi } from '~/composables/useArticlesApi'
-import type { Article } from '~/shared/types/articles.types'
-
-const route = useRoute()
-const router = useRouter()
-const articlesApi = useArticlesApi()
-const toast = useToast()
-
-const article = ref<Article | null>(null)
-const isLoading = ref(true)
-const relatedArticles = ref<Article[]>([])
-
-const slug = computed(() => route.params.slug as string)
-
-// Загрузка статьи
-const loadArticle = async () => {
-  isLoading.value = true
-  try {
-    // Получаем все опубликованные статьи
-    const response = await articlesApi.getArticles({
-      status: 'published',
-      limit: 100,
-      page: 1
-    })
-
-    // Ищем статью по slug
-    const foundArticle = response.items.find(a => a.slug === slug.value)
-
-    if (!foundArticle) {
-      throw new Error('Article not found')
-    }
-
-    article.value = foundArticle
-
-    // Загружаем похожие статьи (если есть категории)
-    if (foundArticle.categories && foundArticle.categories.length > 0) {
-      try {
-        const similar = await articlesApi.getArticles({
-          status: 'published',
-          category: foundArticle.categories[0],
-          limit: 3,
-          page: 1
-        })
-        relatedArticles.value = similar.items.filter(a => a.id !== foundArticle.id)
-      } catch (error) {
-        console.error('Error loading related articles:', error)
-        relatedArticles.value = []
-      }
-    }
-
-    // SEO метатеги
-    useSeoMeta({
-      title: foundArticle.seo?.title || foundArticle.title,
-      description: foundArticle.seo?.description || foundArticle.excerpt,
-      ogTitle: foundArticle.seo?.title || foundArticle.title,
-      ogDescription: foundArticle.seo?.description || foundArticle.excerpt,
-      ogImage: foundArticle.seo?.og_image || foundArticle.featured_image,
-      twitterCard: 'summary_large_image'
-    })
-  } catch (error: any) {
-    console.error('Error loading article:', error)
-    toast.add({
-      title: 'Ошибка',
-      description: 'Статья не найдена',
-      color: 'error'
-    })
-    router.push('/blog')
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// Форматирование даты
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('ru-RU', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  })
-}
-
-// Чтение статьи (оценка времени чтения)
-const readingTime = computed(() => {
-  if (!article.value?.content) return '1 мин'
-  const text = article.value.content.replace(/<[^>]*>/g, '')
-  const wordsPerMinute = 200
-  const words = text.split(/\s+/).length
-  const minutes = Math.ceil(words / wordsPerMinute)
-  return `${minutes} мин чтения`
-})
-
-// Делим контент на части
-const articleContent = computed(() => {
-  if (!article.value?.content) return ''
-  return article.value.content
-})
-
-onMounted(() => {
-  loadArticle()
-})
-</script>
-
 <template>
   <div class="min-h-screen bg-gradient-to-b from-gray-50 to-white">
     <div v-if="isLoading" class="flex justify-center py-20">
-      <div class="h-10 w-10 animate-spin rounded-full border-2 border-gray-200 border-t-emerald-600" />
+      <Loader size="lg" />
     </div>
 
     <div v-else-if="article" class="container mx-auto px-4 py-12 md:py-20">
@@ -139,7 +35,7 @@ onMounted(() => {
           </div>
           <div class="flex items-center gap-2">
             <UIcon name="i-lucide-eye" class="h-4 w-4" />
-            <span>{{ article.views }} просмотров</span>
+            <span>{{ formatNumber(article.views) }} просмотров</span>
           </div>
         </div>
 
@@ -173,7 +69,7 @@ onMounted(() => {
           v-html="articleContent"
         />
 
-        <!-- SEO блок (если есть) -->
+        <!-- SEO блок -->
         <div v-if="article.seo?.keywords?.length" class="mt-8 pt-8 border-t border-gray-200">
           <div class="flex flex-wrap gap-2">
             <span class="text-sm text-gray-500">Ключевые слова:</span>
@@ -195,40 +91,111 @@ onMounted(() => {
         </h2>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <NuxtLink
+          <BlogCard
             v-for="related in relatedArticles"
             :key="related.id"
-            :to="`/blog/${related.slug}`"
-            class="group block"
-          >
-            <UCard class="h-full transition-all duration-300 hover:shadow-lg">
-              <div class="relative overflow-hidden rounded-lg mb-3 bg-gray-100">
-                <img
-                  v-if="related.featured_image"
-                  :src="related.featured_image"
-                  :alt="related.title"
-                  class="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-                <div
-                  v-else
-                  class="w-full h-40 flex items-center justify-center bg-gradient-to-br from-emerald-100 to-teal-100"
-                >
-                  <UIcon name="i-lucide-image" class="h-8 w-8 text-emerald-500" />
-                </div>
-              </div>
-              <h3 class="font-bold text-gray-900 group-hover:text-emerald-600 transition-colors line-clamp-2">
-                {{ related.title }}
-              </h3>
-              <p class="text-sm text-gray-500 mt-1">
-                {{ formatDate(related.created_at) }}
-              </p>
-            </UCard>
-          </NuxtLink>
+            :article="related"
+          />
         </div>
       </div>
     </div>
+
+    <!-- Ошибка -->
+    <div v-else class="container mx-auto px-4 py-20 text-center">
+      <EmptyState
+        title="Статья не найдена"
+        description="Возможно, она была удалена или перемещена"
+        icon="i-lucide-file-question"
+        action-text="Вернуться в блог"
+        @action="router.push('/blog')"
+      />
+    </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import { useArticlesApi } from '~/composables/useArticlesApi'
+import BlogCard from '~/components/blog/BlogCard.vue'
+import Loader from '~/shared/ui/loader/Loader.vue'
+import EmptyState from '~/shared/ui/emptyState/EmptyState.vue'
+import { formatNumber } from '~/shared/utils/number'
+
+const route = useRoute()
+const router = useRouter()
+const articlesApi = useArticlesApi()
+
+const article = ref<any>(null)
+const isLoading = ref(true)
+const relatedArticles = ref<any[]>([])
+
+const slug = computed(() => route.params.slug as string)
+
+const readingTime = computed(() => {
+  if (!article.value?.content) return '1 мин'
+  const text = article.value.content.replace(/<[^>]*>/g, '')
+  const wordsPerMinute = 200
+  const words = text.split(/\s+/).length
+  const minutes = Math.ceil(words / wordsPerMinute)
+  return `${minutes} мин чтения`
+})
+
+const articleContent = computed(() => {
+  if (!article.value?.content) return ''
+  return article.value.content
+})
+
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  })
+}
+
+// Загрузка статьи
+const loadArticle = async () => {
+  isLoading.value = true
+  try {
+    const response = await articlesApi.getArticleBySlug(slug.value)
+    article.value = response
+
+    // Загружаем похожие статьи
+    if (article.value.categories?.length) {
+      try {
+        const similar = await articlesApi.getArticles({
+          status: 'published',
+          category: article.value.categories[0],
+          limit: 3,
+          page: 1
+        })
+        relatedArticles.value = similar.items.filter(a => a.id !== article.value.id)
+      } catch (error) {
+        console.error('Error loading related articles:', error)
+      }
+    }
+
+    // SEO метатеги
+    useSeoMeta({
+      title: article.value.seo?.title || article.value.title,
+      description: article.value.seo?.description || article.value.excerpt,
+      ogTitle: article.value.seo?.title || article.value.title,
+      ogDescription: article.value.seo?.description || article.value.excerpt,
+      ogImage: article.value.seo?.og_image || article.value.featured_image,
+      twitterCard: 'summary_large_image'
+    })
+  } catch (error) {
+    console.error('Error loading article:', error)
+    article.value = null
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(() => {
+  loadArticle()
+})
+</script>
 
 <style scoped>
 .prose {
@@ -290,12 +257,5 @@ onMounted(() => {
   font-style: italic;
   color: #6b7280;
   margin: 1.5em 0;
-}
-
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 </style>

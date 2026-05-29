@@ -80,6 +80,7 @@
       <!-- Поиск - используем SearchInput компонент -->
       <div class="flex-1">
         <SearchInput
+          size="xs"
           v-model="searchValue"
           placeholder="Поиск по списку..."
           id="shopping-list-search"
@@ -135,7 +136,7 @@
 </template>
 
 <script setup lang="ts">
-import SearchInput from '~/shared/ui/SearchInput/SearchInput.vue';
+import SearchInput from '~/shared/ui/search-input/SearchInput.vue';
 import ShoppingListHeaderMenu from './ShoppingListHeaderMenu.vue';
 
 const props = defineProps<{
