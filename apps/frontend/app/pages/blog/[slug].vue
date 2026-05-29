@@ -1,16 +1,16 @@
 <template>
   <div class="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-    <div v-if="isLoading" class="flex justify-center py-20">
+    <div v-if="pending" class="flex justify-center py-20">
       <Loader size="lg" />
     </div>
 
-    <div v-else-if="article" class="container mx-auto px-4 py-12 md:py-20">
+    <div v-else-if="articleData" class="container mx-auto px-4 py-12 md:py-20">
       <!-- Hero секция -->
       <div class="max-w-4xl mx-auto mb-12">
         <!-- Категории -->
         <div class="flex flex-wrap gap-2 mb-4">
           <span
-            v-for="cat in article.categories"
+            v-for="cat in articleData.categories"
             :key="cat"
             class="px-3 py-1 text-sm font-medium bg-emerald-100 text-emerald-700 rounded-full"
           >
@@ -20,31 +20,31 @@
 
         <!-- Заголовок -->
         <h1 class="text-3xl md:text-5xl font-bold text-gray-900 mb-6">
-          {{ article.title }}
+          {{ articleData.title }}
         </h1>
 
         <!-- Мета информация -->
         <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-8">
           <div class="flex items-center gap-2">
             <UIcon name="i-lucide-calendar" class="h-4 w-4" />
-            <span>{{ formatDate(article.created_at) }}</span>
+            <span>{{ formatDate(articleData.created_at) }}</span>
           </div>
           <div class="flex items-center gap-2">
             <UIcon name="i-lucide-clock" class="h-4 w-4" />
-            <span>{{ readingTime }}</span>
+            <span>{{ getReadingTime(articleData.content) }}</span>
           </div>
           <div class="flex items-center gap-2">
             <UIcon name="i-lucide-eye" class="h-4 w-4" />
-            <span>{{ formatNumber(article.views) }} просмотров</span>
+            <span>{{ formatNumber(articleData.views) }} просмотров</span>
           </div>
         </div>
 
         <!-- Главное изображение -->
         <div class="rounded-2xl overflow-hidden bg-gray-100 mb-8">
           <img
-            v-if="article.featured_image"
-            :src="article.featured_image"
-            :alt="article.title"
+            v-if="articleData.featured_image"
+            :src="articleData.featured_image"
+            :alt="articleData.title"
             class="w-full h-auto object-cover"
           />
           <div
@@ -59,8 +59,8 @@
       <!-- Содержание статьи -->
       <div class="max-w-4xl mx-auto">
         <!-- Краткое описание -->
-        <div v-if="article.excerpt" class="text-xl text-gray-600 italic border-l-4 border-emerald-500 pl-6 mb-8">
-          {{ article.excerpt }}
+        <div v-if="articleData.excerpt" class="text-xl text-gray-600 italic border-l-4 border-emerald-500 pl-6 mb-8">
+          {{ articleData.excerpt }}
         </div>
 
         <!-- Контент -->
@@ -70,11 +70,11 @@
         />
 
         <!-- SEO блок -->
-        <div v-if="article.seo?.keywords?.length" class="mt-8 pt-8 border-t border-gray-200">
+        <div v-if="articleData.seo?.keywords?.length" class="mt-8 pt-8 border-t border-gray-200">
           <div class="flex flex-wrap gap-2">
             <span class="text-sm text-gray-500">Ключевые слова:</span>
             <span
-              v-for="keyword in article.seo.keywords"
+              v-for="keyword in articleData.seo.keywords"
               :key="keyword"
               class="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded"
             >
@@ -101,7 +101,7 @@
     </div>
 
     <!-- Ошибка -->
-    <div v-else class="container mx-auto px-4 py-20 text-center">
+    <div v-else-if="error" class="container mx-auto px-4 py-20 text-center">
       <EmptyState
         title="Статья не найдена"
         description="Возможно, она была удалена или перемещена"
@@ -114,7 +114,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import { useArticlesApi } from '~/composables/useArticlesApi'
 import BlogCard from '~/components/blog/BlogCard.vue'
 import Loader from '~/shared/ui/loader/Loader.vue'
@@ -125,24 +125,27 @@ const route = useRoute()
 const router = useRouter()
 const articlesApi = useArticlesApi()
 
-const article = ref<any>(null)
-const isLoading = ref(true)
-const relatedArticles = ref<any[]>([])
-
 const slug = computed(() => route.params.slug as string)
 
-const readingTime = computed(() => {
-  if (!article.value?.content) return '1 мин'
-  const text = article.value.content.replace(/<[^>]*>/g, '')
-  const wordsPerMinute = 200
-  const words = text.split(/\s+/).length
-  const minutes = Math.ceil(words / wordsPerMinute)
-  return `${minutes} мин чтения`
-})
+// SSR данные
+const { data: articleData, pending, error } = await useAsyncData(
+  `article-${slug.value}`,
+  async () => {
+    const response = await articlesApi.getArticleBySlug(slug.value)
+    return response
+  },
+  {
+    server: true,
+    lazy: false
+  }
+)
+
+// Похожие статьи (загружаем на клиенте)
+const relatedArticles = ref<any[]>([])
 
 const articleContent = computed(() => {
-  if (!article.value?.content) return ''
-  return article.value.content
+  if (!articleData.value?.content) return ''
+  return articleData.value.content
 })
 
 const formatDate = (dateString: string) => {
@@ -153,48 +156,48 @@ const formatDate = (dateString: string) => {
   })
 }
 
-// Загрузка статьи
-const loadArticle = async () => {
-  isLoading.value = true
+const getReadingTime = (content: string) => {
+  if (!content) return '1 мин'
+  const text = content.replace(/<[^>]*>/g, '')
+  const wordsPerMinute = 200
+  const words = text.split(/\s+/).length
+  const minutes = Math.ceil(words / wordsPerMinute)
+  return `${minutes} мин чтения`
+}
+
+// Загрузка похожих статей (только на клиенте)
+const loadRelatedArticles = async () => {
+  if (!articleData.value?.categories?.length) return
+
   try {
-    const response = await articlesApi.getArticleBySlug(slug.value)
-    article.value = response
-
-    // Загружаем похожие статьи
-    if (article.value.categories?.length) {
-      try {
-        const similar = await articlesApi.getArticles({
-          status: 'published',
-          category: article.value.categories[0],
-          limit: 3,
-          page: 1
-        })
-        relatedArticles.value = similar.items.filter(a => a.id !== article.value.id)
-      } catch (error) {
-        console.error('Error loading related articles:', error)
-      }
-    }
-
-    // SEO метатеги
-    useSeoMeta({
-      title: article.value.seo?.title || article.value.title,
-      description: article.value.seo?.description || article.value.excerpt,
-      ogTitle: article.value.seo?.title || article.value.title,
-      ogDescription: article.value.seo?.description || article.value.excerpt,
-      ogImage: article.value.seo?.og_image || article.value.featured_image,
-      twitterCard: 'summary_large_image'
+    const similar = await articlesApi.getArticles({
+      status: 'published',
+      category: articleData.value.categories[0],
+      limit: 3,
+      page: 1
     })
+    relatedArticles.value = similar.items.filter(a => a.id !== articleData.value.id)
   } catch (error) {
-    console.error('Error loading article:', error)
-    article.value = null
-  } finally {
-    isLoading.value = false
+    console.error('Error loading related articles:', error)
   }
 }
 
-onMounted(() => {
-  loadArticle()
-})
+// SEO метатеги
+if (articleData.value) {
+  useSeoMeta({
+    title: articleData.value.seo?.title || articleData.value.title,
+    description: articleData.value.seo?.description || articleData.value.excerpt,
+    ogTitle: articleData.value.seo?.title || articleData.value.title,
+    ogDescription: articleData.value.seo?.description || articleData.value.excerpt,
+    ogImage: articleData.value.seo?.og_image || articleData.value.featured_image,
+    twitterCard: 'summary_large_image'
+  })
+}
+
+// Загружаем похожие статьи на клиенте
+if (process.client && articleData.value) {
+  loadRelatedArticles()
+}
 </script>
 
 <style scoped>
