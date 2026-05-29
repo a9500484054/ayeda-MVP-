@@ -26,6 +26,8 @@
           </div>
 
           <ShoppingListItems
+            :list-id="listId"
+            :categories="categories"
             :items="store.currentItems"
             :filter-type="filterType"
             :sort-by="sortBy"
@@ -71,6 +73,8 @@
         />
 
         <ShoppingListItems
+          :list-id="listId"
+          :categories="categories"
           :items="store.currentItems"
           :filter-type="filterType"
           :sort-by="sortBy"

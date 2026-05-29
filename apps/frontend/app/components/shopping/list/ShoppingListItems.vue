@@ -1,14 +1,14 @@
-<!-- apps\frontend\app\components\shopping\list\ShoppingListItems.vue -->
 <template>
   <div class="space-y-1">
     <ShoppingListItem
       v-for="item in filteredItems"
       :key="item.id"
       :item="item"
-      @click="emit('editItem', item)"
+      :categories="categories"
       @edit="emit('editItem', item)"
       @delete="emit('deleteItem', item.id)"
       @toggle="emit('toggleItem', item.id)"
+      @update-category="(categoryId) => handleUpdateCategory(item.id, categoryId)"
     />
 
     <!-- Пустое состояние -->
@@ -28,55 +28,102 @@
 </template>
 
 <script setup lang="ts">
-import type { ShoppingListItem as ShoppingListItemType } from '~/shared/types/shopping.types';
-import ShoppingListItem from './ShoppingListItem.vue';
+import type { ShoppingListItem as ShoppingListItemType } from '~/shared/types/shopping.types'
+import ShoppingListItem from './ShoppingListItem.vue'
+import { useShoppingListsApi } from '~/composables/useShoppingListsApi'
+
+interface Category {
+  id: string
+  code: string
+  name: string
+  icon: string
+  sortOrder: number
+  isActive: boolean
+}
 
 const props = defineProps<{
-  items: ShoppingListItemType[];
-  filterType: 'all' | 'checked' | 'unchecked';
-  sortBy: 'name' | 'category' | 'status' | 'order';
-  searchQuery: string;
-}>();
+  listId: string
+  items: ShoppingListItemType[]
+  categories?: Category[]
+  filterType: 'all' | 'checked' | 'unchecked'
+  sortBy: 'name' | 'category' | 'status' | 'order'
+  searchQuery: string
+}>()
 
 const emit = defineEmits<{
-  editItem: [item: ShoppingListItemType];
-  deleteItem: [itemId: string];
-  toggleItem: [itemId: string];
-}>();
+  editItem: [item: ShoppingListItemType]
+  deleteItem: [itemId: string]
+  toggleItem: [itemId: string]
+  updateItem: [itemId: string, data: Partial<ShoppingListItemType>]
+}>()
+
+const toast = useToast()
+const shoppingListApi = useShoppingListsApi()
 
 const filteredItems = computed(() => {
-  let result = [...props.items];
+  let result = [...props.items]
 
   if (props.searchQuery) {
-    const query = props.searchQuery.toLowerCase();
-    result = result.filter(item => item.name.toLowerCase().includes(query));
+    const query = props.searchQuery.toLowerCase()
+    result = result.filter(item => item.name.toLowerCase().includes(query))
   }
 
   if (props.filterType === 'checked') {
-    result = result.filter(item => item.isChecked);
+    result = result.filter(item => item.isChecked)
   } else if (props.filterType === 'unchecked') {
-    result = result.filter(item => !item.isChecked);
+    result = result.filter(item => !item.isChecked)
   }
 
   switch (props.sortBy) {
     case 'name':
-      result.sort((a, b) => a.name.localeCompare(b.name));
-      break;
+      result.sort((a, b) => a.name.localeCompare(b.name))
+      break
     case 'category':
       result.sort((a, b) => {
-        const catA = a.category?.name || '';
-        const catB = b.category?.name || '';
-        return catA.localeCompare(catB);
-      });
-      break;
+        const catA = a.categoryId || ''
+        const catB = b.categoryId || ''
+        return catA.localeCompare(catB)
+      })
+      break
     case 'status':
-      result.sort((a, b) => Number(a.isChecked) - Number(b.isChecked));
-      break;
+      result.sort((a, b) => Number(a.isChecked) - Number(b.isChecked))
+      break
     case 'order':
-      result.sort((a, b) => a.sortOrder - b.sortOrder);
-      break;
+      result.sort((a, b) => a.sortOrder - b.sortOrder)
+      break
   }
 
-  return result;
-});
+  return result
+})
+
+const handleUpdateCategory = async (itemId: string, categoryId: string) => {
+  try {
+    await shoppingListApi.updateItem(props.listId, itemId, { categoryId })
+
+    // toast.add({
+    //   title: 'Категория обновлена',
+    //   color: 'success'
+    // })
+
+    // Обновляем локальный item
+    const itemIndex = props.items.findIndex(i => i.id === itemId)
+    if (itemIndex !== -1) {
+      const updatedItem = {
+        ...props.items[itemIndex],
+        categoryId,
+        // Обновляем также categoryCode и categoryName для отображения
+        categoryCode: props.categories?.find(c => c.id === categoryId)?.code,
+        categoryName: props.categories?.find(c => c.id === categoryId)?.name
+      }
+      emit('updateItem', itemId, updatedItem)
+    }
+  } catch (error) {
+    console.error('Failed to update category:', error)
+    toast.add({
+      title: 'Ошибка',
+      description: 'Не удалось обновить категорию',
+      color: 'error'
+    })
+  }
+}
 </script>
