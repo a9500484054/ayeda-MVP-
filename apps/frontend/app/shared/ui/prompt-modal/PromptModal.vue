@@ -6,7 +6,7 @@
   >
     <div class="flex flex-col bg-white dark:bg-darkMode-100 rounded-2xl">
       <!-- Header -->
-      <div class="flex items-center justify-between">
+      <div class="flex  mb-3 items-center justify-between">
         <h2 class="text-xl font-semibold">
           {{ title }}
         </h2>

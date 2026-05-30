@@ -1,10 +1,10 @@
 <!-- apps/frontend/app/components/shopping/lists/ListFormModal.vue -->
 <template>
-  <UModal v-model:open="isOpen">
-    <!-- Header -->
-    <template #header>
-      <div class="flex items-center justify-between w-full">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+  <Modal :open="isOpen" size="md" @update:open="closeModal">
+    <div class="space-y-5">
+      <!-- Header -->
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-darkMode-700">
           {{ isEditing ? 'Редактировать список' : 'Создать новый список' }}
         </h3>
         <Button
@@ -13,52 +13,45 @@
           variant="ghost"
           size="sm"
           icon-only
-          class="-my-1"
           @click="closeModal"
         />
       </div>
-    </template>
 
-    <template #body>
       <!-- Body -->
-      <div class="">
-        <div class="space-y-4">
-          <!-- Поле ввода названия -->
-          <div class="group">
-            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Название списка
-              <span class="text-red-500">*</span>
-            </label>
-            <div class="relative">
-              <UIcon
-                name="i-lucide-shopping-basket"
-                class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 transition-colors group-focus-within:text-emerald-500"
-              />
-              <input
-                v-model="title"
-                type="text"
-                placeholder="Например: Продукты на неделю"
-                class="h-11 w-full rounded-xl border border-gray-200 pl-9 pr-4 text-sm text-gray-900 outline-none transition-all placeholder:text-sm placeholder:text-gray-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-darkMode-300 dark:bg-darkMode-100 dark:text-darkMode-700 dark:placeholder:text-darkMode-500 dark:focus:ring-emerald-900/20"
-                autofocus
-                @keyup.enter="handleSubmit"
-              />
-            </div>
+      <div class="space-y-4">
+        <!-- Поле ввода названия -->
+        <div class="group">
+          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Название списка
+            <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <UIcon
+              name="i-lucide-shopping-basket"
+              class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 transition-colors group-focus-within:text-emerald-500"
+            />
+            <input
+              v-model="title"
+              type="text"
+              placeholder="Например: Продукты на неделю"
+              class="h-11 w-full rounded-xl border border-gray-200 pl-9 pr-4 text-sm text-gray-900 outline-none transition-all placeholder:text-sm placeholder:text-gray-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-darkMode-300 dark:bg-darkMode-100 dark:text-darkMode-700 dark:placeholder:text-darkMode-500 dark:focus:ring-emerald-900/20"
+              autofocus
+              @keyup.enter="handleSubmit"
+            />
           </div>
+        </div>
 
-          <!-- Подсказка -->
-          <div class="rounded-xl bg-emerald-50 p-3 dark:bg-emerald-950/20">
-            <div class="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400">
-              <UIcon name="i-lucide-lightbulb" class="h-4 w-4" />
-              <span>Совет: Используйте понятные названия для легкого поиска</span>
-            </div>
+        <!-- Подсказка -->
+        <div class="rounded-xl bg-emerald-50 p-3 dark:bg-emerald-950/20">
+          <div class="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400">
+            <UIcon name="i-lucide-lightbulb" class="h-4 w-4" />
+            <span>Совет: Используйте понятные названия для легкого поиска</span>
           </div>
         </div>
       </div>
-    </template>
 
-    <!-- Footer -->
-    <template #footer>
-      <div class="flex justify-end gap-3 w-full">
+      <!-- Footer -->
+      <div class="flex items-center justify-between gap-3 pt-2">
         <Button
           v-if="isEditing && listId"
           icon="i-lucide-trash-2"
@@ -90,13 +83,14 @@
           </Button>
         </div>
       </div>
-    </template>
-  </UModal>
+    </div>
+  </Modal>
 </template>
 
 <script setup lang="ts">
 import type { ShoppingList } from '~/shared/types/shopping.types';
 import Button from '~/shared/ui/button/Button.vue';
+import Modal from '~/shared/ui/modal/Modal.vue';
 
 const props = defineProps<{
   open: boolean;

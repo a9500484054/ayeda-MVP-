@@ -1,7 +1,12 @@
 <!-- apps\frontend\app\components\shopping\list\ShoppingListItemModal.vue -->
 <template>
-  <UModal v-model:open="isOpen" :title="isEditing ? 'Редактировать продукт' : 'Добавить продукт'">
-    <template #body>
+  <Modal :open="isOpen" size="md" @update:open="closeModal">
+    <div class="space-y-5">
+      <!-- Заголовок -->
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-darkMode-700">
+        {{ isEditing ? 'Редактировать продукт' : 'Добавить продукт' }}
+      </h3>
+
       <form class="space-y-5" @submit.prevent="handleSubmit">
         <!-- Название с анимацией -->
         <div class="group">
@@ -12,13 +17,13 @@
           <div class="relative">
             <UIcon
               name="i-lucide-package"
-              class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 transition-colors group-focus-within:text-primary-500"
+              class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 transition-colors group-focus-within:text-emerald-500"
             />
             <input
               v-model="form.name"
               type="text"
               placeholder="Например: Помидоры"
-              class="h-11 w-full rounded-xl border border-gray-200 pl-9 pr-4 text-sm text-gray-900 outline-none transition-all placeholder:text-sm placeholder:text-gray-400 focus:border-primary-400 focus:ring-2 focus:ring-primary-100 dark:border-darkMode-300 dark:bg-darkMode-100 dark:text-darkMode-700 dark:placeholder:text-darkMode-500 dark:focus:ring-primary-900/20"
+              class="h-11 w-full rounded-xl border border-gray-200 pl-9 pr-4 text-sm text-gray-900 outline-none transition-all placeholder:text-sm placeholder:text-gray-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-darkMode-300 dark:bg-darkMode-100 dark:text-darkMode-700 dark:placeholder:text-darkMode-500 dark:focus:ring-emerald-900/20"
               autofocus
             />
           </div>
@@ -29,17 +34,12 @@
           <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
             Категория
           </label>
-          <USelect
+          <Select
             v-model="form.categoryId"
-            :items="categoryOptions"
+            :options="categoryOptions"
             placeholder="Выберите категорию"
-            clearable
+            :searchable="false"
             class="w-full"
-            :ui="{
-              wrapper: 'w-full',
-              base: 'w-full rounded-xl border-gray-200 dark:border-darkMode-300 dark:bg-darkMode-100',
-              input: 'h-11 text-sm'
-            }"
           />
         </div>
 
@@ -55,11 +55,14 @@
                 class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
               />
               <input
-                v-model.number="form.quantity"
+                :value="form.quantity"
                 type="number"
-                step="0.01"
+                step="1"
+                min="1"
                 placeholder="1"
-                class="h-11 w-full rounded-xl border border-gray-200 pl-9 pr-4 text-sm text-gray-900 outline-none transition-all focus:border-primary-400 focus:ring-2 focus:ring-primary-100 dark:border-darkMode-300 dark:bg-darkMode-100 dark:text-darkMode-700 dark:focus:ring-primary-900/20"
+                class="h-11 w-full rounded-xl border border-gray-200 pl-9 pr-4 text-sm text-gray-900 outline-none transition-all focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-darkMode-300 dark:bg-darkMode-100 dark:text-darkMode-700 dark:focus:ring-emerald-900/20"
+                @input="handleQuantityInput"
+                @blur="validateQuantity"
               />
             </div>
           </div>
@@ -77,7 +80,7 @@
                 v-model="form.unit"
                 type="text"
                 placeholder="кг, шт, л..."
-                class="h-11 w-full rounded-xl border border-gray-200 pl-9 pr-4 text-sm text-gray-900 outline-none transition-all focus:border-primary-400 focus:ring-2 focus:ring-primary-100 dark:border-darkMode-300 dark:bg-darkMode-100 dark:text-darkMode-700 dark:focus:ring-primary-900/20"
+                class="h-11 w-full rounded-xl border border-gray-200 pl-9 pr-4 text-sm text-gray-900 outline-none transition-all focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-darkMode-300 dark:bg-darkMode-100 dark:text-darkMode-700 dark:focus:ring-emerald-900/20"
               />
             </div>
           </div>
@@ -94,8 +97,9 @@
               v-model.number="form.price"
               type="number"
               step="0.01"
+              min="0"
               placeholder="0"
-              class="h-11 w-full rounded-xl border border-gray-200 pl-8 pr-4 text-sm text-gray-900 outline-none transition-all focus:border-primary-400 focus:ring-2 focus:ring-primary-100 dark:border-darkMode-300 dark:bg-darkMode-100 dark:text-darkMode-700 dark:focus:ring-primary-900/20"
+              class="h-11 w-full rounded-xl border border-gray-200 pl-8 pr-4 text-sm text-gray-900 outline-none transition-all focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-darkMode-300 dark:bg-darkMode-100 dark:text-darkMode-700 dark:focus:ring-emerald-900/20"
             />
           </div>
 
@@ -112,23 +116,18 @@
           </Transition>
         </div>
 
-        <!-- Описание -->
-        <div>
-          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Описание
-          </label>
-          <textarea
-            v-model="form.note"
-            rows="3"
-            placeholder="Дополнительная информация..."
-            class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all placeholder:text-sm placeholder:text-gray-400 focus:border-primary-400 focus:ring-2 focus:ring-primary-100 dark:border-darkMode-300 dark:bg-darkMode-100 dark:text-darkMode-700 dark:placeholder:text-darkMode-500 dark:focus:ring-primary-900/20"
-          />
-        </div>
-      </form>
-    </template>
+        <!-- Описание с компонентом Textarea -->
+        <Textarea
+          v-model="form.note"
+          label="Описание"
+          placeholder="Дополнительная информация..."
+          :rows="3"
+        />
 
-    <template #footer>
-      <div class="flex items-center justify-between gap-3 w-full">
+      </form>
+
+      <!-- Footer с кнопками -->
+      <div class="mt-6 flex items-center justify-between gap-3">
         <Button
           v-if="isEditing && itemId"
           icon="i-lucide-trash-2"
@@ -136,7 +135,6 @@
           variant="ghost"
           size="md"
           :loading="isDeleting"
-          class="hover:bg-red-50 dark:hover:bg-red-900/20"
           @click="handleDelete"
         >
           Удалить
@@ -162,13 +160,16 @@
           </Button>
         </div>
       </div>
-    </template>
-  </UModal>
+    </div>
+  </Modal>
 </template>
 
 <script setup lang="ts">
 import type { ShoppingCategory, ShoppingListItem } from '~/shared/types/shopping.types';
 import Button from '~/shared/ui/button/Button.vue';
+import Modal from '~/shared/ui/modal/Modal.vue';
+import Select from '~/shared/ui/select/Select.vue';
+import Textarea from '~/shared/ui/textarea/Textarea.vue';
 
 const props = defineProps<{
   open: boolean;
@@ -211,10 +212,38 @@ const form = reactive({
 
 const categoryOptions = computed(() => {
   return props.categories.map(cat => ({
-    label: cat.name,
     value: cat.id,
+    label: cat.name,
   }));
 });
+
+// Обработчик для количества (только целые положительные числа)
+const handleQuantityInput = (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  let value = input.value;
+
+  // Удаляем всё, кроме цифр
+  value = value.replace(/[^\d]/g, '');
+
+  // Преобразуем в число
+  let numValue = value === '' ? 1 : parseInt(value, 10);
+
+  // Проверяем, что число положительное
+  if (isNaN(numValue) || numValue < 1) {
+    numValue = 1;
+  }
+
+  form.quantity = numValue;
+};
+
+// Валидация при потере фокуса
+const validateQuantity = () => {
+  if (form.quantity < 1 || isNaN(form.quantity)) {
+    form.quantity = 1;
+  }
+  // Приводим к целому числу
+  form.quantity = Math.floor(form.quantity);
+};
 
 function resetForm() {
   if (props.item) {
@@ -240,6 +269,11 @@ function closeModal() {
 
 async function handleSubmit() {
   if (!form.name.trim()) return;
+
+  // Дополнительная проверка количества перед отправкой
+  if (form.quantity < 1 || isNaN(form.quantity)) {
+    form.quantity = 1;
+  }
 
   isLoading.value = true;
   try {

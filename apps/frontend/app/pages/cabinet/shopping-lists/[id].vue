@@ -110,28 +110,43 @@
     />
 
     <!-- Модалка для добавления продуктов (Mobile/Tablet) -->
-    <UModal v-model:open="isAddItemModalOpen">
-      <template #body>
+    <Modal
+      :open="isAddItemModalOpen"
+      size="md"
+      @update:open="isAddItemModalOpen = false"
+    >
+      <div class="space-y-4">
+        <!-- Body -->
         <AddItemBlock
           :popular-items="popularItems"
           @quick-add="handleQuickAddMobile"
           @add-popular="handleAddPopularMobile"
         />
-      </template>
-      <template #footer>
-        <UButton variant="ghost" @click="isAddItemModalOpen = false">
-          Закрыть
-        </UButton>
-      </template>
-    </UModal>
+
+        <!-- Footer -->
+        <div class="flex justify-end pt-2">
+          <Button
+            variant="ghost"
+            color="neutral"
+            size="md"
+            @click="isAddItemModalOpen = false"
+          >
+            Закрыть
+          </Button>
+        </div>
+      </div>
+    </Modal>
 
     <!-- Плавающая кнопка добавления (Mobile/Tablet) -->
-    <button
-      class="lg:hidden fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-primary-500 to-primary-600 shadow-lg transition-all hover:scale-110 hover:shadow-xl active:scale-95"
+    <Button
+      v-if="!isAddItemModalOpen"
+      icon="i-lucide-plus"
+      color="primary"
+      size="lg"
+      icon-only
+      class="lg:hidden fixed bottom-6 right-6 z-50 shadow-lg transition-all hover:scale-110 hover:shadow-xl active:scale-95 rounded-full"
       @click="isAddItemModalOpen = true"
-    >
-      <UIcon name="i-lucide-plus" class="h-6 w-6 text-white" />
-    </button>
+    />
   </div>
 </template>
 
@@ -146,6 +161,8 @@ import DeleteConfirmationModal from '~/components/menu-planner/modals/DeleteConf
 import { useShoppingListPrint } from '~/composables/useShoppingListPrint';
 import { useApi } from "~/composables/useApi";
 import ShoppingListHeader from '~/components/shopping/list/ShoppingListHeader.vue';
+import Button from '~/shared/ui/button/Button.vue';
+import Modal from '~/shared/ui/modal/Modal.vue';
 
 definePageMeta({ layout: 'cabinet' ,   ssr: false });
 
