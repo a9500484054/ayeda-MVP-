@@ -236,11 +236,11 @@ async function handleAddToShoppingList(ingredients: Array<{ id: string; name: st
 
       const response = await storeShoppingList.createMenuShoppingList(title, items);
 
-      toast.add({
-        title: 'Список покупок создан',
-        description: `${items.length} ингредиент${getIngredientEnding(items.length)} добавлен${getIngredientEndingVerb(items.length)} в список "${title}"`,
-        color: 'success'
-      });
+      // toast.add({
+      //   title: 'Список покупок создан',
+      //   description: `${items.length} ингредиент${getIngredientEnding(items.length)} добавлен${getIngredientEndingVerb(items.length)} в список "${title}"`,
+      //   color: 'success'
+      // });
     console.log('=== Успешно добавлено в список покупок ===', response);
     return response;
 

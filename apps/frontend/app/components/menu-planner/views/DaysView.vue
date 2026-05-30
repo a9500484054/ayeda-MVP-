@@ -54,7 +54,7 @@
             @rename-day="(dayId, newTitle) => emit('renameDay', dayId, newTitle)"
             @delete-day="(dayId) => emit('deleteDay', dayId)"
             @create-slot="(dayId, mealType, recipeId, notes) => emit('createSlot', dayId, mealType, recipeId, notes)"
-            @add-to-shopping-list="handleDayAddToShoppingList"
+            @add-to-shopping-list="(ingredients) => handleDayAddToShoppingList(ingredients)"
           />
         </div>
       </div>
@@ -226,11 +226,11 @@ async function handleCreateShoppingList(ingredients: Array<{ id: string; name: s
   try {
     emit('addToShoppingList', ingredients);
 
-    toast.add({
-      title: 'Успешно!',
-      description: `${ingredients.length} ингредиент${getIngredientEnding(ingredients.length)} добавлен${getIngredientEndingVerb(ingredients.length)} в список покупок`,
-      color: 'success'
-    });
+    // toast.add({
+    //   title: 'Успешно!',
+    //   description: `${ingredients.length} ингредиент${getIngredientEnding(ingredients.length)} добавлен${getIngredientEndingVerb(ingredients.length)} в список покупок`,
+    //   color: 'success'
+    // });
   } catch (error) {
     console.error('Failed to add to shopping list:', error);
     toast.add({
@@ -256,66 +256,11 @@ function getIngredientEndingVerb(count: number): string {
 }
 
 // Обработчик добавления всех рецептов дня в список покупок
-function handleDayAddToShoppingList(dayId: string) {
-  const daySlots = props.slots.filter(slot => slot.dayId === dayId && slot.slotType === 'day');
-  const ingredients: Array<{ id: string; name: string; amount: number; unit: string }> = [];
+function handleDayAddToShoppingList(ingredients: Array<{ id: string; name: string; amount: number; unit: string }>) {
+  console.log('=== handleDayAddToShoppingList START ===');
+  console.log('Received ingredients from day:', ingredients);
 
-  daySlots.forEach((slot) => {
-    if (slot.items && slot.items.length > 0) {
-      slot.items.forEach((item) => {
-        if (item.recipe && item.recipe.ingredients) {
-          item.recipe.ingredients.forEach((ingredient: any) => {
-            let amount = 0;
-            if (ingredient.amount) {
-              amount = typeof ingredient.amount === 'number'
-                ? ingredient.amount
-                : parseFloat(ingredient.amount) || 0;
-            } else if (ingredient.quantity) {
-              amount = typeof ingredient.quantity === 'number'
-                ? ingredient.quantity
-                : parseFloat(ingredient.quantity) || 0;
-            }
-
-            let name = '';
-            let unit = '';
-            let id = '';
-
-            if (ingredient.name) {
-              name = ingredient.name;
-            } else if (ingredient.ingredient?.name) {
-              name = ingredient.ingredient.name;
-            }
-
-            if (ingredient.unit) {
-              unit = typeof ingredient.unit === 'string'
-                ? ingredient.unit
-                : ingredient.unit?.name || 'шт';
-            } else if (ingredient.ingredient?.unit?.name) {
-              unit = ingredient.ingredient.unit.name;
-            } else if (ingredient.ingredient?.unit) {
-              unit = typeof ingredient.ingredient.unit === 'string'
-                ? ingredient.ingredient.unit
-                : ingredient.ingredient.unit?.name || 'шт';
-            } else {
-              unit = 'шт';
-            }
-
-            if (ingredient.id) {
-              id = ingredient.id;
-            } else if (ingredient.ingredient?.id) {
-              id = ingredient.ingredient.id;
-            }
-
-            if (name && amount > 0) {
-              ingredients.push({ id, name, amount, unit });
-            }
-          });
-        }
-      });
-    }
-  });
-
-  if (ingredients.length === 0) {
+  if (!ingredients || ingredients.length === 0) {
     toast.add({
       title: 'Нет ингредиентов',
       description: 'В этом дне нет ингредиентов для добавления',
@@ -323,8 +268,11 @@ function handleDayAddToShoppingList(dayId: string) {
     });
     return;
   }
-
   emit('addToShoppingList', ingredients);
+
+  // Открываем модалку предпросмотра с ингредиентами дня
+  // collectedIngredients.value = ingredients;
+  // showPreviewModal.value = true;
 }
 
 function addNewDay() {
