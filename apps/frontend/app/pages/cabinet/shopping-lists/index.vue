@@ -21,13 +21,14 @@
     />
 
     <!-- Пустое состояние -->
-    <div v-else class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 py-16">
-      <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 shadow-lg">
-        <UIcon name="i-lucide-shopping-basket" class="h-8 w-8 text-white" />
-      </div>
-      <p class="mt-3 text-gray-500">Нет списков покупок</p>
-      <p class="text-sm text-gray-400">Создайте свой первый список</p>
+    <div v-else>
+      <EmptyState
+        title="Нет списков покупок"
+        description="У вас пока нет списков покупок. Создайте свой первый список!"
+        icon="i-lucide-shopping-basket"
+      />
     </div>
+
 
     <!-- Модалка подтверждения удаления -->
     <DeleteConfirmationModal
@@ -63,6 +64,7 @@ import ShoppingListsGrid from '~/components/shopping/lists/ShoppingListsGrid.vue
 import ListFormModal from '~/components/shopping/lists/ListFormModal.vue';
 import ShareListModal from '~/components/shopping/lists/ShareListModal.vue';
 import DeleteConfirmationModal from '~/components/menu-planner/modals/DeleteConfirmationModal.vue';
+import EmptyState from '~/shared/ui/emptyState/EmptyState.vue';
 
 definePageMeta({ layout: 'cabinet' });
 
