@@ -14,7 +14,7 @@
           <div class="min-w-0 flex-1">
             <div v-if="!isEditing" class="group flex items-center gap-2">
               <h1
-                class="cursor-text text-2xl font-bold tracking-tight text-gray-900 transition-colors hover:text-primary-600 dark:text-white dark:hover:text-primary-400 truncate max-w-[300px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[600px]"
+                class="cursor-text text-2xl font-bold tracking-tight text-gray-900 transition-colors hover:text-primary-600 dark:text-white dark:hover:text-primary-400 truncate max-w-[200px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[600px]"
                 @click="startEditing"
               >
                 {{ title }}
@@ -76,11 +76,11 @@
     </div>
 
     <!-- Отдельная строка: поиск и кнопки действий -->
-    <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div class="mt-6 flex flex-col justify-end gap-3 sm:flex-row sm:items-center sm:justify-between">
       <!-- Поиск - используем SearchInput компонент -->
       <div class="flex-1">
         <SearchInput
-          size="xs"
+          size="sm"
           v-model="searchValue"
           placeholder="Поиск по списку..."
           id="shopping-list-search"
@@ -89,7 +89,7 @@
       </div>
 
       <!-- Кнопки действий -->
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 ml-auto">
         <!-- Кнопка поделиться -->
         <UTooltip text="Поделиться">
           <UButton

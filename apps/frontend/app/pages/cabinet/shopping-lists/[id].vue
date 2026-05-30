@@ -54,35 +54,37 @@
 
       <!-- Mobile/Tablet -->
       <div class="lg:hidden">
-        <ShoppingListHeader
-          :title="store.currentList?.title"
-          :total-count="store.totalItemsCount"
-          :checked-count="store.checkedItemsCount"
-          :progress="store.progressPercentage"
-          :filter-type="filterType"
-          :sort-by="sortBy"
-          :search-query="searchQuery"
-          @rename="handleRename"
-          @share="openShareModal"
-          @delete="openDeleteModal"
-          @print="handlePrint"
-          @uncheck-all="handleUncheckAll"
-          @filter-change="filterType = $event"
-          @sort-change="sortBy = $event"
-          @search-change="searchQuery = $event"
-        />
+        <UCard class="lg:col-span-13">
+          <ShoppingListHeader
+            :title="store.currentList?.title"
+            :total-count="store.totalItemsCount"
+            :checked-count="store.checkedItemsCount"
+            :progress="store.progressPercentage"
+            :filter-type="filterType"
+            :sort-by="sortBy"
+            :search-query="searchQuery"
+            @rename="handleRename"
+            @share="openShareModal"
+            @delete="openDeleteModal"
+            @print="handlePrint"
+            @uncheck-all="handleUncheckAll"
+            @filter-change="filterType = $event"
+            @sort-change="sortBy = $event"
+            @search-change="searchQuery = $event"
+          />
 
-        <ShoppingListItems
-          :list-id="listId"
-          :categories="categories"
-          :items="store.currentItems"
-          :filter-type="filterType"
-          :sort-by="sortBy"
-          :search-query="searchQuery"
-          @edit-item="openItemModal"
-          @delete-item="handleDeleteItem"
-          @toggle-item="handleToggleItem"
-        />
+          <ShoppingListItems
+            :list-id="listId"
+            :categories="categories"
+            :items="store.currentItems"
+            :filter-type="filterType"
+            :sort-by="sortBy"
+            :search-query="searchQuery"
+            @edit-item="openItemModal"
+            @delete-item="handleDeleteItem"
+            @toggle-item="handleToggleItem"
+          />
+        </UCard>
       </div>
     </div>
 

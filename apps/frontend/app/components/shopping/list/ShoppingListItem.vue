@@ -79,6 +79,7 @@
 
     <!-- Действия при ховере -->
     <div class="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+      <!-- Кнопка редактирования -->
       <Button
         icon="i-lucide-pencil"
         color="neutral"
@@ -89,15 +90,63 @@
         @click.stop="emit('edit')"
       />
 
-      <Button
-        icon="i-lucide-trash-2"
-        color="neutral"
-        variant="ghost"
-        size="sm"
-        icon-only
-        class="rounded p-1 text-gray-400 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20"
-        @click.stop="emit('delete')"
-      />
+      <!-- UPopover для подтверждения удаления -->
+      <UPopover
+        :content="{
+          side: 'top',    // Показывать сверху от кнопки
+          align: 'end',   // Выровнять по правому краю кнопки
+          sideOffset: 8   // Отступ от кнопки
+        }"
+        arrow
+      >
+        <!-- Кнопка-триггер -->
+        <Button
+          icon="i-lucide-trash-2"
+          color="neutral"
+          variant="ghost"
+          size="sm"
+          icon-only
+          class="rounded p-1 text-gray-400 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20"
+        />
+
+        <!-- Содержимое всплывающего окна -->
+        <template #content="{ close }">
+          <div class="p-4 min-w-[240px]">
+            <div class="flex items-center gap-2 mb-3">
+              <UIcon name="i-lucide-alert-triangle" class="h-5 w-5 text-red-500" />
+              <h4 class="font-semibold text-gray-900 dark:text-white">
+                Удалить элемент?
+              </h4>
+            </div>
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
+              Это действие нельзя отменить. Элемент будет удален навсегда.
+            </p>
+            <!-- Кнопки с вашим компонентом Button -->
+            <div class="flex justify-end gap-2">
+              <Button
+                size="sm"
+                variant="ghost"
+                color="neutral"
+                @click="close"
+              >
+                Отмена
+              </Button>
+              <Button
+                size="sm"
+                color="danger"
+                @click="
+                  () => {
+                    close();
+                    emit('delete');
+                  }
+                "
+              >
+                Удалить
+              </Button>
+            </div>
+          </div>
+        </template>
+      </UPopover>
     </div>
   </div>
 </template>

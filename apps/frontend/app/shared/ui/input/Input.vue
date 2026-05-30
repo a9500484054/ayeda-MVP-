@@ -11,8 +11,8 @@
           <UIcon
             v-if="icon"
             :name="icon"
-            class="h-4 w-4 transition-colors"
-            :class="iconClass"
+            class="transition-colors"
+            :class="[iconSizeClass, iconClass]"
           />
         </slot>
       </div>
@@ -45,6 +45,8 @@
 <script setup lang="ts">
 import { computed, useSlots } from 'vue'
 
+type InputSize = 'xs' | 'sm' | 'md' | 'lg'
+
 interface Props {
   modelValue: string | number
   label?: string
@@ -56,6 +58,7 @@ interface Props {
   required?: boolean
   disabled?: boolean
   readonly?: boolean
+  size?: InputSize
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -63,7 +66,8 @@ const props = withDefaults(defineProps<Props>(), {
   placeholder: '',
   required: false,
   disabled: false,
-  readonly: false
+  readonly: false,
+  size: 'md'
 })
 
 const emit = defineEmits<{
@@ -92,25 +96,57 @@ const handleBlur = () => {
   emit('blur')
 }
 
+// Размеры для инпута
+const sizeClasses: Record<InputSize, string> = {
+  xs: 'h-8 text-xs',
+  sm: 'h-9 text-sm',
+  md: 'h-11 text-sm',
+  lg: 'h-12 text-base'
+}
+
+// Размеры для иконок
+const iconSizeClasses: Record<InputSize, string> = {
+  xs: 'h-3 w-3',
+  sm: 'h-3.5 w-3.5',
+  md: 'h-4 w-4',
+  lg: 'h-5 w-5'
+}
+
+// Отступы для разных размеров
+const paddingClasses = computed(() => {
+  const paddingMap: Record<InputSize, { left: string; right: string }> = {
+    xs: { left: 'pl-7', right: 'pr-7' },
+    sm: { left: 'pl-8', right: 'pr-8' },
+    md: { left: 'pl-9', right: 'pr-9' },
+    lg: { left: 'pl-10', right: 'pr-10' }
+  }
+
+  const defaultPadding = { left: 'pl-4', right: 'pr-4' }
+  const padding = paddingMap[props.size]
+
+  let leftPadding = defaultPadding.left
+  let rightPadding = defaultPadding.right
+
+  if (hasLeftIcon.value && padding) {
+    leftPadding = padding.left
+  }
+  if (hasRightIcon.value && padding) {
+    rightPadding = padding.right
+  }
+
+  return `${leftPadding} ${rightPadding}`
+})
+
 const inputClass = computed(() => {
-  const baseClass = 'h-11 text-sm text-gray-900 dark:text-darkMode-700 focus:ring-2 bg-white dark:bg-darkMode-100'
+  const baseClass = `w-full rounded-xl border outline-none transition-all placeholder:text-sm disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-darkMode-200 ${sizeClasses[props.size]}`
   const borderClass = props.error
     ? 'border-red-500 focus:border-red-500 focus:ring-red-100 dark:border-red-600'
     : 'border-gray-200 focus:border-emerald-400 focus:ring-emerald-100 dark:border-darkMode-300 dark:bg-darkMode-100 dark:focus:ring-emerald-900/20'
 
-  // Определяем отступы в зависимости от наличия иконок
-  let padding = 'px-4'
-  if (hasLeftIcon.value) {
-    padding = 'pl-9 pr-4'
-  }
-  if (hasRightIcon.value) {
-    padding = padding.replace('pr-4', 'pr-9')
-  }
-
   const disabledClass = props.disabled ? 'bg-gray-100 cursor-not-allowed' : ''
   const readonlyClass = props.readonly ? 'cursor-pointer' : ''
 
-  return `${baseClass} ${borderClass} ${padding} ${disabledClass} ${readonlyClass}`.trim()
+  return `${baseClass} ${borderClass} ${paddingClasses.value} ${disabledClass} ${readonlyClass}`.trim()
 })
 
 const labelClass = computed(() => {
@@ -123,5 +159,9 @@ const iconClass = computed(() => {
   return props.error
     ? 'text-red-500 group-focus-within:text-red-500'
     : 'text-gray-400 group-focus-within:text-emerald-500'
+})
+
+const iconSizeClass = computed(() => {
+  return iconSizeClasses[props.size]
 })
 </script>
