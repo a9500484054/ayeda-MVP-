@@ -30,7 +30,7 @@ const navigationItems = computed<NavigationMenuItem[]>(() => {
       collapsible="icon"
       rail
       close
-      title="АуЕда - Admin"
+      title="АУеда - Admin"
       description="Панель управления"
       :ui="{
         header: 'px-4 py-3',
@@ -46,7 +46,7 @@ const navigationItems = computed<NavigationMenuItem[]>(() => {
               <UIcon name="i-lucide-utensils" class="w-4 h-4 text-emerald-600" />
             </div>
             <div v-if="open" class="flex flex-col">
-              <span class="font-semibold">АуЕда - Admin</span>
+              <span class="font-semibold">АУеда - Admin</span>
               <span class="text-xs text-muted">Панель управления</span>
             </div>
           </div>

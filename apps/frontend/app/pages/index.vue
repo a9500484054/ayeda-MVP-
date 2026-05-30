@@ -30,7 +30,7 @@
                 </span>
               </h1>
               <p class="text-xl text-gray-600 leading-relaxed max-w-lg">
-            АуЕда - ваш шеф-повар, который планирует меню,
+            АУеда - ваш шеф-повар, который планирует меню,
             <span class="font-semibold text-gray-800">экономит 5 часов в неделю</span>
             и убирает пищевой стресс навсегда.
               </p>
@@ -156,7 +156,7 @@
             <span class="text-emerald-500">Стало ➡️</span>
           </div> -->
           <h2 class="text-4xl lg:text-5xl font-black mb-4">
-            Как АуЕда меняет
+            Как АУеда меняет
             <span class="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">жизнь</span>
           </h2>
         </div>
@@ -165,7 +165,7 @@
           <!-- До -->
           <div class="bg-white rounded-2xl p-8 shadow-lg border-l-8 border-red-500 transform -rotate-1 hover:rotate-0 transition">
             <div class="text-red-500 text-5xl mb-4">😫😫😫</div>
-            <h3 class="text-2xl font-bold mb-4">Без АуЕда</h3>
+            <h3 class="text-2xl font-bold mb-4">Без АУеда</h3>
             <div class="space-y-3">
               <div v-for="problem in problems" :key="problem.text" class="flex items-start gap-3 p-3 bg-red-50 rounded-xl">
                 <span class="text-red-500">✗</span>
@@ -183,7 +183,7 @@
           <!-- После -->
           <div class="bg-gradient-to-br from-emerald-600 to-teal-600 rounded-2xl p-8 shadow-xl transform rotate-1 hover:rotate-0 transition text-white">
             <div class="text-5xl mb-4">😊✨</div>
-            <h3 class="text-2xl font-bold mb-4">С АуЕда</h3>
+            <h3 class="text-2xl font-bold mb-4">С АУеда</h3>
             <div class="space-y-3">
               <div v-for="solution in solutions" :key="solution.text" class="flex items-start gap-3 p-3 bg-white/10 rounded-xl backdrop-blur">
                 <span class="text-emerald-300">✓</span>
@@ -231,7 +231,7 @@
       <div class="max-w-7xl mx-auto px-6 lg:px-8">
         <div class="text-center max-w-3xl mx-auto mb-16">
           <UBadge class="!bg-emerald-100 !text-emerald-600 mb-4">🗓️ 12 минут в неделю</UBadge>
-          <h2 class="text-4xl lg:text-5xl font-black mb-6">Как АуЕда меняет вашу жизнь</h2>
+          <h2 class="text-4xl lg:text-5xl font-black mb-6">Как АУеда меняет вашу жизнь</h2>
         </div>
 
         <div class="relative">
@@ -466,7 +466,7 @@ import CookieConsent from '~/components/CookieConsent.vue'
     {
       name: 'Анна Смирнова',
       role: 'Мама двоих детей',
-      text: 'Раньше я сходила с ума, пытаясь накормить всех. Теперь муж сам ходит в магазин по списку из АуЕда!',
+      text: 'Раньше я сходила с ума, пытаясь накормить всех. Теперь муж сам ходит в магазин по списку из АУеда!',
       savings: '8 500₽'
     },
     {
@@ -478,7 +478,7 @@ import CookieConsent from '~/components/CookieConsent.vue'
     {
       name: 'Елена Морозова',
       role: 'Фитнес-тренер',
-      text: 'Рекомендую всем клиентам. АуЕда автоматизирует 80% работы по составлению рациона.',
+      text: 'Рекомендую всем клиентам. АУеда автоматизирует 80% работы по составлению рациона.',
       savings: '5 000₽'
     }
   ]

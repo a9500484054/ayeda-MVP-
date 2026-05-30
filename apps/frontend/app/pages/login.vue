@@ -132,7 +132,7 @@ async function onSubmit(e: Event) {
             <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
               <UIcon name="i-lucide-utensils" class="w-5 h-5 text-emerald-600" />
             </div>
-            <span class="text-2xl font-bold text-white">АуЕда</span>
+            <span class="text-2xl font-bold text-white">АУеда</span>
           </div>
         </NuxtLink>
       </div>

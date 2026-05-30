@@ -28,6 +28,8 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     apiSecret: process.env.NUXT_API_SECRET || "",
+    telegramBotToken: process.env.TELEGRAM_BOT_TOKEN,
+    telegramChatId: process.env.TELEGRAM_CHAT_ID,
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE_URL || "http://localhost:3001/api/v1",
       apiUrl: process.env.NUXT_PUBLIC_API_URL || "http://localhost:3001", // Добавьте эту строку

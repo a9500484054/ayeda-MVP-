@@ -1,181 +1,3 @@
-<script setup lang="ts">
-import { toTypedSchema } from "@vee-validate/zod";
-import { useForm } from "vee-validate";
-import * as z from "zod";
-import Button from "~/shared/ui/button/Button.vue";
-import Input from "~/shared/ui/input/Input.vue";
-import Textarea from "~/shared/ui/textarea/Textarea.vue";
-
-definePageMeta({
-  layout: "cabinet",
-})
-
-const pending = ref(false);
-const success = ref(false);
-const serverError = ref("");
-const activeTab = ref('faq');
-
-// Конфигурация Telegram бота
-const TELEGRAM_BOT_TOKEN = '8568457132:AAHbjeYBKRP64FZznyfvXuT8vfzRVOF1wJY'; // Замените на ваш токен
-const TELEGRAM_CHAT_ID = '365136832'; // Замените на ваш chat ID
-
-// Схема валидации для формы обратной связи
-const zodSchema = z.object({
-  name: z.string()
-    .min(2, "Имя должно содержать минимум 2 символа")
-    .max(50, "Имя слишком длинное"),
-  email: z.string()
-    .min(1, "Email обязателен")
-    .email("Введите корректный email"),
-  subject: z.string()
-    .min(1, "Укажите тему обращения")
-    .min(3, "Тема должна содержать минимум 3 символа"),
-  message: z.string()
-    .min(1, "Сообщение обязательно")
-    .min(10, "Сообщение должно содержать минимум 10 символов")
-});
-
-const validationSchema = toTypedSchema(zodSchema);
-
-const { defineField, errors, handleSubmit, resetForm } = useForm({
-  validationSchema,
-  initialValues: {
-    name: "",
-    email: "",
-    subject: "",
-    message: ""
-  }
-});
-
-const [name, nameAttrs] = defineField("name");
-const [email, emailAttrs] = defineField("email");
-const [subject, subjectAttrs] = defineField("subject");
-const [message, messageAttrs] = defineField("message");
-
-// Функция отправки в Telegram
-const sendToTelegram = async (data: {
-  name: string;
-  email: string;
-  subject: string;
-  message: string;
-}) => {
-  // Форматируем сообщение для Telegram
-  const text = `
-🆕 <b>Новое обращение в поддержку</b>
-
-👤 <b>Отправитель:</b> ${escapeHtml(data.name)}
-📧 <b>Email:</b> ${escapeHtml(data.email)}
-📋 <b>Тема:</b> ${escapeHtml(data.subject)}
-💬 <b>Сообщение:</b>
-${escapeHtml(data.message)}
-
-🕐 <b>Время:</b> ${new Date().toLocaleString('ru-RU')}
-  `;
-
-  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      chat_id: TELEGRAM_CHAT_ID,
-      text: text,
-      parse_mode: 'HTML',
-      disable_web_page_preview: true,
-    }),
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.description || 'Ошибка отправки в Telegram');
-  }
-
-  return await response.json();
-};
-
-// Функция для экранирования HTML
-const escapeHtml = (str: string) => {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-};
-
-// Альтернативный вариант через API маршрут (рекомендуемый)
-const sendToTelegramViaAPI = async (data: {
-  name: string;
-  email: string;
-  subject: string;
-  message: string;
-}) => {
-  const response = await $fetch('/api/support/telegram', {
-    method: 'POST',
-    body: data,
-  });
-  return response;
-};
-
-const onSubmit = handleSubmit(async (values) => {
-  pending.value = true;
-  serverError.value = "";
-
-  try {
-    // Отправка в Telegram (прямой запрос)
-    await sendToTelegram(values);
-
-    // Или через API маршрут (более безопасно)
-    // await sendToTelegramViaAPI(values);
-
-    // Имитация дополнительной задержки (опционально)
-    // await new Promise(resolve => setTimeout(resolve, 500));
-
-    success.value = true;
-    resetForm();
-
-    setTimeout(() => {
-      success.value = false;
-    }, 5000);
-  } catch (err: any) {
-    console.error('Telegram send error:', err);
-    serverError.value = err.message || "Не удалось отправить сообщение. Попробуйте позже.";
-  } finally {
-    pending.value = false;
-  }
-});
-
-const handleToggle = (event: Event, idx: number) => {
-  // Опциональная логика при открытии/закрытии FAQ
-  console.log(`FAQ ${idx} toggled`);
-};
-
-const faqItems = [
-  {
-    question: "Как начать пользоваться сервисом?",
-    answer: "Просто зарегистрируйтесь на сайте, и вы получите 14 дней бесплатного доступа. После регистрации вы сможете добавлять рецепты, планировать меню и создавать списки покупок."
-  },
-  {
-    question: "Как отменить подписку?",
-    answer: "Вы можете отменить подписку в любой момент в разделе «Настройки» → «Подписка». Отмена происходит мгновенно, и вы больше не будете платить."
-  },
-  {
-    question: "Могу ли я использовать сервис бесплатно?",
-    answer: "Да, у нас есть бесплатный тариф с базовым функционалом. Также все новые пользователи получают 14 дней бесплатного доступа к Премиум-тарифу."
-  },
-  {
-    question: "Как добавить свой рецепт?",
-    answer: "Перейдите в раздел «Рецепты» и нажмите кнопку «Добавить рецепт». Заполните название, ингредиенты, инструкцию и сохраните."
-  },
-  {
-    question: "Безопасны ли мои данные?",
-    answer: "Да, мы используем современные методы шифрования и не передаём ваши данные третьим лицам. Подробнее в Политике конфиденциальности."
-  }
-];
-</script>
-
 <template>
   <div class="mx-auto w-full max-w-4xl px-4 py-6 md:px-6">
     <!-- Заголовок страницы -->
@@ -391,6 +213,188 @@ const faqItems = [
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { toTypedSchema } from "@vee-validate/zod";
+import { useForm } from "vee-validate";
+import * as z from "zod";
+import Button from "~/shared/ui/button/Button.vue";
+import Input from "~/shared/ui/input/Input.vue";
+import Textarea from "~/shared/ui/textarea/Textarea.vue";
+
+definePageMeta({
+  layout: "cabinet",
+})
+
+const pending = ref(false);
+const success = ref(false);
+const serverError = ref("");
+const activeTab = ref('faq');
+
+// Конфигурация Telegram бота
+const TELEGRAM_BOT_TOKEN = '8568457132:AAHbjeYBKRP64FZznyfvXuT8vfzRVOF1wJY'; // Замените на ваш токен
+const TELEGRAM_CHAT_ID = '365136832'; // Замените на ваш chat ID
+// const botToken = process.env.TELEGRAM_BOT_TOKEN;
+// const chatId = process.env.TELEGRAM_CHAT_ID;
+
+// console.log("Telegram Bot Token:", botToken);
+// console.log("Telegram Chat ID:", chatId);
+// Схема валидации для формы обратной связи
+const zodSchema = z.object({
+  name: z.string()
+    .min(2, "Имя должно содержать минимум 2 символа")
+    .max(50, "Имя слишком длинное"),
+  email: z.string()
+    .min(1, "Email обязателен")
+    .email("Введите корректный email"),
+  subject: z.string()
+    .min(1, "Укажите тему обращения")
+    .min(3, "Тема должна содержать минимум 3 символа"),
+  message: z.string()
+    .min(1, "Сообщение обязательно")
+    .min(10, "Сообщение должно содержать минимум 10 символов")
+});
+
+const validationSchema = toTypedSchema(zodSchema);
+
+const { defineField, errors, handleSubmit, resetForm } = useForm({
+  validationSchema,
+  initialValues: {
+    name: "",
+    email: "",
+    subject: "",
+    message: ""
+  }
+});
+
+const [name, nameAttrs] = defineField("name");
+const [email, emailAttrs] = defineField("email");
+const [subject, subjectAttrs] = defineField("subject");
+const [message, messageAttrs] = defineField("message");
+
+// Функция отправки в Telegram
+const sendToTelegram = async (data: {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}) => {
+  // Форматируем сообщение для Telegram
+  const text = `
+🆕 <b>Новое обращение в поддержку</b>
+
+👤 <b>Отправитель:</b> ${escapeHtml(data.name)}
+📧 <b>Email:</b> ${escapeHtml(data.email)}
+📋 <b>Тема:</b> ${escapeHtml(data.subject)}
+💬 <b>Сообщение:</b>
+${escapeHtml(data.message)}
+
+🕐 <b>Время:</b> ${new Date().toLocaleString('ru-RU')}
+  `;
+
+  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      chat_id: TELEGRAM_CHAT_ID,
+      text: text,
+      parse_mode: 'HTML',
+      disable_web_page_preview: true,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.description || 'Ошибка отправки в Telegram');
+  }
+
+  return await response.json();
+};
+
+// Функция для экранирования HTML
+const escapeHtml = (str: string) => {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+};
+
+// Альтернативный вариант через API маршрут (рекомендуемый)
+const sendToTelegramViaAPI = async (data: {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}) => {
+  const response = await $fetch('/api/support/telegram', {
+    method: 'POST',
+    body: data,
+  });
+  return response;
+};
+
+const onSubmit = handleSubmit(async (values) => {
+  pending.value = true;
+  serverError.value = "";
+
+  try {
+    // Отправка в Telegram (прямой запрос)
+    await sendToTelegram(values);
+
+    // Или через API маршрут (более безопасно)
+    // await sendToTelegramViaAPI(values);
+
+    // Имитация дополнительной задержки (опционально)
+    // await new Promise(resolve => setTimeout(resolve, 500));
+
+    success.value = true;
+    resetForm();
+
+    setTimeout(() => {
+      success.value = false;
+    }, 5000);
+  } catch (err: any) {
+    console.error('Telegram send error:', err);
+    serverError.value = err.message || "Не удалось отправить сообщение. Попробуйте позже.";
+  } finally {
+    pending.value = false;
+  }
+});
+
+const handleToggle = (event: Event, idx: number) => {
+  // Опциональная логика при открытии/закрытии FAQ
+  console.log(`FAQ ${idx} toggled`);
+};
+
+const faqItems = [
+  {
+    question: "Как начать пользоваться сервисом?",
+    answer: "Просто зарегистрируйтесь на сайте, и вы получите 14 дней бесплатного доступа. После регистрации вы сможете добавлять рецепты, планировать меню и создавать списки покупок."
+  },
+  {
+    question: "Как отменить подписку?",
+    answer: "Вы можете отменить подписку в любой момент в разделе «Настройки» → «Подписка». Отмена происходит мгновенно, и вы больше не будете платить."
+  },
+  {
+    question: "Могу ли я использовать сервис бесплатно?",
+    answer: "Да, у нас есть бесплатный тариф с базовым функционалом. Также все новые пользователи получают 14 дней бесплатного доступа к Премиум-тарифу."
+  },
+  {
+    question: "Как добавить свой рецепт?",
+    answer: "Перейдите в раздел «Рецепты» и нажмите кнопку «Добавить рецепт». Заполните название, ингредиенты, инструкцию и сохраните."
+  },
+  {
+    question: "Безопасны ли мои данные?",
+    answer: "Да, мы используем современные методы шифрования и не передаём ваши данные третьим лицам. Подробнее в Политике конфиденциальности."
+  }
+];
+</script>
 
 <style scoped>
 /* Стили для details/summary */
