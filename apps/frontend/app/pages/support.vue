@@ -15,6 +15,10 @@ const success = ref(false);
 const serverError = ref("");
 const activeTab = ref('faq');
 
+// Конфигурация Telegram бота
+const TELEGRAM_BOT_TOKEN = '8568457132:AAHbjeYBKRP64FZznyfvXuT8vfzRVOF1wJY'; // Замените на ваш токен
+const TELEGRAM_CHAT_ID = '365136832'; // Замените на ваш chat ID
+
 // Схема валидации для формы обратной связи
 const zodSchema = z.object({
   name: z.string()
@@ -48,16 +52,86 @@ const [email, emailAttrs] = defineField("email");
 const [subject, subjectAttrs] = defineField("subject");
 const [message, messageAttrs] = defineField("message");
 
+// Функция отправки в Telegram
+const sendToTelegram = async (data: {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}) => {
+  // Форматируем сообщение для Telegram
+  const text = `
+🆕 <b>Новое обращение в поддержку</b>
+
+👤 <b>Отправитель:</b> ${escapeHtml(data.name)}
+📧 <b>Email:</b> ${escapeHtml(data.email)}
+📋 <b>Тема:</b> ${escapeHtml(data.subject)}
+💬 <b>Сообщение:</b>
+${escapeHtml(data.message)}
+
+🕐 <b>Время:</b> ${new Date().toLocaleString('ru-RU')}
+  `;
+
+  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      chat_id: TELEGRAM_CHAT_ID,
+      text: text,
+      parse_mode: 'HTML',
+      disable_web_page_preview: true,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.description || 'Ошибка отправки в Telegram');
+  }
+
+  return await response.json();
+};
+
+// Функция для экранирования HTML
+const escapeHtml = (str: string) => {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+};
+
+// Альтернативный вариант через API маршрут (рекомендуемый)
+const sendToTelegramViaAPI = async (data: {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}) => {
+  const response = await $fetch('/api/support/telegram', {
+    method: 'POST',
+    body: data,
+  });
+  return response;
+};
+
 const onSubmit = handleSubmit(async (values) => {
   pending.value = true;
   serverError.value = "";
 
   try {
-    // Здесь будет запрос в поддержку
-    // await $fetch('/api/support', { method: 'POST', body: values })
+    // Отправка в Telegram (прямой запрос)
+    await sendToTelegram(values);
 
-    // Имитация запроса
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Или через API маршрут (более безопасно)
+    // await sendToTelegramViaAPI(values);
+
+    // Имитация дополнительной задержки (опционально)
+    // await new Promise(resolve => setTimeout(resolve, 500));
 
     success.value = true;
     resetForm();
@@ -66,11 +140,17 @@ const onSubmit = handleSubmit(async (values) => {
       success.value = false;
     }, 5000);
   } catch (err: any) {
+    console.error('Telegram send error:', err);
     serverError.value = err.message || "Не удалось отправить сообщение. Попробуйте позже.";
   } finally {
     pending.value = false;
   }
 });
+
+const handleToggle = (event: Event, idx: number) => {
+  // Опциональная логика при открытии/закрытии FAQ
+  console.log(`FAQ ${idx} toggled`);
+};
 
 const faqItems = [
   {
@@ -100,10 +180,10 @@ const faqItems = [
   <div class="mx-auto w-full max-w-4xl px-4 py-6 md:px-6">
     <!-- Заголовок страницы -->
     <div class="mb-8">
-      <h1 class="text-3xl font-semibold tracking-tight text-zinc-900">
+      <h1 class="text-3xl font-semibold tracking-tight text-zinc-900 dark:text-darkMode-700">
         Поддержка
       </h1>
-      <p class="mt-2 text-sm text-zinc-500">Мы всегда готовы помочь вам с любыми вопросами</p>
+      <p class="mt-2 text-sm text-zinc-500 dark:text-darkMode-500">Мы всегда готовы помочь вам с любыми вопросами</p>
     </div>
 
     <!-- Tabs -->
@@ -302,9 +382,9 @@ const faqItems = [
             <UIcon name="i-lucide-mail" class="w-4 h-4" />
             support@ayeda.ru
           </a>
-          <a href="#" class="flex items-center gap-2 text-gray-600 dark:text-darkMode-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition">
+          <a href="https://t.me/ayeda_support_bot" class="flex items-center gap-2 text-gray-600 dark:text-darkMode-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition">
             <UIcon name="i-lucide-telegram" class="w-4 h-4" />
-            @ayeda_support
+            @ayeda_support_bot
           </a>
         </div>
       </div>
@@ -327,5 +407,35 @@ details summary::-webkit-details-marker {
 .slide-leave-to {
   opacity: 0;
   transform: translateY(-5px);
+}
+
+/* Анимация для появления ответа */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Анимация для иконки */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
 }
 </style>
