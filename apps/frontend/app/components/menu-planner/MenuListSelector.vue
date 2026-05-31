@@ -1,61 +1,58 @@
 <template>
   <div class="menu-list-selector">
-    <!-- Заголовок -->
-    <!-- <div class="mb-3 flex items-center justify-between">
-      <label class="text-sm font-medium text-zinc-700">Список меню</label>
-    </div> -->
-
     <!-- Список карточек -->
-    <div class="flex flex-wrap gap-3">
-      <div
-        v-for="list in sortedLists"
-        :key="list.id"
-        class="menu-list-card group relative flex items-center gap-2 rounded-xl px-4 py-2.5 transition-all cursor-pointer"
-        :class="[
-          isActive(list.id)
-            ? 'bg-green-50 border border-green-200 shadow-sm'
-            : 'bg-white border border-transparent hover:border-zinc-200 hover:bg-zinc-50/50'
-        ]"
-        @click="emit('select', list.id)"
-      >
-        <!-- Иконка -->
-        <span class="text-xl">
-          {{ list.icon || (list.displayType === 'calendar' ? '📅' : '📋') }}
-        </span>
-
-        <!-- Название -->
-        <span class="font-medium text-zinc-800">
-          {{ list.title }}
-        </span>
-
-        <!-- Тип (бейдж) -->
-        <span
-          class="text-xs px-1.5 py-0.5 rounded-full"
-          :class="list.displayType === 'calendar'
-            ? 'bg-blue-100 text-blue-700'
-            : 'bg-green-100 text-green-700'"
+    <div class="lists-container">
+      <div class="lists-wrapper">
+        <div
+          v-for="list in sortedLists"
+          :key="list.id"
+          class="menu-list-card group relative flex items-center gap-2 rounded-xl px-3 py-2 transition-all cursor-pointer"
+          :class="[
+            isActive(list.id)
+              ? 'bg-green-50 border border-green-200 shadow-sm'
+              : 'bg-white border border-transparent hover:border-zinc-200 hover:bg-zinc-50/50'
+          ]"
+          @click="emit('select', list.id)"
         >
-          {{ list.displayType === 'calendar' ? 'Календарь' : 'Дни' }}
-        </span>
+          <!-- Иконка -->
+          <span class="text-lg">
+            {{ list.icon || (list.displayType === 'calendar' ? '📅' : '📋') }}
+          </span>
 
-        <!-- Кнопка меню (редактировать/удалить) -->
+          <!-- Название -->
+          <span class="font-medium text-zinc-800 text-sm whitespace-nowrap">
+            {{ list.title }}
+          </span>
+
+          <!-- Тип (бейдж) -->
+          <span
+            class="text-xs px-1.5 py-0.5 rounded-full whitespace-nowrap"
+            :class="list.displayType === 'calendar'
+              ? 'bg-blue-100 text-blue-700'
+              : 'bg-green-100 text-green-700'"
+          >
+            {{ list.displayType === 'calendar' ? '📅' : '📋' }}
+          </span>
+
+          <!-- Кнопка меню -->
+          <button
+            class="absolute -top-2 -right-2 hidden rounded-full bg-white p-1 shadow-md transition-all group-hover:flex cursor-pointer"
+            @click.stop="openMenu($event, list)"
+          >
+            <UIcon name="i-lucide-more-vertical" class="h-3 w-3 text-zinc-500" />
+          </button>
+        </div>
+
+        <!-- Кнопка "Создать" -->
         <button
-          class="absolute -top-2 -right-2 hidden rounded-full bg-white p-1 shadow-md transition-all group-hover:flex cursor-pointer"
-          @click.stop="openMenu($event, list)"
+          v-if="lists.length === 0"
+          class="flex items-center gap-2 rounded-xl border border-dashed border-zinc-300 bg-transparent px-3 py-2 text-zinc-500 transition-all hover:border-zinc-400 hover:text-zinc-700"
+          @click="emit('create')"
         >
-          <UIcon name="i-lucide-more-vertical" class="h-3.5 w-3.5 text-zinc-500" />
+          <UIcon name="i-lucide-plus" class="h-4 w-4" />
+          <span class="text-sm whitespace-nowrap">Создать список</span>
         </button>
       </div>
-
-      <!-- Кнопка "Создать" если нет списков -->
-      <button
-        v-if="lists.length === 0"
-        class="flex items-center gap-2 rounded-xl border border-dashed border-zinc-300 bg-transparent px-4 py-2.5 text-zinc-500 transition-all hover:border-zinc-400 hover:text-zinc-700"
-        @click="emit('create')"
-      >
-        <UIcon name="i-lucide-plus" class="h-4 w-4" />
-        <span>Создать первый список</span>
-      </button>
     </div>
 
     <!-- Контекстное меню -->
@@ -100,29 +97,21 @@ const emit = defineEmits<{
   create: [];
 }>();
 
-// Сортировка списков: старые в начале, новые в конце
+// Сортировка списков
 const sortedLists = computed(() => {
   return [...props.lists].sort((a, b) => {
-    // Если есть поле createdAt, сортируем по дате создания
     if (a.createdAt && b.createdAt) {
       return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
     }
-
-    // Если нет createdAt, но есть updatedAt
     if (a.updatedAt && b.updatedAt) {
       return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
     }
-
-    // Если есть поле order (порядок)
     if (a.order !== undefined && b.order !== undefined) {
       return a.order - b.order;
     }
-
-    // Fallback: сортируем по ID (предполагая, что ID генерируются в порядке возрастания)
     if (a.id && b.id) {
       return a.id.localeCompare(b.id);
     }
-
     return 0;
   });
 });
@@ -150,7 +139,6 @@ function openMenu(event: MouseEvent, list: MenuList) {
   event.preventDefault();
   event.stopPropagation();
 
-  // Корректируем позицию, чтобы меню не выходило за пределы экрана
   let x = event.clientX;
   let y = event.clientY;
 
@@ -193,7 +181,6 @@ function closeMenu() {
   };
 }
 
-// Закрыть меню при клике вне
 function handleClickOutside(event: MouseEvent) {
   if (contextMenu.value.visible && contextMenuRef.value) {
     if (!contextMenuRef.value.contains(event.target as Node)) {
@@ -212,11 +199,23 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.menu-list-selector {
+  width: 100%;
+}
+
+.lists-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+}
+
 .menu-list-card {
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .menu-list-card:hover {
   transform: translateY(-1px);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 </style>

@@ -1,11 +1,12 @@
 <template>
   <div class="days-view-container">
     <!-- Управление днями -->
-    <div class="mb-4 flex items-center justify-between">
+    <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
       <Button
         color="white"
         v-if="days.length < 30"
         @click="addNewDay"
+        class="w-full sm:w-auto justify-center"
       >
         <UIcon name="i-lucide-plus" class="h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-90" />
         <span>Добавить день ({{ days.length }}/30)</span>
@@ -17,7 +18,7 @@
         @click="openPreviewModal"
         :disabled="days.length === 0 || isLoading"
         :loading="isAddingToShoppingList"
-        class="relative transition-all duration-200 hover:scale-[1.02]"
+        class="w-full sm:w-auto justify-center relative transition-all duration-200 hover:scale-[1.02]"
       >
         <UIcon name="i-lucide-shopping-cart" class="h-3.5 w-3.5" />
         <span>Добавить меню в список покупок</span>

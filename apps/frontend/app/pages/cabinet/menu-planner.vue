@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto w-full max-w-7xl px-4 py-6 md:px-6">
+  <div class="mx-auto w-full max-w-7xl px-4 py-6 md:px-6 overflow-hidden">
     <!-- Header -->
     <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
@@ -24,6 +24,7 @@
     </div>
 
     <!-- Content -->
+
     <template v-else>
       <MenuListSelector
         :lists="store.menuLists"
@@ -34,6 +35,7 @@
         @delete="handleDeleteList"
         @create="openCreateListModal"
       />
+
 
       <div v-if="store.activeMenuList" class="mt-6">
         <!-- Тип "Дни" -->
