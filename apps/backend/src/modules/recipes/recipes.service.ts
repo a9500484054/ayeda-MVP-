@@ -66,11 +66,36 @@ export class RecipesService {
               ? RecipeStatus.PENDING
               : RecipeStatus.PRIVATE),
       });
+
       const saved = await manager.save(recipe);
+
+      // ✅ СОХРАНЯЕМ КАТЕГОРИИ через RecipeCategory
+      if (createRecipeDto.categoryIds && createRecipeDto.categoryIds.length > 0) {
+        const recipeCategories = createRecipeDto.categoryIds.map(categoryId => {
+          return manager.create(RecipeCategory, {
+            recipeId: saved.id,
+            categoryId: categoryId
+          });
+        });
+
+        await manager.save(recipeCategories);
+      }
+
+      // ✅ СОХРАНЯЕМ ИНГРЕДИЕНТЫ
+      if (createRecipeDto.ingredients && createRecipeDto.ingredients.length > 0) {
+        const ingredients = createRecipeDto.ingredients.map(ing => {
+          return manager.create(RecipeIngredient, {
+            ...ing,
+            recipeId: saved.id
+          });
+        });
+        await manager.save(ingredients);
+      }
+
       return saved;
     });
 
-    // После транзакции загружаем все связи (используем внутренний метод без проверки прав)
+    // После транзакции загружаем все связи
     return this.findOneWithRelationsInternal(savedRecipe.id);
   }
 
