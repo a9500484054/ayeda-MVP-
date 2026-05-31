@@ -60,16 +60,44 @@
               title="Открыть рецепт"
               @click.stop="openRecipe"
             />
-            <Button
-              variant="ghost"
-              color="danger"
-              size="xs"
-              icon="i-lucide-x"
-              icon-only
-              class="!p-1 !h-6 !w-6 text-zinc-400 hover:text-red-500"
-              title="Удалить"
-              @click.stop="emit('remove')"
-            />
+            <div class="relative">
+              <Button
+                variant="ghost"
+                color="danger"
+                size="xs"
+                icon="i-lucide-x"
+                icon-only
+                class="!p-1 !h-6 !w-6 text-zinc-400 hover:text-red-500"
+                title="Удалить"
+                @click.stop="showConfirmPopover = true"
+              />
+
+              <!-- Popover подтверждения -->
+              <div
+                v-if="showConfirmPopover"
+                class="absolute right-0 top-full mt-2 z-50 min-w-[200px] rounded-lg bg-white p-3 shadow-lg border border-zinc-200"
+                @click.stop
+              >
+                <p class="text-sm text-zinc-700 mb-3">Удалить этот элемент?</p>
+                <div class="flex gap-2 justify-end">
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    @click.stop="showConfirmPopover = false"
+                  >
+                    Отмена
+                  </Button>
+                  <Button
+                    variant="solid"
+                    color="danger"
+                    size="xs"
+                    @click.stop="handleConfirmRemove"
+                  >
+                    Удалить
+                  </Button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -217,6 +245,31 @@ function handleDrop(event: DragEvent) {
 function handleDragEnd() {
   emit('dragEnd')
 }
+
+const showConfirmPopover = ref(false)
+
+const handleConfirmRemove = () => {
+  showConfirmPopover.value = false
+  emit('remove')
+}
+
+// Закрытие при клике вне
+const handleClickOutside = (event: MouseEvent) => {
+  if (showConfirmPopover.value) {
+    const target = event.target as HTMLElement
+    if (!target.closest('.relative')) {
+      showConfirmPopover.value = false
+    }
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 </script>
 
 <style scoped>

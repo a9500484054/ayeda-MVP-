@@ -274,6 +274,8 @@
       <div class="lg:mt-0 mt-16">
         <slot />
       </div>
+      <!-- Добавить СЮДА -->
+      <PwaInstallPrompt />
     </main>
 
     <!-- Модальное окно подтверждения выхода -->
@@ -314,6 +316,7 @@ import type { DropdownMenuItem } from '@nuxt/ui'
 import { useUserStore } from "~/stores/userStore"
 import { useAuth } from "~/composables/useAuth"
 import Button from '~/shared/ui/button/Button.vue'
+import PwaInstallPrompt from '~/components/PwaInstallPrompt.vue'
 
 const userStore = useUserStore()
 const { logout } = useAuth()

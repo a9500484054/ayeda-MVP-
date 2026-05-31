@@ -8,6 +8,7 @@ export default defineNuxtConfig({
     "@pinia/nuxt",
     "@vite-pwa/nuxt",
     "@vee-validate/nuxt",
+    '@vite-pwa/nuxt',
   ],
 
   devtools: { enabled: true },
@@ -17,13 +18,109 @@ export default defineNuxtConfig({
     colorMode: false,
   },
 
+  // PWA Configuration
   pwa: {
+    registerType: 'autoUpdate',
     manifest: {
-      name: "Ayeda",
-      short_name: "Ayeda",
-      description: "Сервис планирования питания",
-      theme_color: "#ffffff",
+      name: 'АУеда',
+      short_name: 'АУеда',
+      description: 'Кулинарные рецепты и списки покупок',
+      theme_color: '#f97316',
+      background_color: '#ffffff',
+      display: 'standalone',
+      scope: '/',
+      start_url: '/',
+      orientation: 'portrait',
+      icons: [
+        {
+          src: '/icons/icon-72x72.png',
+          sizes: '72x72',
+          type: 'image/png',
+          purpose: 'any maskable'
+        },
+        {
+          src: '/icons/icon-96x96.png',
+          sizes: '96x96',
+          type: 'image/png',
+          purpose: 'any maskable'
+        },
+        {
+          src: '/icons/icon-128x128.png',
+          sizes: '128x128',
+          type: 'image/png',
+          purpose: 'any maskable'
+        },
+        {
+          src: '/icons/icon-144x144.png',
+          sizes: '144x144',
+          type: 'image/png',
+          purpose: 'any maskable'
+        },
+        {
+          src: '/icons/icon-152x152.png',
+          sizes: '152x152',
+          type: 'image/png',
+          purpose: 'any maskable'
+        },
+        {
+          src: '/icons/icon-192x192.png',
+          sizes: '192x192',
+          type: 'image/png',
+          purpose: 'any maskable'
+        },
+        {
+          src: '/icons/icon-384x384.png',
+          sizes: '384x384',
+          type: 'image/png',
+          purpose: 'any maskable'
+        },
+        {
+          src: '/icons/icon-512x512.png',
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'any maskable'
+        }
+      ]
     },
+    workbox: {
+      navigateFallback: '/',
+      globPatterns: ['**/*.{js,css,html,png,svg,ico,webp,woff2}'],
+      runtimeCaching: [
+        {
+          urlPattern: /^https:\/\/api\.ayeda\.ru\/.*/i,
+          handler: 'NetworkFirst',
+          options: {
+            cacheName: 'api-cache',
+            expiration: {
+              maxEntries: 100,
+              maxAgeSeconds: 60 * 60 * 24 // 24 часа
+            },
+            cacheableResponse: {
+              statuses: [0, 200]
+            }
+          }
+        },
+        {
+          urlPattern: /\.(png|jpg|jpeg|svg|webp|gif)$/,
+          handler: 'CacheFirst',
+          options: {
+            cacheName: 'image-cache',
+            expiration: {
+              maxEntries: 50,
+              maxAgeSeconds: 60 * 60 * 24 * 30 // 30 дней
+            }
+          }
+        }
+      ]
+    },
+    client: {
+      installPrompt: true,
+      periodicSyncForUpdates: 3600
+    },
+    devOptions: {
+      enabled: process.env.NODE_ENV === 'production' ? false : true,
+      type: 'module'
+    }
   },
 
   runtimeConfig: {

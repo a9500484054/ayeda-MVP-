@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import GlobalLoader from '~/components/GlobalLoader.vue';
+import PwaInstallPrompt from '~/components/PwaInstallPrompt.vue';
 import { publicNavigation } from "~/shared/constants/navigation";
 
 const scrolled = ref(false)
@@ -80,6 +81,8 @@ onUnmounted(() => {
 
     <main class="pt-20">
       <slot />
+      <!-- Добавить СЮДА -->
+      <PwaInstallPrompt />
     </main>
 
     <!-- Футер -->
