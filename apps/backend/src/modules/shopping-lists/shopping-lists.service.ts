@@ -248,34 +248,47 @@ export class ShoppingListsService {
     };
   }
 
-async findAll(userId: string): Promise<ShoppingListResponseDto[]> {
-  const lists = await this.shoppingListRepository
-    .createQueryBuilder('list')
-    .where('list.userId = :userId', { userId })
-    .andWhere('list.deletedAt IS NULL')
-    .orderBy('list.sortOrder', 'ASC')
-    .getMany();
+  async findAll(userId: string): Promise<ShoppingListResponseDto[]> {
+    const query = this.shoppingListRepository
+      .createQueryBuilder('list')
+      .leftJoin('shopping_list_items', 'item', 'item.shopping_list_id = list.id')
+      .select([
+        'list.id as id',                    // Добавил алиас
+        'list.title as title',
+        'list.share_token as "shareToken"', // Добавил алиас с camelCase
+        'list.sort_order as "sortOrder"',   // ВАЖНО: алиас для sortOrder
+        'list.created_at as "createdAt"',
+        'list.updated_at as "updatedAt"',
+        'COUNT(item.id) as "totalItems"',
+        'SUM(CASE WHEN item.is_checked = true THEN 1 ELSE 0 END) as "checkedItems"',
+      ])
+      .where('list.user_id = :userId', { userId })
+      .andWhere('list.deleted_at IS NULL')
+      .groupBy('list.id')
+      .orderBy('list.sort_order', 'ASC')
+      .addOrderBy('list.created_at', 'ASC');
 
-  // Получить статистику для всех списков одним запросом
-  const stats = await this.shoppingListItemRepository
-    .createQueryBuilder('item')
-    .select('item.shoppingListId', 'listId')
-    .addSelect('COUNT(item.id)', 'totalItems')
-    .addSelect('SUM(CASE WHEN item.isChecked = true THEN 1 ELSE 0 END)', 'checkedItems')
-    .where('item.shoppingListId IN (:...listIds)', { listIds: lists.map(l => l.id) })
-    .groupBy('item.shoppingListId')
-    .getRawMany();
+    const results = await query.getRawMany();
 
-  const statsMap = new Map(stats.map(s => [s.listId, s]));
+    // Преобразуем результаты в DTO
+    return results.map((row) => {
+      const response = new ShoppingListResponseDto();
+      response.id = row.id;
+      response.title = row.title;
+      response.shareToken = row.shareToken;
+      response.sortOrder = row.sortOrder; // Теперь должно прийти значение
+      response.createdAt = row.createdAt;
+      response.updatedAt = row.updatedAt;
+      response.totalItems = parseInt(row.totalItems) || 0;
+      response.checkedItems = parseInt(row.checkedItems) || 0;
 
-  return lists.map(list => {
-    const listStats = statsMap.get(list.id);
-    return this.toListResponseDto(list, {
-      totalItems: Number(listStats?.totalItems) || 0,
-      checkedItems: Number(listStats?.checkedItems) || 0,
+      if (response.totalItems > 0) {
+        response.progress = (response.checkedItems / response.totalItems) * 100;
+      }
+
+      return response;
     });
-  });
-}
+  }
 
 async findOne(userId: string, id: string): Promise<ShoppingListResponseDto> {
   const list = await this.shoppingListRepository
