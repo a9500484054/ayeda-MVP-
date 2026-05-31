@@ -51,9 +51,9 @@
                   <span class="truncate text-sm font-medium text-gray-700 dark:text-darkMode-600">
                     {{ ingredient.name }}
                   </span>
-                  <span class="text-xs text-gray-400">
+                  <!-- <span class="text-xs text-gray-400">
                     {{ ingredient.unit.short || ingredient.unit.name }}
-                  </span>
+                  </span> -->
                 </div>
               </div>
 

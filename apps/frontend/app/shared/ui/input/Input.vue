@@ -29,7 +29,7 @@
         :disabled="disabled"
         :required="required"
         :readonly="readonly"
-        class="w-full rounded-xl border outline-none transition-all placeholder:text-sm disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-darkMode-200"
+        class="w-full rounded-xl  border outline-none transition-all placeholder:text-sm disabled:cursor-not-allowed bg-white disabled:bg-gray-100 dark:disabled:bg-darkMode-200"
         :class="inputClass"
         @input="handleInput"
         @blur="handleBlur"

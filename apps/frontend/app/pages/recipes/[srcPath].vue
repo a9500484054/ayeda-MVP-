@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto w-full max-w-7xl px-4 py-4 md:px-6 md:py-6">
+  <div class="mx-auto w-full max-w-5xl px-4 py-4 md:px-6 md:py-6">
     <RecipeHeader :title="recipe?.title" @back="goBack" />
 
     <RecipeLoading v-if="recipe && !canViewRecipe" />
