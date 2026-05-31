@@ -128,6 +128,27 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 
+useHead({
+  title: 'О проекте | АУеда',
+  meta: [
+    { name: 'description', content: 'АУеда — сервис для планирования питания. Узнайте историю создания, миссию и ценности проекта. Помогаем экономить время и питаться правильно.', key: 'description' },
+    { name: 'keywords', content: 'о проекте, планирование питания, история, миссия, ценности, команда', key: 'keywords' },
+    { property: 'og:title', content: 'О проекте АУеда', key: 'og:title' },
+    { property: 'og:description', content: 'Узнайте историю создания, миссию и ценности сервиса для планирования питания', key: 'og:description' },
+    { property: 'og:type', content: 'website', key: 'og:type' },
+    { property: 'og:image', content: 'https://ayeda.ru/og-about.jpg', key: 'og:image' },
+    { property: 'og:image:alt', content: 'О проекте АУеда', key: 'og:image:alt' },
+    { property: 'og:url', content: 'https://ayeda.ru/about', key: 'og:url' },
+    { property: 'og:site_name', content: 'АУеда', key: 'og:site_name' },
+    { name: 'twitter:card', content: 'summary_large_image', key: 'twitter:card' },
+    { name: 'twitter:title', content: 'О проекте АУеда', key: 'twitter:title' },
+    { name: 'twitter:description', content: 'Сервис для планирования питания', key: 'twitter:description' },
+  ],
+  link: [
+    { rel: 'canonical', href: 'https://ayeda.ru/about', key: 'canonical' },
+  ],
+})
+
 const scrolled = ref(false)
 
 const team = [

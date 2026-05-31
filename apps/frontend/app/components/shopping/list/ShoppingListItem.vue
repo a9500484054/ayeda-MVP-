@@ -21,7 +21,7 @@
 
     <!-- Иконка категории с Popover -->
     <UPopover
-      ref="popoverRef"
+      v-model:open="isPopoverOpen"
       mode="click"
       :content="{
         align: 'start',
@@ -93,13 +93,12 @@
       <!-- UPopover для подтверждения удаления -->
       <UPopover
         :content="{
-          side: 'top',    // Показывать сверху от кнопки
-          align: 'end',   // Выровнять по правому краю кнопки
-          sideOffset: 8   // Отступ от кнопки
+          side: 'top',
+          align: 'end',
+          sideOffset: 8
         }"
         arrow
       >
-        <!-- Кнопка-триггер -->
         <Button
           icon="i-lucide-trash-2"
           color="neutral"
@@ -109,7 +108,6 @@
           class="rounded p-1 text-gray-400 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20"
         />
 
-        <!-- Содержимое всплывающего окна -->
         <template #content="{ close }">
           <div class="p-4 min-w-[240px]">
             <div class="flex items-center gap-2 mb-3">
@@ -121,7 +119,6 @@
             <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
               Это действие нельзя отменить. Элемент будет удален навсегда.
             </p>
-            <!-- Кнопки с вашим компонентом Button -->
             <div class="flex justify-end gap-2">
               <Button
                 size="sm"
@@ -178,7 +175,8 @@ const emit = defineEmits<{
   'update-category': [categoryId: string]
 }>()
 
-const popoverRef = ref<any>(null)
+// Состояние для управления открытием popover
+const isPopoverOpen = ref(false)
 
 // Получение ID категории из item
 const getItemCategoryId = (): string => {
@@ -247,19 +245,15 @@ const categoriesWithIcons = computed(() => {
   return props.categories.filter(cat => cat.isActive !== false)
 })
 
+// Выбор категории
 const selectCategory = async (category: Category) => {
+  // Обновляем локальное состояние
   currentCategoryId.value = category.id
 
-  if (popoverRef.value) {
-    if (typeof popoverRef.value.close === 'function') {
-      popoverRef.value.close()
-    } else if (typeof popoverRef.value.hide === 'function') {
-      popoverRef.value.hide()
-    } else if (popoverRef.value.$emit) {
-      popoverRef.value.$emit('update:open', false)
-    }
-  }
-
+  // Отправляем событие родителю
   emit('update-category', category.id)
+
+  // Закрываем popover через v-model
+  isPopoverOpen.value = false
 }
 </script>

@@ -1,98 +1,3 @@
-<script setup lang="ts">
-import { toTypedSchema } from "@vee-validate/zod";
-import { useForm } from "vee-validate";
-import * as z from "zod";
-import { useRoute, useRouter } from "vue-router";
-
-definePageMeta({
-  layout: false,
-  ssr: false
-})
-
-const route = useRoute();
-const router = useRouter();
-const token = ref("");
-const pending = ref(false);
-const success = ref(false);
-const serverError = ref("");
-const showPassword = ref(false);
-const showConfirmPassword = ref(false);
-
-// Сначала создаем схему zod, потом передаем в toTypedSchema
-const zodSchema = z.object({
-  password: z.string()
-    .min(1, "Пароль обязателен")
-    .min(6, "Пароль должен содержать минимум 6 символов"),
-  confirmPassword: z.string()
-    .min(1, "Подтвердите пароль")
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Пароли не совпадают",
-  path: ["confirmPassword"]
-});
-
-// Теперь передаем схему в toTypedSchema
-const validationSchema = toTypedSchema(zodSchema);
-
-// useForm с vee-validate
-const { defineField, errors, handleSubmit, setFieldError } = useForm({
-  validationSchema,
-  initialValues: {
-    password: "",
-    confirmPassword: ""
-  }
-});
-
-// Поля формы
-const [password, passwordAttrs] = defineField("password");
-const [confirmPassword, confirmPasswordAttrs] = defineField("confirmPassword");
-
-// Проверяем токен при монтировании
-onMounted(() => {
-  token.value = route.query.token as string || "";
-  if (!token.value) {
-    serverError.value = "Недействительная ссылка сброса пароля";
-  }
-});
-
-// Отправка формы
-const onSubmit = handleSubmit(async (values) => {
-  if (!token.value) {
-    serverError.value = "Недействительная ссылка сброса пароля";
-    return;
-  }
-
-  pending.value = true;
-  serverError.value = "";
-
-  try {
-    const response = await $fetch('http://localhost:3001/api/v1/auth/reset-password', {
-      method: 'POST',
-      headers: {
-        'accept': '*/*',
-        'Content-Type': 'application/json'
-      },
-      body: {
-        token: token.value,
-        newPassword: values.password
-      }
-    });
-
-    console.log("Reset password response:", response);
-    success.value = true;
-
-    // Через 3 секунды перенаправляем на страницу входа
-    setTimeout(() => {
-      router.push('/login');
-    }, 3000);
-  } catch (err: any) {
-    serverError.value = err.message || "Не удалось сбросить пароль. Попробуйте позже.";
-    if (err.message?.includes("пароль")) setFieldError("password", err.message);
-  } finally {
-    pending.value = false;
-  }
-});
-</script>
-
 <template>
   <div class="min-h-screen grid lg:grid-cols-2">
     <!-- Левая часть - Брендинг -->
@@ -288,6 +193,116 @@ const onSubmit = handleSubmit(async (values) => {
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { toTypedSchema } from "@vee-validate/zod";
+import { useForm } from "vee-validate";
+import * as z from "zod";
+import { useRoute, useRouter } from "vue-router";
+
+definePageMeta({
+  layout: false,
+  ssr: false
+})
+
+useHead({
+  title: 'Сброс пароля | АУеда',
+  meta: [
+    { name: 'description', content: 'Создайте новый пароль для доступа к вашему аккаунту на АУеда. Придумайте надежный пароль, который вы не используете на других сайтах.', key: 'description' },
+    { name: 'robots', content: 'noindex, nofollow', key: 'robots' },
+    { property: 'og:title', content: 'Сброс пароля | АУеда', key: 'og:title' },
+    { property: 'og:description', content: 'Создайте новый пароль для доступа к аккаунту', key: 'og:description' },
+    { property: 'og:type', content: 'website', key: 'og:type' },
+    { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
+    { property: 'og:image:alt', content: 'Сброс пароля АУеда', key: 'og:image:alt' },
+    { property: 'og:url', content: 'https://ayeda.ru/reset-password', key: 'og:url' },
+    { property: 'og:site_name', content: 'АУеда', key: 'og:site_name' },
+  ],
+})
+
+const route = useRoute();
+const router = useRouter();
+const token = ref("");
+const pending = ref(false);
+const success = ref(false);
+const serverError = ref("");
+const showPassword = ref(false);
+const showConfirmPassword = ref(false);
+
+// Сначала создаем схему zod, потом передаем в toTypedSchema
+const zodSchema = z.object({
+  password: z.string()
+    .min(1, "Пароль обязателен")
+    .min(6, "Пароль должен содержать минимум 6 символов"),
+  confirmPassword: z.string()
+    .min(1, "Подтвердите пароль")
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Пароли не совпадают",
+  path: ["confirmPassword"]
+});
+
+// Теперь передаем схему в toTypedSchema
+const validationSchema = toTypedSchema(zodSchema);
+
+// useForm с vee-validate
+const { defineField, errors, handleSubmit, setFieldError } = useForm({
+  validationSchema,
+  initialValues: {
+    password: "",
+    confirmPassword: ""
+  }
+});
+
+// Поля формы
+const [password, passwordAttrs] = defineField("password");
+const [confirmPassword, confirmPasswordAttrs] = defineField("confirmPassword");
+
+// Проверяем токен при монтировании
+onMounted(() => {
+  token.value = route.query.token as string || "";
+  if (!token.value) {
+    serverError.value = "Недействительная ссылка сброса пароля";
+  }
+});
+
+// Отправка формы
+const onSubmit = handleSubmit(async (values) => {
+  if (!token.value) {
+    serverError.value = "Недействительная ссылка сброса пароля";
+    return;
+  }
+
+  pending.value = true;
+  serverError.value = "";
+
+  try {
+    const response = await $fetch('http://localhost:3001/api/v1/auth/reset-password', {
+      method: 'POST',
+      headers: {
+        'accept': '*/*',
+        'Content-Type': 'application/json'
+      },
+      body: {
+        token: token.value,
+        newPassword: values.password
+      }
+    });
+
+    console.log("Reset password response:", response);
+    success.value = true;
+
+    // Через 3 секунды перенаправляем на страницу входа
+    setTimeout(() => {
+      router.push('/login');
+    }, 3000);
+  } catch (err: any) {
+    serverError.value = err.message || "Не удалось сбросить пароль. Попробуйте позже.";
+    if (err.message?.includes("пароль")) setFieldError("password", err.message);
+  } finally {
+    pending.value = false;
+  }
+});
+</script>
 
 <style scoped>
 @keyframes fadeIn {

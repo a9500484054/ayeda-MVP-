@@ -41,3 +41,20 @@
     </div>
   </div>
 </template>
+<script setup lang="ts">
+
+useHead({
+  title: 'В разработке | АУеда',
+  meta: [
+    { name: 'description', content: 'Этот раздел находится в разработке. Мы работаем над тем, чтобы сделать его полезным для вас. Скоро здесь появится новый функционал.', key: 'description' },
+    { name: 'robots', content: 'noindex, nofollow', key: 'robots' },
+    { property: 'og:title', content: 'В разработке | АУеда', key: 'og:title' },
+    { property: 'og:description', content: 'Этот раздел находится в разработке. Скоро здесь появится новый функционал.', key: 'og:description' },
+    { property: 'og:type', content: 'website', key: 'og:type' },
+    { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
+    { property: 'og:image:alt', content: 'Страница в разработке', key: 'og:image:alt' },
+    { property: 'og:url', content: 'https://ayeda.ru/coming-soon', key: 'og:url' },
+    { property: 'og:site_name', content: 'АУеда', key: 'og:site_name' },
+  ],
+})
+</script>

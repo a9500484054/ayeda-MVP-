@@ -226,6 +226,22 @@ definePageMeta({
   layout: "cabinet",
 })
 
+useHead({
+  title: 'Поддержка | АУеда',
+  meta: [
+    { name: 'description', content: 'Помощь и поддержка пользователей АУеда. Часто задаваемые вопросы, контакты службы поддержки. Ответим в течение 24 часов.', key: 'description' },
+    { name: 'keywords', content: 'поддержка, помощь, FAQ, контакты, служба поддержки', key: 'keywords' },
+    { name: 'robots', content: 'noindex, follow', key: 'robots' },
+    { property: 'og:title', content: 'Поддержка | АУеда', key: 'og:title' },
+    { property: 'og:description', content: 'Помощь и поддержка пользователей АУеда', key: 'og:description' },
+    { property: 'og:type', content: 'website', key: 'og:type' },
+    { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
+    { property: 'og:image:alt', content: 'Поддержка АУеда', key: 'og:image:alt' },
+    { property: 'og:url', content: 'https://ayeda.ru/cabinet/support', key: 'og:url' },
+    { property: 'og:site_name', content: 'АУеда', key: 'og:site_name' },
+  ],
+})
+
 const pending = ref(false);
 const success = ref(false);
 const serverError = ref("");

@@ -1,87 +1,3 @@
-<script setup lang="ts">
-import { toTypedSchema } from "@vee-validate/zod";
-import { useForm } from "vee-validate";
-import * as z from "zod";
-import { useAuth } from "~/composables/useAuth";
-
-definePageMeta({
-  layout: false,
-  ssr: false
-})
-
-const { register } = useAuth();
-const pending = ref(false);
-const serverError = ref("");
-const showPassword = ref(false);
-const showConfirmPassword = ref(false);
-
-// Схема валидации с проверкой на буквы и цифры
-const zodSchema = z.object({
-  username: z.string()
-    .min(2, "Имя пользователя должно содержать минимум 2 символа")
-    .max(50, "Имя пользователя слишком длинное"),
-  email: z.string()
-    .min(1, "Email обязателен")
-    .email("Введите корректный email"),
-  password: z.string()
-    .min(1, "Пароль обязателен")
-    .min(6, "Пароль должен содержать минимум 6 символов")
-    .regex(/^(?=.*[A-Za-z])(?=.*\d)/, "Пароль должен содержать хотя бы одну букву и одну цифру"),
-  confirmPassword: z.string()
-    .min(1, "Подтвердите пароль")
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Пароли не совпадают",
-  path: ["confirmPassword"]
-});
-
-const validationSchema = toTypedSchema(zodSchema);
-
-const { defineField, errors, handleSubmit, setFieldError } = useForm({
-  validationSchema,
-  initialValues: {
-    username: "",
-    email: "",
-    password: "",
-    confirmPassword: ""
-  }
-});
-
-const [username, usernameAttrs] = defineField("username");
-const [email, emailAttrs] = defineField("email");
-const [password, passwordAttrs] = defineField("password");
-const [confirmPassword, confirmPasswordAttrs] = defineField("confirmPassword");
-
-const onSubmit = handleSubmit(async (values) => {
-  pending.value = true;
-  serverError.value = "";
-  try {
-    await register(values.email, values.password, values.username);
-  } catch (err: any) {
-    // Обработка ошибки с сервера
-    if (err.message && Array.isArray(err.message)) {
-      serverError.value = err.message.join(", ");
-    } else if (typeof err.message === 'string') {
-      serverError.value = err.message;
-    } else {
-      serverError.value = "Не удалось зарегистрироваться. Попробуйте позже.";
-    }
-
-    // Устанавливаем ошибки в поля
-    if (serverError.value.toLowerCase().includes("email")) {
-      setFieldError("email", serverError.value);
-    }
-    if (serverError.value.toLowerCase().includes("имя") || serverError.value.toLowerCase().includes("username")) {
-      setFieldError("username", serverError.value);
-    }
-    if (serverError.value.toLowerCase().includes("пароль")) {
-      setFieldError("password", serverError.value);
-    }
-  } finally {
-    pending.value = false;
-  }
-});
-</script>
-
 <template>
   <div class="min-h-screen grid lg:grid-cols-2">
     <!-- Левая часть - Брендинг -->
@@ -276,6 +192,106 @@ const onSubmit = handleSubmit(async (values) => {
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { toTypedSchema } from "@vee-validate/zod";
+import { useForm } from "vee-validate";
+import * as z from "zod";
+import { useAuth } from "~/composables/useAuth";
+
+definePageMeta({
+  layout: false,
+  ssr: false
+})
+
+useHead({
+  title: 'Регистрация | АУеда',
+  meta: [
+    { name: 'description', content: 'Создайте аккаунт на АУеда за 30 секунд. 14 дней бесплатно, 500+ рецептов и умные списки покупок.', key: 'description' },
+    { name: 'robots', content: 'noindex, nofollow', key: 'robots' },
+    { property: 'og:title', content: 'Регистрация | АУеда', key: 'og:title' },
+    { property: 'og:description', content: 'Создайте аккаунт и начните планировать питание', key: 'og:description' },
+    { property: 'og:type', content: 'website', key: 'og:type' },
+    { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
+    { property: 'og:image:alt', content: 'Регистрация на АУеда', key: 'og:image:alt' },
+    { property: 'og:url', content: 'https://ayeda.ru/register', key: 'og:url' },
+    { property: 'og:site_name', content: 'АУеда', key: 'og:site_name' },
+  ],
+})
+
+const { register } = useAuth();
+const pending = ref(false);
+const serverError = ref("");
+const showPassword = ref(false);
+const showConfirmPassword = ref(false);
+
+// Схема валидации с проверкой на буквы и цифры
+const zodSchema = z.object({
+  username: z.string()
+    .min(2, "Имя пользователя должно содержать минимум 2 символа")
+    .max(50, "Имя пользователя слишком длинное"),
+  email: z.string()
+    .min(1, "Email обязателен")
+    .email("Введите корректный email"),
+  password: z.string()
+    .min(1, "Пароль обязателен")
+    .min(6, "Пароль должен содержать минимум 6 символов")
+    .regex(/^(?=.*[A-Za-z])(?=.*\d)/, "Пароль должен содержать хотя бы одну букву и одну цифру"),
+  confirmPassword: z.string()
+    .min(1, "Подтвердите пароль")
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Пароли не совпадают",
+  path: ["confirmPassword"]
+});
+
+const validationSchema = toTypedSchema(zodSchema);
+
+const { defineField, errors, handleSubmit, setFieldError } = useForm({
+  validationSchema,
+  initialValues: {
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: ""
+  }
+});
+
+const [username, usernameAttrs] = defineField("username");
+const [email, emailAttrs] = defineField("email");
+const [password, passwordAttrs] = defineField("password");
+const [confirmPassword, confirmPasswordAttrs] = defineField("confirmPassword");
+
+const onSubmit = handleSubmit(async (values) => {
+  pending.value = true;
+  serverError.value = "";
+  try {
+    await register(values.email, values.password, values.username);
+  } catch (err: any) {
+    // Обработка ошибки с сервера
+    if (err.message && Array.isArray(err.message)) {
+      serverError.value = err.message.join(", ");
+    } else if (typeof err.message === 'string') {
+      serverError.value = err.message;
+    } else {
+      serverError.value = "Не удалось зарегистрироваться. Попробуйте позже.";
+    }
+
+    // Устанавливаем ошибки в поля
+    if (serverError.value.toLowerCase().includes("email")) {
+      setFieldError("email", serverError.value);
+    }
+    if (serverError.value.toLowerCase().includes("имя") || serverError.value.toLowerCase().includes("username")) {
+      setFieldError("username", serverError.value);
+    }
+    if (serverError.value.toLowerCase().includes("пароль")) {
+      setFieldError("password", serverError.value);
+    }
+  } finally {
+    pending.value = false;
+  }
+});
+</script>
+
 
 <style scoped>
 /* Убираем лишние анимации, оставляем только fade */

@@ -13,7 +13,7 @@
     <!-- Поле ввода -->
     <div class="relative flex w-full flex-col">
       <SearchInput
-        size="xs"
+        size="md"
         v-model="searchValue"
         placeholder="например, молоко"
         id="product-search"
@@ -35,8 +35,8 @@
           </p>
         </div>
 
-        <!-- Список продуктов с анимацией -->
-        <div v-else class="overflow-y-auto overflow-x-hidden scrollbar-custom" :class="{ 'max-h-[400px]': filteredIngredients.length > 0 }">
+        <!-- Список продуктов с кастомным скроллбаром -->
+        <div v-else class="ingredients-list">
           <TransitionGroup name="list" tag="div" class="space-y-1">
             <div
               v-for="ingredient in filteredIngredients"
@@ -51,9 +51,6 @@
                   <span class="truncate text-sm font-medium text-gray-700 dark:text-darkMode-600">
                     {{ ingredient.name }}
                   </span>
-                  <!-- <span class="text-xs text-gray-400">
-                    {{ ingredient.unit.short || ingredient.unit.name }}
-                  </span> -->
                 </div>
               </div>
 
@@ -297,11 +294,43 @@ onUnmounted(() => {
 });
 </script>
 
-
-
 <style scoped>
 .add-item-block {
-  transition: all 0.2s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Контейнер для списка с кастомным скроллбаром */
+.ingredients-list {
+  flex: 1;
+  width: 100%;
+  overflow-y: auto;
+  min-height: 0;
+  max-height: 400px;
+}
+
+/* Кастомный скроллбар (как в days-view) */
+.ingredients-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.ingredients-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ingredients-list::-webkit-scrollbar-thumb {
+  background: #cbd5e100;
+  border-radius: 1px;
+}
+
+.ingredients-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b839;
+}
+
+.ingredients-list {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e118 transparent;
 }
 
 /* Анимации */
@@ -339,43 +368,6 @@ onUnmounted(() => {
 .slide-up-leave-to {
   opacity: 0;
   transform: translateY(20px);
-}
-
-/* Кастомный скроллбар */
-.scrollbar-custom {
-  scrollbar-width: thin;
-  scrollbar-color: #c1c1c1 #f1f1f1;
-}
-
-.scrollbar-custom::-webkit-scrollbar {
-  width: 6px;
-}
-
-.scrollbar-custom::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-.scrollbar-custom::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 10px;
-  transition: background 0.2s;
-}
-
-.scrollbar-custom::-webkit-scrollbar-thumb:hover {
-  background: #a1a1a1;
-}
-
-.dark .scrollbar-custom::-webkit-scrollbar-track {
-  background: #2a2a2a;
-}
-
-.dark .scrollbar-custom::-webkit-scrollbar-thumb {
-  background: #4a4a4a;
-}
-
-.dark .scrollbar-custom::-webkit-scrollbar-thumb:hover {
-  background: #5a5a5a;
 }
 
 /* Анимация для инпута */

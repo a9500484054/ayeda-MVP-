@@ -8,6 +8,22 @@ definePageMeta({
   ssr: false
 })
 
+useHead({
+  title: 'Восстановление пароля | АУеда',
+  meta: [
+    { name: 'description', content: 'Забыли пароль? Введите email и мы отправим инструкции для восстановления доступа к вашему аккаунту на АУеда.', key: 'description' },
+    { name: 'robots', content: 'noindex, nofollow', key: 'robots' },
+    { property: 'og:title', content: 'Восстановление пароля | АУеда', key: 'og:title' },
+    { property: 'og:description', content: 'Восстановите доступ к своему аккаунту на АУеда', key: 'og:description' },
+    { property: 'og:type', content: 'website', key: 'og:type' },
+    { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
+    { property: 'og:image:alt', content: 'Восстановление пароля АУеда', key: 'og:image:alt' },
+    { property: 'og:url', content: 'https://ayeda.ru/forgot-password', key: 'og:url' },
+    { property: 'og:site_name', content: 'АУеда', key: 'og:site_name' },
+  ],
+})
+
+
 const pending = ref(false);
 const success = ref(false);
 const serverError = ref("");

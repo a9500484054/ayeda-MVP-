@@ -1,66 +1,3 @@
-<script setup lang="ts">
-import { useRoute, useRouter } from "vue-router";
-
-definePageMeta({
-  layout: false,
-  ssr: false
-})
-
-const route = useRoute();
-const router = useRouter();
-const status = ref<"loading" | "success" | "error">("loading");
-const message = ref("");
-const countdown = ref(5);
-const token = ref("");
-
-// Функция подтверждения email
-const verifyEmail = async (token: string) => {
-  try {
-    const response = await $fetch('http://localhost:3001/api/v1/auth/verify-email', {
-      method: 'POST',
-      headers: {
-        'accept': '*/*',
-        'Content-Type': 'application/json'
-      },
-      body: {
-        token: token
-      }
-    });
-    return response;
-  } catch (err: any) {
-    const errorMessage = err.data?.message || err.message || "Не удалось подтвердить email";
-    throw new Error(Array.isArray(errorMessage) ? errorMessage.join(", ") : errorMessage);
-  }
-};
-
-onMounted(async () => {
-  token.value = route.query.token as string || "";
-
-  if (!token.value) {
-    status.value = "error";
-    message.value = "Недействительная ссылка подтверждения";
-    return;
-  }
-
-  try {
-    await verifyEmail(token.value);
-    status.value = "success";
-    message.value = "Ваш email успешно подтвержден!";
-
-    const timer = setInterval(() => {
-      countdown.value--;
-      if (countdown.value === 0) {
-        clearInterval(timer);
-        router.push('/login');
-      }
-    }, 1000);
-  } catch (err: any) {
-    status.value = "error";
-    message.value = err.message || "Не удалось подтвердить email. Попробуйте позже.";
-  }
-});
-</script>
-
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-teal-50 p-4">
     <!-- Декоративные элементы -->
@@ -145,6 +82,85 @@ onMounted(async () => {
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { useRoute, useRouter } from "vue-router";
+
+definePageMeta({
+  layout: false,
+  ssr: false
+})
+
+useHead({
+  title: 'Подтверждение email | АУеда',
+  meta: [
+    { name: 'description', content: 'Подтверждение email адреса для активации аккаунта на АУеда.', key: 'description' },
+    { name: 'robots', content: 'noindex, nofollow', key: 'robots' },
+    { property: 'og:title', content: 'Подтверждение email | АУеда', key: 'og:title' },
+    { property: 'og:description', content: 'Подтверждение email адреса', key: 'og:description' },
+    { property: 'og:type', content: 'website', key: 'og:type' },
+    { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
+    { property: 'og:image:alt', content: 'Подтверждение email АУеда', key: 'og:image:alt' },
+    { property: 'og:url', content: 'https://ayeda.ru/verify-email', key: 'og:url' },
+    { property: 'og:site_name', content: 'АУеда', key: 'og:site_name' },
+  ],
+})
+
+const route = useRoute();
+const router = useRouter();
+const status = ref<"loading" | "success" | "error">("loading");
+const message = ref("");
+const countdown = ref(5);
+const token = ref("");
+
+// Функция подтверждения email
+const verifyEmail = async (token: string) => {
+  try {
+    const response = await $fetch('http://localhost:3001/api/v1/auth/verify-email', {
+      method: 'POST',
+      headers: {
+        'accept': '*/*',
+        'Content-Type': 'application/json'
+      },
+      body: {
+        token: token
+      }
+    });
+    return response;
+  } catch (err: any) {
+    const errorMessage = err.data?.message || err.message || "Не удалось подтвердить email";
+    throw new Error(Array.isArray(errorMessage) ? errorMessage.join(", ") : errorMessage);
+  }
+};
+
+onMounted(async () => {
+  token.value = route.query.token as string || "";
+
+  if (!token.value) {
+    status.value = "error";
+    message.value = "Недействительная ссылка подтверждения";
+    return;
+  }
+
+  try {
+    await verifyEmail(token.value);
+    status.value = "success";
+    message.value = "Ваш email успешно подтвержден!";
+
+    const timer = setInterval(() => {
+      countdown.value--;
+      if (countdown.value === 0) {
+        clearInterval(timer);
+        router.push('/login');
+      }
+    }, 1000);
+  } catch (err: any) {
+    status.value = "error";
+    message.value = err.message || "Не удалось подтвердить email. Попробуйте позже.";
+  }
+});
+</script>
+
 
 <style scoped>
 @keyframes spin {

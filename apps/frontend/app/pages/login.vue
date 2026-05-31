@@ -1,119 +1,4 @@
 <!-- apps\frontend\app\pages\login.vue -->
-<script setup lang="ts">
-import { toTypedSchema } from "@vee-validate/zod";
-import { useForm } from "vee-validate";
-import * as z from "zod";
-import { useAuth } from "~/composables/useAuth";
-import { useUserStore } from "~/stores/userStore";
-
-definePageMeta({
-  layout: false,
-  ssr: false
-})
-
-const { login, restoreSession, user, isAuthenticated } = useAuth();
-const userStore = useUserStore();
-const router = useRouter();
-const pending = ref(false);
-const serverError = ref("");
-const isCheckingAuth = ref(true);
-const showPassword = ref(false);
-const rememberMe = ref(false);
-
-// Загружаем сохраненный email из localStorage
-onMounted(async () => {
-  // Загружаем сохраненный email
-  const savedEmail = localStorage.getItem('remembered_email');
-  if (savedEmail) {
-    email.value = savedEmail;
-    rememberMe.value = true;
-  }
-
-  await restoreSession();
-  isCheckingAuth.value = false;
-  console.log("Пользователь после восстановления сессии:", userStore.user, userStore.isAuthenticated);
-
-  // Проверяем, авторизован ли пользователь
-  if (user.value) {
-    router.push('/cabinet/my-recipes');
-  }
-});
-
-// Схема валидации с zod
-const validationSchema = toTypedSchema(z.object({
-  email: z.string()
-    .min(1, "Email обязателен")
-    .email("Введите корректный email"),
-  password: z.string()
-    .min(1, "Пароль обязателен")
-    .min(6, "Пароль должен содержать минимум 6 символов")
-}));
-
-// useForm с vee-validate
-const { defineField, errors, handleSubmit, setFieldError } = useForm({
-  validationSchema,
-  initialValues: {
-    email: "",
-    password: ""
-  }
-});
-
-// Поля формы
-const [email, emailAttrs] = defineField("email");
-const [password, passwordAttrs] = defineField("password");
-
-// Отправка формы
-async function onSubmit(e: Event) {
-  e.preventDefault();
-
-  // Валидация
-  if (!email.value) {
-    setFieldError("email", "Email обязателен");
-    return;
-  }
-  if (!password.value) {
-    setFieldError("password", "Пароль обязателен");
-    return;
-  }
-  if (password.value.length < 6) {
-    setFieldError("password", "Пароль должен содержать минимум 6 символов");
-    return;
-  }
-
-  pending.value = true;
-  serverError.value = "";
-
-  try {
-    await login(email.value, password.value);
-
-    // Сохраняем email если выбран "Запомнить меня"
-    if (rememberMe.value) {
-      localStorage.setItem('remembered_email', email.value);
-    } else {
-      localStorage.removeItem('remembered_email');
-    }
-
-    // Проверяем, что пользователь сохранен в store
-    if (userStore.user) {
-      router.push('/cabinet/my-recipes');
-    } else {
-      // Если пользователь не сохранился, пробуем восстановить сессию
-      await restoreSession();
-      if (userStore.user) {
-        router.push('/cabinet/my-recipes');
-      } else {
-        serverError.value = "Ошибка авторизации. Попробуйте снова.";
-      }
-    }
-  } catch (err: any) {
-    const errorMessage = err?.message || "Не удалось войти. Проверьте данные или доступность API.";
-    serverError.value = errorMessage;
-  } finally {
-    pending.value = false;
-  }
-}
-</script>
-
 <template>
   <div v-if="isCheckingAuth" class="min-h-screen flex items-center justify-center bg-white">
     <div class="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
@@ -272,6 +157,137 @@ async function onSubmit(e: Event) {
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { toTypedSchema } from "@vee-validate/zod";
+import { useForm } from "vee-validate";
+import * as z from "zod";
+import { useAuth } from "~/composables/useAuth";
+import { useUserStore } from "~/stores/userStore";
+
+definePageMeta({
+  layout: false,
+  ssr: false
+})
+
+
+useHead({
+  title: 'Вход | АУеда',
+  meta: [
+    { name: 'description', content: 'Войдите в свой аккаунт АУеда, чтобы управлять рецептами, планировать меню и создавать списки покупок.', key: 'description' },
+    { name: 'robots', content: 'noindex, nofollow', key: 'robots' },
+    { property: 'og:title', content: 'Вход | АУеда', key: 'og:title' },
+    { property: 'og:description', content: 'Войдите в свой аккаунт АУеда', key: 'og:description' },
+    { property: 'og:type', content: 'website', key: 'og:type' },
+    { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
+    { property: 'og:image:alt', content: 'Вход в аккаунт АУеда', key: 'og:image:alt' },
+    { property: 'og:url', content: 'https://ayeda.ru/login', key: 'og:url' },
+    { property: 'og:site_name', content: 'АУеда', key: 'og:site_name' },
+  ],
+})
+
+const { login, restoreSession, user, isAuthenticated } = useAuth();
+const userStore = useUserStore();
+const router = useRouter();
+const pending = ref(false);
+const serverError = ref("");
+const isCheckingAuth = ref(true);
+const showPassword = ref(false);
+const rememberMe = ref(false);
+
+// Загружаем сохраненный email из localStorage
+onMounted(async () => {
+  // Загружаем сохраненный email
+  const savedEmail = localStorage.getItem('remembered_email');
+  if (savedEmail) {
+    email.value = savedEmail;
+    rememberMe.value = true;
+  }
+
+  await restoreSession();
+  isCheckingAuth.value = false;
+  console.log("Пользователь после восстановления сессии:", userStore.user, userStore.isAuthenticated);
+
+  // Проверяем, авторизован ли пользователь
+  if (user.value) {
+    router.push('/cabinet/my-recipes');
+  }
+});
+
+// Схема валидации с zod
+const validationSchema = toTypedSchema(z.object({
+  email: z.string()
+    .min(1, "Email обязателен")
+    .email("Введите корректный email"),
+  password: z.string()
+    .min(1, "Пароль обязателен")
+    .min(6, "Пароль должен содержать минимум 6 символов")
+}));
+
+// useForm с vee-validate
+const { defineField, errors, handleSubmit, setFieldError } = useForm({
+  validationSchema,
+  initialValues: {
+    email: "",
+    password: ""
+  }
+});
+
+// Поля формы
+const [email, emailAttrs] = defineField("email");
+const [password, passwordAttrs] = defineField("password");
+
+// Отправка формы
+async function onSubmit(e: Event) {
+  e.preventDefault();
+
+  // Валидация
+  if (!email.value) {
+    setFieldError("email", "Email обязателен");
+    return;
+  }
+  if (!password.value) {
+    setFieldError("password", "Пароль обязателен");
+    return;
+  }
+  if (password.value.length < 6) {
+    setFieldError("password", "Пароль должен содержать минимум 6 символов");
+    return;
+  }
+
+  pending.value = true;
+  serverError.value = "";
+
+  try {
+    await login(email.value, password.value);
+
+    // Сохраняем email если выбран "Запомнить меня"
+    if (rememberMe.value) {
+      localStorage.setItem('remembered_email', email.value);
+    } else {
+      localStorage.removeItem('remembered_email');
+    }
+
+    // Проверяем, что пользователь сохранен в store
+    if (userStore.user) {
+      router.push('/cabinet/my-recipes');
+    } else {
+      // Если пользователь не сохранился, пробуем восстановить сессию
+      await restoreSession();
+      if (userStore.user) {
+        router.push('/cabinet/my-recipes');
+      } else {
+        serverError.value = "Ошибка авторизации. Попробуйте снова.";
+      }
+    }
+  } catch (err: any) {
+    const errorMessage = err?.message || "Не удалось войти. Проверьте данные или доступность API.";
+    serverError.value = errorMessage;
+  } finally {
+    pending.value = false;
+  }
+}
+</script>
 
 <style scoped>
 .fade-enter-active,

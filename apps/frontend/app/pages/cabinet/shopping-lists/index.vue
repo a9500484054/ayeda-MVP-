@@ -68,6 +68,22 @@ import EmptyState from '~/shared/ui/emptyState/EmptyState.vue';
 
 definePageMeta({ layout: 'cabinet' });
 
+useHead({
+  title: 'Списки покупок',
+  meta: [
+    { name: 'description', content: 'Управляйте списками покупок: создавайте, редактируйте, копируйте и делитесь списками. Планируйте покупки продуктов.', key: 'description' },
+    { name: 'robots', content: 'noindex, follow', key: 'robots' },
+    // OG теги для соцсетей
+    { property: 'og:title', content: 'Списки покупок | АУеда', key: 'og:title' },
+    { property: 'og:description', content: 'Управляйте списками покупок: создавайте, редактируйте, копируйте и делитесь списками.', key: 'og:description' },
+    { property: 'og:type', content: 'website', key: 'og:type' },
+    { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
+    { property: 'og:image:alt', content: 'Списки покупок на АУеда', key: 'og:image:alt' },
+    { property: 'og:url', content: 'https://ayeda.ru/cabinet/shopping-lists', key: 'og:url' },
+    { property: 'og:site_name', content: 'АУеда', key: 'og:site_name' },
+  ],
+})
+
 const router = useRouter();
 const store = useShoppingListsStore();
 const toast = useToast();

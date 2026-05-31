@@ -211,6 +211,28 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 
+useHead({
+  title: 'Публичная оферта | АУеда',
+  meta: [
+    { name: 'description', content: 'Публичная оферта сервиса АУеда. Условия использования, тарифы, порядок оплаты и возврата денежных средств. Юридическая информация.', key: 'description' },
+    { name: 'keywords', content: 'публичная оферта, договор, условия использования, тарифы, возврат средств, юридическая информация', key: 'keywords' },
+    { name: 'robots', content: 'index, follow', key: 'robots' },
+    { property: 'og:title', content: 'Публичная оферта | АУеда', key: 'og:title' },
+    { property: 'og:description', content: 'Условия использования сервиса АУеда, тарифы и порядок оплаты', key: 'og:description' },
+    { property: 'og:type', content: 'website', key: 'og:type' },
+    { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
+    { property: 'og:image:alt', content: 'Публичная оферта АУеда', key: 'og:image:alt' },
+    { property: 'og:url', content: 'https://ayeda.ru/offer', key: 'og:url' },
+    { property: 'og:site_name', content: 'АУеда', key: 'og:site_name' },
+    { name: 'twitter:card', content: 'summary_large_image', key: 'twitter:card' },
+    { name: 'twitter:title', content: 'Публичная оферта | АУеда', key: 'twitter:title' },
+    { name: 'twitter:description', content: 'Условия использования сервиса АУеда', key: 'twitter:description' },
+  ],
+  link: [
+    { rel: 'canonical', href: 'https://ayeda.ru/offer', key: 'canonical' },
+  ],
+})
+
 const scrolled = ref(false)
 
 const handleScroll = () => {

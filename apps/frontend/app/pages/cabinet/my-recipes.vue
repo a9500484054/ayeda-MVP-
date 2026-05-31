@@ -167,6 +167,23 @@ import Skeleton from '~/shared/ui/skeleton/skeleton.vue'
 
 definePageMeta({ layout: 'cabinet' })
 
+
+useHead({
+  title: 'Мои рецепты',
+  meta: [
+    { name: 'description', content: 'Управление рецептами в личном кабинете', key: 'description' },
+    { name: 'robots', content: 'noindex, follow', key: 'robots' },
+    // OG теги для соцсетей
+    { property: 'og:title', content: 'Мои рецепты | АУеда', key: 'og:title' },
+    { property: 'og:description', content: 'Управление рецептами в личном кабинете', key: 'og:description' },
+    { property: 'og:type', content: 'website', key: 'og:type' },
+    { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },  // 👈 картинка для превью
+    { property: 'og:image:alt', content: 'Мои рецепты на АУеда', key: 'og:image:alt' },
+    { property: 'og:url', content: 'https://ayeda.ru/cabinet/my-recipes', key: 'og:url' },
+    { property: 'og:site_name', content: 'АУеда', key: 'og:site_name' },
+  ],
+})
+
 const { isAuthenticated, user } = useAuth()
 const toast = useToast()
 

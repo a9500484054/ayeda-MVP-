@@ -1,7 +1,3 @@
-<script setup lang="ts">
-definePageMeta({ layout: "cabinet" });
-</script>
-
 <template>
   <section class="grid gap-5">
     <h1 class="text-3xl font-black">Профиль</h1>
@@ -14,3 +10,23 @@ definePageMeta({ layout: "cabinet" });
     </form>
   </section>
 </template>
+
+<script setup lang="ts">
+definePageMeta({ layout: "cabinet" });
+
+useHead({
+  title: 'Профиль',
+  meta: [
+    { name: 'description', content: 'Управляйте своим профилем: редактируйте личную информацию, имя, фамилию и биографию.', key: 'description' },
+    { name: 'robots', content: 'noindex, follow', key: 'robots' },
+    // OG теги для соцсетей
+    { property: 'og:title', content: 'Профиль | АУеда', key: 'og:title' },
+    { property: 'og:description', content: 'Управляйте своим профилем на АУеда', key: 'og:description' },
+    { property: 'og:type', content: 'website', key: 'og:type' },
+    { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
+    { property: 'og:image:alt', content: 'Профиль пользователя на АУеда', key: 'og:image:alt' },
+    { property: 'og:url', content: 'https://ayeda.ru/cabinet/profile', key: 'og:url' },
+    { property: 'og:site_name', content: 'АУеда', key: 'og:site_name' },
+  ],
+})
+</script>

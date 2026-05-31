@@ -4,11 +4,9 @@
     :class="bgColorClass"
     :title="tooltipText"
   >
-    <UIcon
-      :name="iconName"
-      class="h-4 w-4"
-      :class="iconColor"
-    />
+    <span class="text-base" :class="emojiColor">
+      {{ emoji }}
+    </span>
   </div>
 </template>
 
@@ -29,10 +27,22 @@ const props = defineProps<{
   code?: string
 }>()
 
-const getIconName = (iconName?: string): string => {
-  if (!iconName) return 'i-lucide-package'
-  if (iconName.startsWith('i-lucide-')) return iconName
-  return `i-lucide-${iconName}`
+// Маппинг кодов категорий на эмодзи
+const categoryEmojis: Record<string, string> = {
+  'vegetables': '🥕',
+  'fruits': '🍎',
+  'meat': '🍗',
+  'fish': '🐟',
+  'dairy': '🥛',
+  'eggs': '🥚',
+  'bakery': '🥖',
+  'grocery': '📦',
+  'beverages': '🧃',
+  'sauces': '🧂',
+  'frozen': '❄️',
+  'ready_meals': '🍱',
+  'household': '🏠',
+  'other': '📦'
 }
 
 // Получение кода категории
@@ -42,16 +52,12 @@ const categoryCode = computed(() => {
   return null
 })
 
-// Получение иконки
-const categoryIcon = computed(() => {
-  if (props.icon) return props.icon
-  if (props.category?.icon) return props.category.icon
-  return null
-})
-
-const iconName = computed(() => {
-  if (categoryIcon.value) return getIconName(categoryIcon.value)
-  return 'i-lucide-package'
+// Получение эмодзи
+const emoji = computed(() => {
+  if (categoryCode.value && categoryEmojis[categoryCode.value]) {
+    return categoryEmojis[categoryCode.value]
+  }
+  return '📦' // Эмодзи по умолчанию
 })
 
 // Красивый текст для подсказки
@@ -100,8 +106,8 @@ const getBgColorByCode = (code: string): string => {
   return colors[code] || 'bg-gray-100 dark:bg-gray-800/50'
 }
 
-// Цвет иконки по коду
-const getIconColorByCode = (code: string): string => {
+// Цвет эмодзи по коду (опционально, можно убрать если нужны цветные эмодзи)
+const getEmojiColorByCode = (code: string): string => {
   const colors: Record<string, string> = {
     'vegetables': 'text-emerald-600 dark:text-emerald-400',
     'fruits': 'text-red-600 dark:text-red-400',
@@ -128,9 +134,9 @@ const bgColorClass = computed(() => {
   return 'bg-gray-100 dark:bg-gray-800/50'
 })
 
-const iconColor = computed(() => {
+const emojiColor = computed(() => {
   if (categoryCode.value) {
-    return getIconColorByCode(categoryCode.value)
+    return getEmojiColorByCode(categoryCode.value)
   }
   return 'text-gray-600 dark:text-gray-400'
 })

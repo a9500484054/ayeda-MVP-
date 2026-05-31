@@ -14,7 +14,7 @@
       <button
         v-if="modelValue && clearable"
         type="button"
-        class="rounded-full hover:bg-gray-100 dark:hover:bg-darkMode-200"
+        class="rounded-full cursor-pointer"
         :class="buttonSizeClass"
         @click="clear"
       >

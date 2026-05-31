@@ -409,6 +409,27 @@
 import { ref, onMounted } from 'vue'
 import CookieConsent from '~/components/CookieConsent.vue'
 
+useHead({
+  title: 'АУеда - Планировщик питания, который экономит ваше время',
+  meta: [
+    { name: 'description', content: 'АУеда - умный планировщик питания. Составляйте меню на неделю за 12 минут, экономьте до 5 часов в неделю и 35% бюджета. Забудьте о пищевом стрессе.' },
+    { name: 'keywords', content: 'планирование питания, меню на неделю, список покупок, экономия времени, здоровое питание, meal planner', key: 'keywords' },
+    { property: 'og:title', content: 'АУеда - Планировщик питания, который экономит ваше время' },
+    { property: 'og:description', content: 'Составляйте меню на неделю за 12 минут. Экономьте до 5 часов в неделю и 35% бюджета.' },
+    { property: 'og:type', content: 'website' },
+    { property: 'og:image', content: 'https://ayeda.ru/og-home.jpg' },
+    { property: 'og:image:alt', content: 'АУеда - умный планировщик питания' },
+    { property: 'og:url', content: 'https://ayeda.ru' },
+    { property: 'og:site_name', content: 'АУеда' },
+    { name: 'twitter:card', content: 'summary_large_image' },
+    { name: 'twitter:title', content: 'АУеда - Планировщик питания' },
+    { name: 'twitter:description', content: 'Экономьте 5 часов в неделю на планировании питания' },
+  ],
+  link: [
+    { rel: 'canonical', href: 'https://ayeda.ru' },
+  ],
+})
+
   const scrolled = ref(false)
   const progressHeight = ref(0)
   const howSection = ref(null)

@@ -147,6 +147,28 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 
+useHead({
+  title: 'Политика конфиденциальности | АУеда',
+  meta: [
+    { name: 'description', content: 'Политика конфиденциальности сервиса АУеда. Узнайте, какие данные мы собираем, как их используем и защищаем. Ваши права и безопасность.', key: 'description' },
+    { name: 'keywords', content: 'политика конфиденциальности, персональные данные, защита данных, cookies, конфиденциальность', key: 'keywords' },
+    { name: 'robots', content: 'index, follow', key: 'robots' },
+    { property: 'og:title', content: 'Политика конфиденциальности | АУеда', key: 'og:title' },
+    { property: 'og:description', content: 'Узнайте, как мы защищаем ваши персональные данные', key: 'og:description' },
+    { property: 'og:type', content: 'website', key: 'og:type' },
+    { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
+    { property: 'og:image:alt', content: 'Политика конфиденциальности АУеда', key: 'og:image:alt' },
+    { property: 'og:url', content: 'https://ayeda.ru/privacy', key: 'og:url' },
+    { property: 'og:site_name', content: 'АУеда', key: 'og:site_name' },
+    { name: 'twitter:card', content: 'summary_large_image', key: 'twitter:card' },
+    { name: 'twitter:title', content: 'Политика конфиденциальности | АУеда', key: 'twitter:title' },
+    { name: 'twitter:description', content: 'Как мы защищаем ваши персональные данные', key: 'twitter:description' },
+  ],
+  link: [
+    { rel: 'canonical', href: 'https://ayeda.ru/privacy', key: 'canonical' },
+  ],
+})
+
 const scrolled = ref(false)
 
 const handleScroll = () => {

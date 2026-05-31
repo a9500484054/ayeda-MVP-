@@ -83,6 +83,21 @@ import type { ShoppingList } from '~/shared/types/shopping.types';
 import Button from '~/shared/ui/button/Button.vue';
 import CategoryIcon from '~/components/shopping/list/shared/CategoryIcon.vue';
 
+useHead({
+  title: 'Список покупок', // или просто строку, например 'Общий список покупок'
+  meta: [
+    { name: 'description', content: 'Просмотр общего списка покупок. Скопируйте список в свой аккаунт для дальнейшего использования.', key: 'description' },
+    { name: 'robots', content: 'noindex, follow', key: 'robots' },
+    { property: 'og:title', content: 'Список покупок | АУеда', key: 'og:title' },
+    { property: 'og:description', content: 'Общий список покупок на АУеда', key: 'og:description' },
+    { property: 'og:type', content: 'website', key: 'og:type' },
+    { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
+    { property: 'og:image:alt', content: 'Общий список покупок', key: 'og:image:alt' },
+    { property: 'og:url', content: () => `https://ayeda.ru/share/${token.value}`, key: 'og:url' },
+    { property: 'og:site_name', content: 'АУеда', key: 'og:site_name' },
+  ],
+})
+
 const route = useRoute();
 const router = useRouter();
 const store = useShoppingListsStore();
