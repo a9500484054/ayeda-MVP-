@@ -324,7 +324,7 @@ const handleIngredientSearch = async (query: string, index: number) => {
         id: ing.id,
         name: ing.name,
         unitId: ing.unitId || '',
-        unitName: ing.unit.name || ''
+        unitName: ing.unit.short || ''
       }))
     } else {
       console.log('Searching ingredients for:', query)
