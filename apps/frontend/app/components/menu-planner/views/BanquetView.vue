@@ -118,12 +118,12 @@
     </UModal>
 
     <!-- Модалка поиска рецептов -->
-    <RecipeSearchModal
+    <!-- <RecipeSearchModal
       :open="isRecipeSearchOpen"
       :slot-id="null"
       @update:open="isRecipeSearchOpen = false"
       @recipe-added="handleRecipeAdded"
-    />
+    /> -->
   </div>
 </template>
 

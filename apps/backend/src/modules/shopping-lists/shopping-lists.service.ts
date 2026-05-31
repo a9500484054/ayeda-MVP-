@@ -248,98 +248,53 @@ export class ShoppingListsService {
     };
   }
 
-  async findAll(userId: string): Promise<ShoppingListResponseDto[]> {
-    const query = this.shoppingListRepository
-      .createQueryBuilder('list')
-      .leftJoin('shopping_list_items', 'item', 'item.shopping_list_id = list.id')
-      .select([
-        'list.id as id',                    // Добавил алиас
-        'list.title as title',
-        'list.share_token as "shareToken"', // Добавил алиас с camelCase
-        'list.sort_order as "sortOrder"',   // ВАЖНО: алиас для sortOrder
-        'list.created_at as "createdAt"',
-        'list.updated_at as "updatedAt"',
-        'COUNT(item.id) as "totalItems"',
-        'SUM(CASE WHEN item.is_checked = true THEN 1 ELSE 0 END) as "checkedItems"',
-      ])
-      .where('list.user_id = :userId', { userId })
-      .andWhere('list.deleted_at IS NULL')
-      .groupBy('list.id')
-      .orderBy('list.sort_order', 'ASC')
-      .addOrderBy('list.created_at', 'ASC');
+async findAll(userId: string): Promise<ShoppingListResponseDto[]> {
+  const lists = await this.shoppingListRepository
+    .createQueryBuilder('list')
+    .where('list.userId = :userId', { userId })
+    .andWhere('list.deletedAt IS NULL')
+    .orderBy('list.sortOrder', 'ASC')
+    .getMany();
 
-    const results = await query.getRawMany();
+  // Получить статистику для всех списков одним запросом
+  const stats = await this.shoppingListItemRepository
+    .createQueryBuilder('item')
+    .select('item.shoppingListId', 'listId')
+    .addSelect('COUNT(item.id)', 'totalItems')
+    .addSelect('SUM(CASE WHEN item.isChecked = true THEN 1 ELSE 0 END)', 'checkedItems')
+    .where('item.shoppingListId IN (:...listIds)', { listIds: lists.map(l => l.id) })
+    .groupBy('item.shoppingListId')
+    .getRawMany();
 
-    // Преобразуем результаты в DTO
-    return results.map((row) => {
-      const response = new ShoppingListResponseDto();
-      response.id = row.id;
-      response.title = row.title;
-      response.shareToken = row.shareToken;
-      response.sortOrder = row.sortOrder; // Теперь должно прийти значение
-      response.createdAt = row.createdAt;
-      response.updatedAt = row.updatedAt;
-      response.totalItems = parseInt(row.totalItems) || 0;
-      response.checkedItems = parseInt(row.checkedItems) || 0;
+  const statsMap = new Map(stats.map(s => [s.listId, s]));
 
-      if (response.totalItems > 0) {
-        response.progress = (response.checkedItems / response.totalItems) * 100;
-      }
-
-      return response;
-    });
-  }
-
-  async findOne(
-    userId: string,
-    id: string,
-  ): Promise<ShoppingListResponseDto> {
-    // Получаем список со статистикой
-    const query = this.shoppingListRepository
-      .createQueryBuilder('list')
-      .leftJoin('shopping_list_items', 'item', 'item.shopping_list_id = list.id')
-      .select([
-        'list.id as id',                    // Добавлен алиас
-        'list.title as title',              // Добавлен алиас
-        'list.share_token as "shareToken"', // Добавлен алиас
-        'list.sort_order as "sortOrder"',   // Добавлен алиас
-        'list.created_at as "createdAt"',   // Добавлен алиас
-        'list.updated_at as "updatedAt"',   // Добавлен алиас
-        'COUNT(item.id) as "totalItems"',
-        'SUM(CASE WHEN item.is_checked = true THEN 1 ELSE 0 END) as "checkedItems"',
-      ])
-      .where('list.id = :id', { id })
-      .andWhere('list.user_id = :userId', { userId })
-      .andWhere('list.deleted_at IS NULL')
-      .groupBy('list.id');
-
-    const result = await query.getRawOne();
-
-    if (!result) {
-      throw new NotFoundException('Список покупок не найден');
-    }
-
-    // Загружаем items с категориями для детального просмотра
-    const listWithItems = await this.shoppingListRepository.findOne({
-      where: { id, userId },
-      relations: ['items', 'items.category'],
-    });
-
-    // Создаем объект списка с правильными алиасами
-    const list = new ShoppingList();
-    list.id = result.id;                    // Исправлено
-    list.title = result.title;              // Исправлено
-    list.shareToken = result.shareToken;    // Исправлено
-    list.sortOrder = parseInt(result.sortOrder);  // Исправлено
-    list.createdAt = result.createdAt;      // Исправлено
-    list.updatedAt = result.updatedAt;      // Исправлено
-    list.items = listWithItems?.items || [];
-
+  return lists.map(list => {
+    const listStats = statsMap.get(list.id);
     return this.toListResponseDto(list, {
-      totalItems: parseInt(result.totalItems) || 0,
-      checkedItems: parseInt(result.checkedItems) || 0,
-    }, true);
+      totalItems: Number(listStats?.totalItems) || 0,
+      checkedItems: Number(listStats?.checkedItems) || 0,
+    });
+  });
+}
+
+async findOne(userId: string, id: string): Promise<ShoppingListResponseDto> {
+  const list = await this.shoppingListRepository
+    .createQueryBuilder('list')
+    .leftJoinAndSelect('list.items', 'item')
+    .leftJoinAndSelect('item.category', 'category')
+    .where('list.id = :id', { id })
+    .andWhere('list.userId = :userId', { userId })
+    .andWhere('list.deletedAt IS NULL')
+    .getOne();
+
+  if (!list) {
+    throw new NotFoundException('Список покупок не найден');
   }
+
+  const stats = await this.getListStats(this.dataSource.manager, list.id);
+
+  return this.toListResponseDto(list, stats, true);
+}
 
   async update(
     userId: string,

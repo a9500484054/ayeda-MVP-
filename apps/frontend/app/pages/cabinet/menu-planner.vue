@@ -1,4 +1,3 @@
-<!-- pages/cabinet/menu-planner.vue -->
 <template>
   <div class="mx-auto w-full max-w-7xl px-4 py-6 md:px-6">
     <!-- Header -->
@@ -43,7 +42,7 @@
           :days="store.days"
           :slots="store.slots"
           :is-loading="store.isLoading"
-          @add-recipe="handleAddRecipeByDay"
+          @add-recipe="handleAddRecipe"
           @move-recipe="handleMoveRecipe"
           @remove-recipe="store.removeRecipeFromSlot"
           @edit-notes="handleEditNotes"
@@ -107,14 +106,6 @@
       @update:open="isDeleteModalOpen = v"
       @confirm="handleConfirmDelete"
     />
-
-    <!-- Модалка поиска рецептов -->
-    <RecipeSearchModal
-      :open="isRecipeSearchOpen"
-      :slot-id="selectedSlotId"
-      @update:open="isRecipeSearchOpen = v"
-      @recipe-added="handleRecipeAdded"
-    />
   </div>
 </template>
 
@@ -128,7 +119,6 @@ import MenuListSelector from '~/components/menu-planner/MenuListSelector.vue';
 import DaysView from '~/components/menu-planner/views/DaysView.vue';
 import CalendarView from '~/components/menu-planner/views/CalendarView.vue';
 import BanquetView from '~/components/menu-planner/views/BanquetView.vue';
-import RecipeSearchModal from '~/components/menu-planner/modals/RecipeSearchModal.vue';
 import Button from '~/shared/ui/button/Button.vue';
 import MenuListModal from '~/components/menu-planner/modals/MenuListModal.vue';
 import DeleteConfirmationModal from '~/components/menu-planner/modals/DeleteConfirmationModal.vue';
@@ -138,24 +128,14 @@ definePageMeta({ layout: 'cabinet' });
 
 const store = useMenuPlannerStore();
 const storeShoppingList = useShoppingListsStore();
-const toast = useToast()
+const toast = useToast();
+
 // Modal states
 const isCreateModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
-const isRecipeSearchOpen = ref(false);
 const editingList = ref<MenuList | null>(null);
 const deletingList = ref<MenuList | null>(null);
-
-// Состояние для добавления рецепта
-const pendingRecipeData = ref<{
-  type: 'day' | 'date' | 'banquet';
-  dayId?: string;
-  date?: Date;
-  mealType?: MealType;
-} | null>(null);
-
-const selectedSlotId = ref<string | null>(null);
 
 const deleteDescription = computed(() => {
   return `Вы уверены, что хотите удалить список "${deletingList.value?.title}"? Все рецепты в нем будут удалены.`;
@@ -199,6 +179,125 @@ async function handleListUpdated() {
   await store.fetchMenuLists();
 }
 
+// ============ Обработчик добавления рецепта (для DaysView) ============
+async function handleAddRecipe(dayId: string, mealType: MealType, slotId: string | undefined, recipeId: string) {
+  console.log('Parent handleAddRecipe:', { dayId, mealType, slotId, recipeId });
+
+  if (!recipeId) {
+    console.error('No recipeId provided');
+    toast.add({
+      title: 'Ошибка',
+      description: 'Рецепт не выбран',
+      color: 'error',
+    });
+    return;
+  }
+
+  try {
+    // Ищем существующий слот
+    const existingSlot = store.slots.find(
+      slot => slot.dayId === dayId && slot.mealType === mealType && slot.slotType === 'day'
+    );
+
+    if (existingSlot) {
+      console.log('Existing slot found:', existingSlot.id);
+      await store.addRecipeToSlot(existingSlot.id, recipeId);
+    } else {
+      console.log('Creating new slot with recipe');
+      await store.createSlotWithRecipe({
+        slotType: 'day',
+        dayId,
+        mealType,
+        recipeId,
+      });
+    }
+
+    await store.fetchSlots();
+
+    toast.add({
+      title: 'Успех',
+      description: 'Рецепт добавлен в меню',
+      color: 'success',
+    });
+  } catch (error: any) {
+    console.error('Failed to add recipe:', error);
+
+    if (error.message?.includes('already exists') || error.code === '23505') {
+      toast.add({
+        title: 'Рецепт уже есть',
+        description: 'Этот рецепт уже добавлен в этот прием пищи',
+        color: 'warning',
+      });
+    } else {
+      toast.add({
+        title: 'Ошибка',
+        description: error.message || 'Не удалось добавить рецепт',
+        color: 'error',
+      });
+    }
+  }
+}
+
+// ============ Обработчик добавления рецепта (для CalendarView) ============
+async function handleAddRecipeByDate(date: Date, mealType: MealType, recipeId: string, notes?: string) {
+  const slotDate = date.toISOString().split('T')[0];
+
+  try {
+    const existingSlot = store.slots.find(
+      slot => slot.slotDate === slotDate && slot.mealType === mealType && slot.slotType === 'calendar'
+    );
+
+    if (existingSlot) {
+      await store.addRecipeToSlot(existingSlot.id, recipeId, notes);
+    } else {
+      await store.createSlotWithRecipe({
+        slotType: 'calendar',
+        slotDate,
+        mealType,
+        recipeId,
+        notes,
+      });
+    }
+
+    await store.fetchSlots();
+
+    toast.add({
+      title: 'Успех',
+      description: 'Рецепт добавлен в меню',
+      color: 'success',
+    });
+  } catch (error: any) {
+    console.error('Failed to add recipe:', error);
+    toast.add({
+      title: 'Ошибка',
+      description: error.message || 'Не удалось добавить рецепт',
+      color: 'error',
+    });
+  }
+}
+
+// ============ Обработчик добавления рецепта (для BanquetView) ============
+async function handleAddBanquetItem(recipeId: string, notes?: string) {
+  try {
+    await store.addBanquetItem(recipeId, notes);
+    await store.fetchSlots();
+
+    toast.add({
+      title: 'Успех',
+      description: 'Рецепт добавлен в банкет',
+      color: 'success',
+    });
+  } catch (error: any) {
+    console.error('Failed to add banquet item:', error);
+    toast.add({
+      title: 'Ошибка',
+      description: error.message || 'Не удалось добавить рецепт',
+      color: 'error',
+    });
+  }
+}
+
+// ============ Обработчик добавления в список покупок ============
 async function handleAddToShoppingList(ingredients: Array<{ id: string; name: string; amount: number; unit: string }>) {
   try {
     if (!ingredients.length) {
@@ -228,25 +327,20 @@ async function handleAddToShoppingList(ingredients: Array<{ id: string; name: st
     });
 
     const items = Array.from(groupedIngredients.values());
-    console.log('items', items);
-    // Пытаемся найти активный список покупок
-        // Создаем новый список
-      const today = new Date();
-      const title = `Меню от ${today.toLocaleDateString('ru-RU')}`;
 
-      const response = await storeShoppingList.createMenuShoppingList(title, items);
+    // Создаем новый список покупок
+    const today = new Date();
+    const title = `Меню от ${today.toLocaleDateString('ru-RU')}`;
 
-      // toast.add({
-      //   title: 'Список покупок создан',
-      //   description: `${items.length} ингредиент${getIngredientEnding(items.length)} добавлен${getIngredientEndingVerb(items.length)} в список "${title}"`,
-      //   color: 'success'
-      // });
-    console.log('=== Успешно добавлено в список покупок ===', response);
-    return response;
+    await storeShoppingList.createMenuShoppingList(title, items);
 
+    toast.add({
+      title: 'Список покупок создан',
+      description: `${items.length} ингредиент(ов) добавлено в список "${title}"`,
+      color: 'success'
+    });
   } catch (error: any) {
     console.error('Failed to add to shopping list:', error);
-
     toast.add({
       title: 'Ошибка',
       description: error.data?.message || 'Не удалось добавить ингредиенты в список покупок',
@@ -254,124 +348,17 @@ async function handleAddToShoppingList(ingredients: Array<{ id: string; name: st
     });
   }
 }
-// // Обработчик добавления ингредиентов в список покупок
-// async function handleAddToShoppingList(ingredients: Array<{ id: string; name: string; amount: number; unit: string }>) {
-//   if (!ingredients.length) {
-//     toast.add({
-//       title: 'Нет ингредиентов',
-//       description: 'В меню нет ингредиентов для добавления',
-//       color: 'warning'
-//     });
-//     return;
-//   }
 
-//   // Группируем одинаковые ингредиенты
-//   const groupedIngredients = new Map<string, { name: string; quantity: number; unit: string }>();
-
-//   ingredients.forEach(ingredient => {
-//     const key = `${ingredient.name}-${ingredient.unit}`;
-//     if (groupedIngredients.has(key)) {
-//       const existing = groupedIngredients.get(key)!;
-//       existing.quantity += ingredient.amount;
-//     } else {
-//       groupedIngredients.set(key, {
-//         name: ingredient.name,
-//         quantity: ingredient.amount,
-//         unit: ingredient.unit
-//       });
-//     }
-//   });
-
-//   const items = Array.from(groupedIngredients.values());
-
-//   // Формируем название списка с текущей датой
-//   const today = new Date();
-//   const title = `Меню от ${today.toLocaleDateString('ru-RU')}`;
-
-//   try {
-//     // Вызываем API для создания списка покупок
-//     const response = await $fetch('/api/v1/shopping-lists', {
-//       method: 'POST',
-//       body: {
-//         title: title,
-//         items: items
-//       }
-//     });
-
-//     console.log('=== Список покупок создан ===');
-//     console.log(`Название: ${title}`);
-//     console.log(`Количество ингредиентов: ${items.length}`);
-//     console.log(`ID списка: ${response.id}`);
-
-//     toast.add({
-//       title: 'Список покупок создан',
-//       description: `${items.length} ингредиент${getIngredientEnding(items.length)} добавлен${getIngredientEndingVerb(items.length)} в список "${title}"`,
-//       color: 'success'
-//     });
-
-//     // Опционально: перенаправить на страницу списка покупок
-//     // await navigateTo(`/cabinet/shopping-lists/${response.id}`);
-
-//     return response;
-//   } catch (error: any) {
-//     console.error('Failed to create shopping list:', error);
-
-//     toast.add({
-//       title: 'Ошибка',
-//       description: error.data?.message || 'Не удалось создать список покупок',
-//       color: 'error'
-//     });
-//   }
-// }
-
-// // Вспомогательные функции для правильных окончаний
-function getIngredientEnding(count: number): string {
-  if (count % 10 === 1 && count % 100 !== 11) return '';
-  if (count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 10 || count % 100 >= 20)) return 'а';
-  return 'ов';
-}
-
-function getIngredientEndingVerb(count: number): string {
-  if (count % 10 === 1 && count % 100 !== 11) return 'о';
-  return 'ы';
-}
-
-// Логика для Days view
-function handleAddRecipeByDay(dayId: string, mealType: MealType) {
-  pendingRecipeData.value = {
-    type: 'day',
-    dayId,
-    mealType,
-  };
-  isRecipeSearchOpen.value = true;
-}
-
-// Логика для Calendar view
-function handleAddRecipeByDate(date: Date, mealType: MealType) {
-  pendingRecipeData.value = {
-    type: 'date',
-    date,
-    mealType,
-  };
-  isRecipeSearchOpen.value = true;
-}
-
-// Логика для Banquet
-function handleAddBanquetItem(recipeId: string, notes?: string) {
-  store.addBanquetItem(recipeId, notes);
-}
-
-// Обработка заметок
+// ============ Обработчик заметок ============
 async function handleEditNotes(itemId: string, notes: string) {
   await store.updateSlotItemNotes(itemId, notes);
 }
 
-// Создание дня
+// ============ Обработчики для DaysView ============
 async function handleCreateDay(dayOrder: number, title: string) {
   await store.createDay(dayOrder, title);
 }
 
-// Переименование дня
 async function handleRenameDay(dayId: string, newTitle: string) {
   await store.updateDay(dayId, newTitle);
 }
@@ -380,73 +367,7 @@ async function handleDeleteDay(dayId: string) {
   await store.deleteDay(dayId);
 }
 
-// Главный обработчик - вызывается когда выбран рецепт в модалке
-async function handleRecipeAdded(recipeId: string) {
-  if (!pendingRecipeData.value) {
-    console.error('No pending recipe data');
-    isRecipeSearchOpen.value = false;
-    return;
-  }
-
-  try {
-    const { type, dayId, date, mealType } = pendingRecipeData.value;
-
-    console.log('Adding recipe:', { type, dayId, date, mealType, recipeId });
-
-    if (type === 'day' && dayId && mealType) {
-      // Ищем существующий слот
-      const existingSlot = store.slots.find(
-        slot => slot.dayId === dayId && slot.mealType === mealType && slot.slotType === 'day'
-      );
-
-      if (existingSlot) {
-        console.log('Existing slot found:', existingSlot.id);
-        await store.addRecipeToSlot(existingSlot.id, recipeId);
-      } else {
-        console.log('Creating new slot with recipe');
-        await store.createSlotWithRecipe({
-          slotType: 'day',
-          dayId,
-          mealType,
-          recipeId,
-        });
-      }
-      await store.fetchSlots(); // Обновляем слоты после добавления
-    } else if (type === 'date' && date && mealType) {
-      const slotDate = date.toISOString().split('T')[0];
-      const existingSlot = store.slots.find(
-        slot => slot.slotDate === slotDate && slot.mealType === mealType && slot.slotType === 'calendar'
-      );
-
-      if (existingSlot) {
-        await store.addRecipeToSlot(existingSlot.id, recipeId);
-      } else {
-        await store.createSlotWithRecipe({
-          slotType: 'calendar',
-          slotDate,
-          mealType,
-          recipeId,
-        });
-      }
-      await store.fetchSlots();
-    }
-
-    pendingRecipeData.value = null;
-    isRecipeSearchOpen.value = false;
-
-    toast.add({
-      title: 'Успех',
-      description: 'Рецепт добавлен в меню',
-      color: 'success',
-    });
-  } catch (error: any) {
-    console.error('Failed to add recipe:', error);
-    // Ошибка уже обрабатывается в store
-  }
-}
-
-
-// Перемещение рецепта между слотами
+// ============ Обработчик перемещения рецепта ============
 async function handleMoveRecipe(itemId: string, sourceSlotId: string, targetSlotId: string) {
   console.log('=== MOVE RECIPE IN PARENT ===');
   console.log('itemId:', itemId);
@@ -541,20 +462,17 @@ async function handleMoveRecipe(itemId: string, sourceSlotId: string, targetSlot
   }
 }
 
+// ============ Обработчик изменения порядка рецептов ============
 async function handleReorder(slotId: string, items: { id: string; order: number }[]) {
   console.log('Reorder items:', { slotId, items });
   try {
     await store.reorderSlotItems(slotId, items);
-    // toast.add({
-    //   title: 'Успех',
-    //   description: 'Порядок рецептов изменен',
-    //   color: 'success',
-    // });
   } catch (error) {
     console.error('Failed to reorder:', error);
   }
 }
 
+// ============ Обработчик создания слота ============
 async function handleCreateSlot(dayId: string, mealType: MealType, recipeId: string, notes?: string) {
   try {
     // Проверяем, существует ли уже слот с таким же рецептом в этом дне
@@ -587,11 +505,7 @@ async function handleCreateSlot(dayId: string, mealType: MealType, recipeId: str
       });
     }
 
-    // toast.add({
-    //   title: 'Успех',
-    //   description: 'Рецепт добавлен',
-    //   color: 'success',
-    // });
+    await store.fetchSlots();
   } catch (error: any) {
     console.error('Failed to create slot with recipe:', error);
 

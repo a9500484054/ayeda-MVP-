@@ -1,4 +1,3 @@
-<!-- components/menu-planner/views/DaysView.vue -->
 <template>
   <div class="days-view-container">
     <!-- Управление днями -->
@@ -22,14 +21,6 @@
       >
         <UIcon name="i-lucide-shopping-cart" class="h-3.5 w-3.5" />
         <span>Добавить меню в список покупок</span>
-
-        <!-- Бейдж с количеством рецептов -->
-        <!-- <span
-          v-if="totalRecipesCount > 0 && !isAddingToShoppingList"
-          class="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-green-500 text-[10px] font-medium text-white"
-        >
-          {{ totalRecipesCount > 9 ? '9+' : totalRecipesCount }}
-        </span> -->
       </Button>
     </div>
 
@@ -46,7 +37,7 @@
             :snack-slot="getSlotByDayAndMeal(day.id, 'snack')"
             :can-delete="days.length > 1"
             :column-height="columnHeight"
-            @add-recipe="(dayId, mealType, slotId) => emit('addRecipe', dayId, mealType, slotId)"
+            @add-recipe="(dayId, mealType, slotId, recipeId) => handleAddRecipe(dayId, mealType, slotId, recipeId)"
             @move-recipe="(itemId, sourceSlotId, targetSlotId) => emit('moveRecipe', itemId, sourceSlotId, targetSlotId)"
             @reorder="(slotId, items) => emit('reorder', slotId, items)"
             @remove-recipe="(itemId) => emit('removeRecipe', itemId)"
@@ -82,7 +73,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  addRecipe: [dayId: string, mealType: MealType, slotId?: string];
+  addRecipe: [dayId: string, mealType: MealType, slotId?: string, recipeId?: string, notes?: string];
   moveRecipe: [itemId: string, sourceSlotId: string, targetSlotId: string];
   removeRecipe: [itemId: string];
   editNotes: [itemId: string, notes: string];
@@ -101,7 +92,7 @@ const showPreviewModal = ref(false);
 const isAddingToShoppingList = ref(false);
 const collectedIngredients = ref<Array<{ id: string; name: string; amount: number; unit: string }>>([]);
 
-// Высота колонки - вычисляем на основе высоты окна
+// Высота колонки
 const columnHeight = ref(600);
 
 function updateColumnHeight() {
@@ -225,12 +216,6 @@ async function handleCreateShoppingList(ingredients: Array<{ id: string; name: s
 
   try {
     emit('addToShoppingList', ingredients);
-
-    // toast.add({
-    //   title: 'Успешно!',
-    //   description: `${ingredients.length} ингредиент${getIngredientEnding(ingredients.length)} добавлен${getIngredientEndingVerb(ingredients.length)} в список покупок`,
-    //   color: 'success'
-    // });
   } catch (error) {
     console.error('Failed to add to shopping list:', error);
     toast.add({
@@ -243,21 +228,21 @@ async function handleCreateShoppingList(ingredients: Array<{ id: string; name: s
   }
 }
 
-// Вспомогательные функции
-function getIngredientEnding(count: number): string {
-  if (count % 10 === 1 && count % 100 !== 11) return '';
-  if (count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 10 || count % 100 >= 20)) return 'а';
-  return 'ов';
-}
+// Обработчик добавления рецепта
+function handleAddRecipe(dayId: string, mealType: MealType, slotId: string | undefined, recipeId: string) {
+  console.log('DaysView handleAddRecipe:', { dayId, mealType, slotId, recipeId });
 
-function getIngredientEndingVerb(count: number): string {
-  if (count % 10 === 1 && count % 100 !== 11) return 'о';
-  return 'ы';
+  if (!recipeId) {
+    console.error('No recipeId provided');
+    return;
+  }
+
+  // Передаем дальше в родительский компонент (pages/cabinet/menu-planner.vue)
+  emit('addRecipe', dayId, mealType, slotId, recipeId);
 }
 
 // Обработчик добавления всех рецептов дня в список покупок
 function handleDayAddToShoppingList(ingredients: Array<{ id: string; name: string; amount: number; unit: string }>) {
-  console.log('=== handleDayAddToShoppingList START ===');
   console.log('Received ingredients from day:', ingredients);
 
   if (!ingredients || ingredients.length === 0) {
@@ -268,11 +253,8 @@ function handleDayAddToShoppingList(ingredients: Array<{ id: string; name: strin
     });
     return;
   }
-  emit('addToShoppingList', ingredients);
 
-  // Открываем модалку предпросмотра с ингредиентами дня
-  // collectedIngredients.value = ingredients;
-  // showPreviewModal.value = true;
+  emit('addToShoppingList', ingredients);
 }
 
 function addNewDay() {
@@ -338,7 +320,6 @@ function addNewDay() {
   background: #94a3b839;
 }
 
-/* Для Firefox */
 .days-view {
   scrollbar-width: thin;
   scrollbar-color: #cbd5e118 transparent;

@@ -1,6 +1,4 @@
-﻿<!-- components/menu-planner/common/DayColumn.vue -->
-<!-- components/menu-planner/common/DayColumn.vue -->
-<template>
+﻿<template>
   <div class="day-column flex h-full flex-col rounded-xl border border-zinc-200 bg-white shadow-sm">
     <!-- Заголовок дня -->
     <div class="p-2">
@@ -31,6 +29,7 @@
 
     <!-- Слоты приемов пищи с вертикальным скроллом -->
     <div class="flex-1 overflow-y-auto divide-y divide-zinc-100" :style="{ maxHeight: columnHeight + 'px' }">
+      <!-- Завтрак -->
       <div
         class="p-3 meal-slot-container"
         :data-day-id="day.id"
@@ -44,7 +43,7 @@
           :items="breakfastSlot?.items"
           meal-type="breakfast"
           :is-drag-over="dragOverStates.breakfast"
-          @add-recipe="() => emit('addRecipe', day.id, 'breakfast', breakfastSlot?.id)"
+          @add-recipe="(recipeId) => handleAddRecipe(recipeId, 'breakfast', breakfastSlot?.id)"
           @remove-recipe="handleRemoveRecipe"
           @edit-notes="handleEditNotes"
           @move-recipe="handleMoveRecipe"
@@ -54,6 +53,7 @@
         />
       </div>
 
+      <!-- Обед -->
       <div
         class="p-3 meal-slot-container"
         :data-day-id="day.id"
@@ -67,7 +67,7 @@
           :items="lunchSlot?.items"
           meal-type="lunch"
           :is-drag-over="dragOverStates.lunch"
-          @add-recipe="() => emit('addRecipe', day.id, 'lunch', lunchSlot?.id)"
+          @add-recipe="(recipeId) => handleAddRecipe(recipeId, 'lunch', lunchSlot?.id)"
           @remove-recipe="handleRemoveRecipe"
           @edit-notes="handleEditNotes"
           @move-recipe="handleMoveRecipe"
@@ -77,6 +77,7 @@
         />
       </div>
 
+      <!-- Ужин -->
       <div
         class="p-3 meal-slot-container"
         :data-day-id="day.id"
@@ -90,7 +91,7 @@
           :items="dinnerSlot?.items"
           meal-type="dinner"
           :is-drag-over="dragOverStates.dinner"
-          @add-recipe="() => emit('addRecipe', day.id, 'dinner', dinnerSlot?.id)"
+          @add-recipe="(recipeId) => handleAddRecipe(recipeId, 'dinner', dinnerSlot?.id)"
           @remove-recipe="handleRemoveRecipe"
           @edit-notes="handleEditNotes"
           @move-recipe="handleMoveRecipe"
@@ -100,6 +101,7 @@
         />
       </div>
 
+      <!-- Перекус -->
       <div
         class="p-3 meal-slot-container"
         :data-day-id="day.id"
@@ -113,7 +115,7 @@
           :items="snackSlot?.items"
           meal-type="snack"
           :is-drag-over="dragOverStates.snack"
-          @add-recipe="() => emit('addRecipe', day.id, 'snack', snackSlot?.id)"
+          @add-recipe="(recipeId) => handleAddRecipe(recipeId, 'snack', snackSlot?.id)"
           @remove-recipe="handleRemoveRecipe"
           @edit-notes="handleEditNotes"
           @move-recipe="handleMoveRecipe"
@@ -156,7 +158,6 @@
   </div>
 </template>
 
-
 <script setup lang="ts">
 import type { MenuDay, MenuSlot, MealType } from '~/composables/useMenuPlannerApi';
 import MealSlot from './MealSlot.vue';
@@ -177,7 +178,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  addRecipe: [dayId: string, mealType: MealType, slotId?: string];
+  addRecipe: [dayId: string, mealType: MealType, slotId?: string, recipeId?: string, notes?: string];
   moveRecipe: [itemId: string, sourceSlotId: string, targetSlotId: string];
   reorder: [slotId: string, items: { id: string; order: number }[]];
   removeRecipe: [itemId: string];
@@ -357,7 +358,7 @@ function openDeleteModal() {
   isDeleteModalOpen.value = true;
 }
 
-function handleDeleteConfirm() {
+function confirmDelete() {
   if (dayToDelete.value) {
     emit('deleteDay', dayToDelete.value.id);
     dayToDelete.value = null;
@@ -411,20 +412,9 @@ async function handleSlotContainerDrop(event: DragEvent, mealType: MealType) {
   const targetSlot = getSlotByMeal(mealType);
 
   if (targetSlot?.id) {
-    console.log('Moving recipe to existing slot:', {
-      itemId: dragData.itemId,
-      sourceSlotId: dragData.slotId,
-      targetSlotId: targetSlot.id
-    });
     emit('moveRecipe', dragData.itemId, dragData.slotId, targetSlot.id);
   } else {
-    console.log('Creating new slot for recipe:', {
-      dayId: props.day.id,
-      mealType,
-      recipeId: dragData.recipeId
-    });
     emit('createSlot', props.day.id, mealType, dragData.recipeId, dragData.notes);
-
     setTimeout(() => {
       emit('removeRecipe', dragData.itemId);
     }, 100);
@@ -442,6 +432,12 @@ function getSlotByMeal(mealType: MealType): MenuSlot | undefined {
 }
 
 // ============ Обработчики событий от MealSlot ============
+
+// ✅ Функция-прослойка для добавления рецепта
+function handleAddRecipe(recipeId: string, mealType: MealType, slotId?: string) {
+  console.log('DayColumn handleAddRecipe:', { recipeId, mealType, slotId, dayId: props.day.id });
+  emit('addRecipe', props.day.id, mealType, slotId, recipeId);
+}
 
 function handleRemoveRecipe(itemId: string) {
   emit('removeRecipe', itemId);

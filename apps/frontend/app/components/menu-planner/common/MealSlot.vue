@@ -1,3 +1,4 @@
+<!-- apps\frontend\app\components\menu-planner\common\MealSlot.vue -->
 <template>
   <div
     class="meal-slot min-h-[100px] rounded-xl border p-2 transition-all"
