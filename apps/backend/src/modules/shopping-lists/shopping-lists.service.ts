@@ -463,32 +463,50 @@ async findOne(userId: string, id: string): Promise<ShoppingListResponseDto> {
     // Проверяем доступ к списку
     await this.findOneList(userId, listId, false);
 
-    const item = await this.findOneItem(itemId);
+    // Проверяем, что позиция существует и принадлежит списку
+    const existingItem = await this.shoppingListItemRepository.findOne({
+      where: { id: itemId, shoppingListId: listId },
+    });
 
-    if (item.shoppingListId !== listId) {
-      throw new BadRequestException('Позиция не принадлежит этому списку');
+    if (!existingItem) {
+      throw new BadRequestException('Позиция не найдена или не принадлежит этому списку');
     }
 
-    // Валидация категории если указана
-    if (dto.categoryId !== undefined) {
-      if (dto.categoryId) {
-        await this.shoppingCategoriesService.findOne(dto.categoryId);
-      }
-      item.categoryId = dto.categoryId;
+    // Валидация категории если указана (и не null)
+    if (dto.categoryId !== undefined && dto.categoryId !== null) {
+      await this.shoppingCategoriesService.findOne(dto.categoryId);
     }
 
-    if (dto.name !== undefined) item.name = dto.name;
-    if (dto.quantity !== undefined) item.quantity = dto.quantity;
-    if (dto.unit !== undefined) item.unit = dto.unit;
-    if (dto.price !== undefined) item.price = dto.price;
-    if (dto.isChecked !== undefined) item.isChecked = dto.isChecked;
-    if (dto.note !== undefined) item.note = dto.note;
+    // Формируем объект для обновления только с переданными полями
+    const updateData: Partial<ShoppingListItem> = {};
 
-    const saved = await this.shoppingListItemRepository.save(item);
+    if (dto.name !== undefined) updateData.name = dto.name;
+    if (dto.categoryId !== undefined) updateData.categoryId = dto.categoryId;
+    if (dto.quantity !== undefined) updateData.quantity = dto.quantity;
+    if (dto.unit !== undefined) updateData.unit = dto.unit;
+    if (dto.price !== undefined) updateData.price = dto.price;
+    if (dto.isChecked !== undefined) updateData.isChecked = dto.isChecked;
+    if (dto.note !== undefined) updateData.note = dto.note;
 
-    // Подгружаем обновленные связи
-    const withRelations = await this.findOneItem(saved.id);
-    return this.toItemResponseDto(withRelations);
+    // Выполняем прямое обновление в БД
+    if (Object.keys(updateData).length > 0) {
+      await this.shoppingListItemRepository.update(
+        { id: itemId },
+        updateData
+      );
+    }
+
+    // Загружаем обновленную позицию с категорией
+    const updatedItem = await this.shoppingListItemRepository.findOne({
+      where: { id: itemId },
+      relations: ['category'],
+    });
+
+    if (!updatedItem) {
+      throw new NotFoundException('Позиция не найдена после обновления');
+    }
+
+    return this.toItemResponseDto(updatedItem);
   }
 
   async removeItem(
