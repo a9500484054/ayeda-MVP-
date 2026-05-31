@@ -1,6 +1,6 @@
 <!-- apps/frontend/app/pages/cabinet/shopping-lists/[id].vue -->
 <template>
-  <div class="mx-auto w-full max-w-5xl px-4 py-6 md:px-6">
+  <div class="mx-auto w-full  max-w-3xl md:max-w-5xl px-4 py-6 md:px-6">
     <div>
       <!-- Desktop: 2 колонки -->
       <div class="hidden lg:grid lg:grid-cols-20 lg:gap-6">

@@ -17,9 +17,10 @@
 
       <!-- Верхняя часть - адаптивная -->
       <div class="relative z-10 flex flex-col sm:flex-row sm:flex-wrap sm:items-start justify-between gap-3">
-        <div class="min-w-0 flex-1">
+        <!-- Левая часть (содержимое) - на мобиле будет снизу -->
+        <div class="min-w-0 flex-1 order-2 sm:order-1">
           <div class="flex items-center gap-2">
-            <!-- Drag Handle - уменьшен для мобильных -->
+            <!-- Drag Handle -->
             <div
               class="flex h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 cursor-grab items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 shadow-lg transition-all hover:scale-105 active:cursor-grabbing"
             >
@@ -33,7 +34,6 @@
               >
                 {{ list.title }}
               </h5>
-
               <p class="text-xs text-gray-500 dark:text-darkMode-700">
                 Список покупок
               </p>
@@ -41,8 +41,8 @@
           </div>
         </div>
 
-        <!-- Правая часть с действиями - адаптивная -->
-        <div class="flex flex-shrink-0 items-center justify-between sm:justify-end gap-2 sm:gap-3 mt-2 sm:mt-0">
+        <!-- Правая часть с действиями - на мобиле будет сверху -->
+        <div class="flex flex-shrink-0 items-center justify-between sm:justify-end gap-2 sm:gap-3 order-1 sm:order-2">
           <!-- Бейдж прогресса -->
           <div
             class="rounded-xl sm:rounded-2xl border border-gray-200 bg-gray-50 px-2 sm:px-3 py-1 sm:py-1.5 text-center shadow-sm dark:border-darkMode-300 dark:bg-darkMode-100"
