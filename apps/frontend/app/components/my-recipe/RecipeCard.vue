@@ -34,7 +34,7 @@
       </div>
 
       <!-- Actions (Edit/Delete) - только для "Мои рецепты" -->
-      <div v-if="isMyRecipesTab" class="absolute right-3 top-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
+      <div v-if="isMyRecipesTab && showEditDeleteButtons" class="absolute right-3 top-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
         <Button
           @click.stop="emitEdit"
           variant="solid"
@@ -236,6 +236,12 @@ const isFavoritesTab = computed(() => props.activeTab === 'favorites')
 const showModerationButton = computed(() => props.activeTab === 'my')
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+
+// Показывать кнопки редактирования/удаления только для черновиков, приватных и отклоненных
+const showEditDeleteButtons = computed(() => {
+  const editableStatuses = ['draft', 'private', 'rejected']
+  return editableStatuses.includes(props.recipe.status)
+})
 
 const imageUrl = computed(() => {
   const path = props.recipe.photo?.src

@@ -456,11 +456,11 @@ async function handleMoveRecipe(itemId: string, sourceSlotId: string, targetSlot
     await store.removeRecipeFromSlot(itemId);
     console.log('Recipe removed from source slot');
 
-    toast.add({
-      title: 'Успех',
-      description: 'Рецепт перемещен',
-      color: 'success',
-    });
+    // toast.add({
+    //   title: 'Успех',
+    //   description: 'Рецепт перемещен',
+    //   color: 'success',
+    // });
   } catch (error: any) {
     console.error('Failed to move recipe:', error);
 
