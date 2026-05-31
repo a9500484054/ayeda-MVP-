@@ -3,6 +3,12 @@ import { IsString, IsOptional, IsInt, Min, IsBoolean, MaxLength } from 'class-va
 import { Type } from 'class-transformer';
 
 export class UpdateCategoryDto {
+  @ApiProperty({ required: false, description: 'Уникальный код категории' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  code?: string;
+
   @ApiProperty({ required: false, description: 'Название категории' })
   @IsOptional()
   @IsString()

@@ -37,6 +37,7 @@ export const adminNavigation = [
       { label: 'Единицы измерения', icon: 'i-lucide-ruler', to: '/admin/units' },
       { label: 'Ингредиенты', icon: 'i-lucide-carrot', to: '/admin/ingredients' },
       { label: 'Категории', icon: 'i-lucide-tags', to: '/admin/categories' },
+      { label: 'Категории покупок', icon: 'i-lucide-shopping-basket', to: '/admin/shopping-categories' },
     ]
   },
 ] satisfies NavigationMenuItem[];
