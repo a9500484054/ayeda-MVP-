@@ -44,14 +44,25 @@
         </div>
 
         <!-- Кнопка "Создать" -->
-        <button
+        <!-- <button
           v-if="lists.length === 0"
           class="flex items-center gap-2 rounded-xl border border-dashed border-zinc-300 bg-transparent px-3 py-2 text-zinc-500 transition-all hover:border-zinc-400 hover:text-zinc-700"
           @click="emit('create')"
         >
           <UIcon name="i-lucide-plus" class="h-4 w-4" />
           <span class="text-sm whitespace-nowrap">Создать список</span>
-        </button>
+        </button> -->
+        <Button
+          v-if="lists.length === 0"
+          size="md"
+          variant="outline"
+          color="neutral"
+          left-icon="i-lucide-plus"
+          class="rounded-xl border-dashed"
+          @click="emit('create')"
+        >
+          Создать список
+        </Button>
       </div>
     </div>
 
@@ -83,6 +94,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import type { MenuList } from '~/composables/useMenuPlannerApi';
+import Button from '~/shared/ui/button/Button.vue';
 
 const props = defineProps<{
   lists: MenuList[];

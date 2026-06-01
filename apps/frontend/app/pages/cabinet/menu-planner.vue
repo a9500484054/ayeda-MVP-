@@ -80,10 +80,12 @@
       </div>
 
       <!-- Пустое состояние -->
-      <div v-else class="mt-12 flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-200 py-16">
-        <UIcon name="i-lucide-calendar" class="h-12 w-12 text-zinc-300" />
-        <p class="mt-3 text-zinc-500">Нет активного списка меню</p>
-        <p class="text-sm text-zinc-400">Создайте новый список или выберите существующий</p>
+      <div v-else>
+        <EmptyState
+          title="Нет активного списка меню"
+          description="Создайте новый список или выберите существующий"
+          icon="i-lucide-calendar"
+        />
       </div>
     </template>
 
@@ -125,6 +127,7 @@ import Button from '~/shared/ui/button/Button.vue';
 import MenuListModal from '~/components/menu-planner/modals/MenuListModal.vue';
 import DeleteConfirmationModal from '~/components/menu-planner/modals/DeleteConfirmationModal.vue';
 import { useShoppingListsStore } from '~/stores/shoppingListsStore';
+import EmptyState from '~/shared/ui/emptyState/EmptyState.vue';
 
 definePageMeta({ layout: 'cabinet' });
 
