@@ -84,6 +84,12 @@ services:
       - backend
     networks:
       - dev
+    deploy:
+      resources:
+        limits:
+          memory: 6G  # Добавьте эту секцию
+        reservations:
+          memory: 2G
 
   pgadmin:
     image: dpage/pgadmin4:latest
