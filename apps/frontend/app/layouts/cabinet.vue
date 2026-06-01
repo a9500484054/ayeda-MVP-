@@ -256,14 +256,18 @@
               </UDropdownMenu>
             </div>
 
-            <button
+            <Button
               v-else
+              color="white"
+              variant="solid"
+              size="md"
+              :icon-only="false"
+              icon="i-lucide-log-in"
+              icon-position="left"
+              text="Войти"
               @click="handleLogin"
-              class="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-emerald-700 bg-white rounded-lg hover:bg-emerald-50 transition-colors"
-            >
-              <UIcon name="i-lucide-log-in" class="w-4 h-4" />
-              Войти
-            </button>
+              class="w-full"
+            />
           </div>
         </div>
       </div>
@@ -404,7 +408,7 @@ const dropdownItems = computed<DropdownMenuItem[][]>(() => [
   [
     {
       label: 'Выйти',
-      icon: 'i-lucide-log-out text-red-600',
+      icon: 'i-lucide-log-out',
       onSelect: handleLogoutClick,
       class: 'text-red-600',
       iconClass: 'text-red-600'

@@ -38,13 +38,13 @@ export class EmailService {
         <p>${username}, для завершения регистрации и подтверждения вашего email адреса, пожалуйста, нажмите на кнопку ниже:</p>
         <div style="text-align: center; margin: 30px 0;">
           <a href="${verificationUrl}"
-             style="background-color: #007bff; color: white; padding: 12px 24px;
+             style="background-color: #0d542b; color: white; padding: 12px 24px;
                     text-decoration: none; border-radius: 4px; display: inline-block;">
             Подтвердить Email
           </a>
         </div>
         <p>Или скопируйте и вставьте в браузер следующую ссылку:</p>
-        <p style="word-break: break-all; color: #007bff;">${verificationUrl}</p>
+        <p style="word-break: break-all; color: #0d542b;">${verificationUrl}</p>
         <p>Если вы не регистрировались в нашем сервисе, просто проигнорируйте это письмо.</p>
         <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
         <p style="color: #666; font-size: 12px;">Это письмо отправлено автоматически, пожалуйста, не отвечайте на него.</p>
@@ -77,7 +77,7 @@ export class EmailService {
           </a>
         </div>
         <p>Или скопируйте и вставьте в браузер следующую ссылку:</p>
-        <p style="word-break: break-all; color: #007bff;">${resetUrl}</p>
+        <p style="word-break: break-all; color: #0d542b;">${resetUrl}</p>
         <p><strong>Внимание:</strong> Ссылка действительна в течение 1 часа.</p>
         <p>Если вы не запрашивали сброс пароля, просто проигнорируйте это письмо.</p>
       </div>
