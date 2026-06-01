@@ -36,7 +36,7 @@ export default defineConfig({
     // 👇 Важно: не разделять CSS на части
     cssCodeSplit: false,
     // 👇 Опционально: генерация sourcemap для отладки
-    sourcemap: true,
+    sourcemap: false,
   },
   // 👇 Добавляем поддержку SCSS глобальных переменных (опционально)
   css: {

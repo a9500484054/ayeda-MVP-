@@ -2,7 +2,7 @@
 export default defineNuxtConfig({
   compatibilityDate: "2026-03-06",
   ssr: true,
-
+  sourcemap: false,
   modules: [
     "@nuxt/ui",
     "@pinia/nuxt",
