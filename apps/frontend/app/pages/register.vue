@@ -2,6 +2,7 @@
   <div class="min-h-screen grid lg:grid-cols-2">
     <!-- Левая часть - Брендинг -->
     <div class="relative hidden lg:flex flex-col justify-between p-12 bg-gradient-to-br from-emerald-700 to-teal-800 overflow-hidden">
+      <!-- ... остальная левая часть без изменений ... -->
       <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent"></div>
       <div class="absolute -top-40 -right-40 w-80 h-80 bg-emerald-400 rounded-full blur-3xl opacity-30"></div>
       <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-teal-400 rounded-full blur-3xl opacity-30"></div>
@@ -74,10 +75,44 @@
           <p class="text-gray-500">Создайте аккаунт за 30 секунд</p>
         </div>
 
-        <form @submit="onSubmit" class="space-y-5">
+        <!-- Состояние успешной регистрации -->
+        <div v-if="registrationSuccess" class="bg-green-50 border border-green-200 rounded-xl p-6 text-center">
+          <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <UIcon name="i-lucide-mail-check" class="w-8 h-8 text-green-600" />
+          </div>
+          <h2 class="text-xl font-semibold text-gray-900 mb-2">Проверьте почту!</h2>
+          <p class="text-gray-600 mb-4">
+            Мы отправили письмо с подтверждением на <strong>{{ email }}</strong>
+          </p>
+          <p class="text-sm text-gray-500 mb-6">
+            Пожалуйста, перейдите по ссылке в письме, чтобы активировать аккаунт.
+          </p>
+          <div class="space-y-3">
+            <button
+              @click="resendConfirmationEmail"
+              :disabled="resendDisabled"
+              class="text-emerald-600 hover:text-emerald-700 text-sm font-medium transition"
+            >
+              <span v-if="!resendDisabled">Отправить письмо повторно</span>
+              <span v-else>Повторно через {{ resendTimer }} сек</span>
+            </button>
+            <div class="pt-4 border-t border-gray-100">
+              <NuxtLink
+                to="/login"
+                class="inline-flex items-center gap-2 text-emerald-600 hover:text-emerald-700 font-semibold transition"
+              >
+                Вернуться на страницу входа
+                <UIcon name="i-lucide-arrow-right" class="w-4 h-4" />
+              </NuxtLink>
+            </div>
+          </div>
+        </div>
+
+        <!-- Форма регистрации (показывается только если нет успешной регистрации) -->
+        <form v-else @submit="onSubmit" class="space-y-5">
           <!-- Имя пользователя -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">Имя пользователя</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Ваш логин</label>
             <div class="relative">
               <UIcon name="i-lucide-user" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
@@ -157,6 +192,30 @@
             <p v-if="errors.confirmPassword" class="text-xs text-red-500 mt-1">{{ errors.confirmPassword }}</p>
           </div>
 
+          <!-- Чекбокс согласия с правилами -->
+          <div class="space-y-3">
+            <label class="flex items-start gap-3 cursor-pointer group">
+              <div class="flex-shrink-0 mt-0.5">
+                <input
+                  type="checkbox"
+                  v-model="agreedToTerms"
+                  class="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 focus:ring-2 cursor-pointer"
+                />
+              </div>
+              <span class="text-sm text-gray-600 group-hover:text-gray-800 transition">
+                Я соглашаюсь с
+                <NuxtLink to="/terms" class="text-emerald-600 hover:text-emerald-700 font-medium underline underline-offset-2">
+                  условиями использования
+                </NuxtLink>
+                и
+                <NuxtLink to="/privacy" class="text-emerald-600 hover:text-emerald-700 font-medium underline underline-offset-2">
+                  политикой конфиденциальности
+                </NuxtLink>
+              </span>
+            </label>
+            <p v-if="errors.agreedToTerms" class="text-xs text-red-500 mt-1">{{ errors.agreedToTerms }}</p>
+          </div>
+
           <!-- Server error - простой текст -->
           <div v-if="serverError" class="text-sm text-red-500 bg-red-50 rounded-xl p-3">
             {{ serverError }}
@@ -165,10 +224,10 @@
           <!-- Submit button -->
           <button
             type="submit"
-            :disabled="pending"
+            :disabled="pending || !agreedToTerms"
             class="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span v-if="!pending" class="flex items-center justify-center gap-2">
+            <span v-if="!pending" class="flex items-center justify-center gap-2 cursor-pointer">
               Создать аккаунт
               <UIcon name="i-lucide-arrow-right" class="w-4 h-4" />
             </span>
@@ -219,11 +278,16 @@ useHead({
   ],
 })
 
-const { register } = useAuth();
+const { register, resendConfirmation } = useAuth();
 const pending = ref(false);
 const serverError = ref("");
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
+const agreedToTerms = ref(false);
+const registrationSuccess = ref(false);
+const resendDisabled = ref(false);
+const resendTimer = ref(0);
+let resendInterval: NodeJS.Timeout | null = null;
 
 // Схема валидации с проверкой на буквы и цифры
 const zodSchema = z.object({
@@ -261,11 +325,27 @@ const [email, emailAttrs] = defineField("email");
 const [password, passwordAttrs] = defineField("password");
 const [confirmPassword, confirmPasswordAttrs] = defineField("confirmPassword");
 
+// Добавляем кастомную валидацию для чекбокса
 const onSubmit = handleSubmit(async (values) => {
+  // Проверяем согласие с правилами
+  if (!agreedToTerms.value) {
+    setFieldError("agreedToTerms", "Необходимо согласиться с условиями использования");
+    return;
+  }
+
   pending.value = true;
   serverError.value = "";
+
   try {
     await register(values.email, values.password, values.username);
+    registrationSuccess.value = true;
+
+    // Очищаем форму
+    username.value = "";
+    email.value = "";
+    password.value = "";
+    confirmPassword.value = "";
+    agreedToTerms.value = false;
   } catch (err: any) {
     // Обработка ошибки с сервера
     if (err.message && Array.isArray(err.message)) {
@@ -290,8 +370,37 @@ const onSubmit = handleSubmit(async (values) => {
     pending.value = false;
   }
 });
-</script>
 
+// Функция повторной отправки письма
+const resendConfirmationEmail = async () => {
+  if (resendDisabled.value) return;
+
+  resendDisabled.value = true;
+  resendTimer.value = 60; // 60 секунд
+
+  resendInterval = setInterval(() => {
+    if (resendTimer.value > 0) {
+      resendTimer.value--;
+    } else {
+      if (resendInterval) clearInterval(resendInterval);
+      resendDisabled.value = false;
+    }
+  }, 1000);
+
+  try {
+    await resendConfirmation(email.value);
+    // Можно показать дополнительное уведомление
+    console.log("Письмо отправлено повторно");
+  } catch (err) {
+    console.error("Ошибка при повторной отправке:", err);
+  }
+};
+
+// Очищаем интервал при размонтировании
+onUnmounted(() => {
+  if (resendInterval) clearInterval(resendInterval);
+});
+</script>
 
 <style scoped>
 /* Убираем лишние анимации, оставляем только fade */
