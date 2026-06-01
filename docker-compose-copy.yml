@@ -100,12 +100,12 @@ services:
       - backend
     networks:
       - dev
-    volumes:
-      - ./apps/frontend:/app
-      - /app/node_modules
-    environment:
-      - NUXT_PUBLIC_API_BASE=http://localhost:3001
-    command: pnpm run dev
+    # volumes:
+    #   - ./apps/frontend:/app
+    #   - /app/node_modules
+    # environment:
+    #   - NUXT_PUBLIC_API_BASE=http://localhost:3001
+    command: sh -c "pnpm install && pnpm run dev"
 
   pgadmin:
     image: dpage/pgadmin4:latest

@@ -1,16 +1,46 @@
-FROM node:22-alpine
+# ==================== Development Stage ====================
+FROM node:20-alpine AS development
 
 WORKDIR /app
 
-# Устанавливаем pnpm
-RUN npm install -g pnpm@latest
+COPY package*.json ./
 
-# Копируем всё сразу
+RUN npm install
+
 COPY . .
-
-# Устанавливаем зависимости без скриптов, потом собираем нужные
-RUN pnpm install --ignore-scripts
 
 EXPOSE 4000
 
-CMD ["pnpm", "run", "start:dev"]
+CMD ["npm", "run", "start:dev"]
+
+# ==================== Builder Stage ====================
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm ci
+
+COPY . .
+
+RUN npm run build
+
+# Копируем src для миграций (ВАЖНО!)
+COPY --from=development /app/src ./src
+
+# ==================== Production Stage ====================
+FROM node:20-alpine AS production
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm ci --omit=dev
+
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/src ./src
+
+EXPOSE 4000
+
+CMD ["node", "dist/main.js"]
