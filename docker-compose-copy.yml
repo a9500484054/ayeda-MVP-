@@ -29,16 +29,12 @@ services:
     image: redis:7-alpine
     container_name: ayeda_redis
     restart: unless-stopped
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-default_password}
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
-      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro  # Монтируем конфиг (опционально)
-    environment:
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-default_password}
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-default_password}", "ping"]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -60,16 +56,12 @@ services:
       - ./apps/backend/.env
     environment:
       DB_HOST: postgres
-      REDIS_HOST: redis
-      REDIS_URL: redis://:${REDIS_PASSWORD:-default_password}@redis:6379
       DOCKER_ENV: true
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
     volumes:
-      - uploads_data:/app/uploads
+      - uploads_data:/app/uploads  # Монтируем всю папку uploads
     networks:
       - dev
 
@@ -82,10 +74,7 @@ services:
     environment:
       DB_HOST: postgres
       REDIS_HOST: redis
-      REDIS_URL: redis://:${REDIS_PASSWORD:-default_password}@redis:6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-default_password}
-      UPLOAD_PATH: /app/uploads
-      NODE_ENV: development
+      UPLOAD_PATH: /app/uploads  # Путь к папке загрузок
     ports:
       - "3001:4000"
     depends_on:
@@ -98,7 +87,7 @@ services:
     volumes:
       - ./apps/backend:/app
       - /app/node_modules
-      - uploads_data:/app/uploads
+      - uploads_data:/app/uploads  # 👈 Монтируем ВСЮ папку uploads
     command: pnpm run start:dev
 
   frontend:
@@ -139,4 +128,4 @@ volumes:
   postgres_data:
   redis_data:
   pgadmin_data:
-  uploads_data:
+  uploads_data:  # 👈 Volume для всех загруженных файлов

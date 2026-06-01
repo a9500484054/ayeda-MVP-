@@ -1,3 +1,4 @@
+// apps/backend/src/modules/users/users.service.ts
 import {
   Injectable,
   ConflictException,
@@ -8,12 +9,15 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as argon2 from 'argon2';
+import { cacheGetOrSet, clearCachePattern } from '../../utils/redis.utils';
+import { UsersCacheService } from './users.cache.service'; // Добавьте импорт
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    private usersCacheService: UsersCacheService, // Добавьте в конструктор
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -44,25 +48,49 @@ export class UsersService {
       password: hashedPassword,
     });
 
-    return this.usersRepository.save(user);
+    const savedUser = await this.usersRepository.save(user);
+
+    // Очищаем кэш через сервис
+    await this.usersCacheService.clearAllUsersCache();
+
+    return savedUser;
   }
 
   async findAll(): Promise<User[]> {
-    return this.usersRepository.find();
+    return cacheGetOrSet(
+      'users:all:list',
+      async () => {
+        return this.usersRepository.find();
+      },
+      300
+    );
   }
 
   async findOne(id: string): Promise<User> {
-    const user = await this.usersRepository.findOne({ where: { id } });
-    if (!user) {
-      throw new NotFoundException('Пользователь не найден');
-    }
-    return user;
+    return cacheGetOrSet(
+      `user:${id}`,
+      async () => {
+        const user = await this.usersRepository.findOne({ where: { id } });
+        if (!user) {
+          throw new NotFoundException('Пользователь не найден');
+        }
+        return user;
+      },
+      3600
+    );
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.usersRepository.findOne({
-      where: { email: email.toLowerCase() },
-    });
+    const cacheKey = `user:email:${email.toLowerCase()}`;
+    return cacheGetOrSet(
+      cacheKey,
+      async () => {
+        return this.usersRepository.findOne({
+          where: { email: email.toLowerCase() },
+        });
+      },
+      3600
+    );
   }
 
   async update(id: string, updateData: Partial<User>): Promise<User> {
@@ -93,25 +121,39 @@ export class UsersService {
     }
 
     Object.assign(user, updateData);
-    return this.usersRepository.save(user);
+    const updatedUser = await this.usersRepository.save(user);
+
+    // Очищаем кэш через сервис
+    await this.usersCacheService.clearUserCache(id, updateData.email || user.email);
+
+    return updatedUser;
   }
 
   async remove(id: string): Promise<void> {
     const user = await this.findOne(id);
     await this.usersRepository.softRemove(user);
+
+    // Очищаем кэш через сервис
+    await this.usersCacheService.clearUserCache(id, user.email);
   }
+
   async findAllWithPagination(
     page: number = 1,
     limit: number = 10,
   ): Promise<[User[], number]> {
-    const skip = (page - 1) * limit;
+    const cacheKey = `users:all:${page}:${limit}`;
 
-    const [users, total] = await this.usersRepository.findAndCount({
-      skip,
-      take: limit,
-      order: { createdAt: 'DESC' },
-    });
-
-    return [users, total];
+    return cacheGetOrSet(
+      cacheKey,
+      async () => {
+        const skip = (page - 1) * limit;
+        return this.usersRepository.findAndCount({
+          skip,
+          take: limit,
+          order: { createdAt: 'DESC' },
+        });
+      },
+      300
+    );
   }
 }

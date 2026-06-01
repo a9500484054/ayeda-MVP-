@@ -29,16 +29,23 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
-import { User } from './entities/user.entity';
+import { User, UserRole } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PaginatedResponseDto, PaginationDto } from 'src/common/dto/pagination.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard'; // Добавьте импорт RolesGuard
+import { UsersCacheService } from './users.cache.service';
+import { Roles } from '../../common/decorators/roles.decorator'; // Исправьте путь
+import redisClient from 'src/config/redis';
 
 @ApiTags('users')
 @Controller('users')
 @UseInterceptors(ClassSerializerInterceptor)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly usersCacheService: UsersCacheService, // Исправьте синтаксис конструктора
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Создание нового пользователя' })
@@ -55,16 +62,6 @@ export class UsersController {
     return new UserResponseDto(user);
   }
 
-  // @Get()
-  // @ApiOperation({ summary: 'Получение списка всех пользователей' })
-  // @ApiOkResponse({
-  //   description: 'Список пользователей',
-  //   type: [UserResponseDto],
-  // })
-  // async findAll(): Promise<UserResponseDto[]> {
-  //   const users = await this.usersService.findAll();
-  //   return users.map((user) => new UserResponseDto(user));
-  // }
   @Get()
   @ApiOperation({
     summary: 'Получить список всех пользователей (с пагинацией)',
@@ -77,7 +74,6 @@ export class UsersController {
   async findAll(
     @Query() paginationDto: PaginationDto,
   ): Promise<PaginatedResponseDto<UserResponseDto>> {
-    // Значения по умолчанию уже есть в DTO, но на всякий случай
     const page = Number(paginationDto.page) || 1;
     const limit = Number(paginationDto.limit) || 10;
 
@@ -95,8 +91,8 @@ export class UsersController {
   }
 
   @Get('me')
-  @UseGuards(JwtAuthGuard) // Защищаем эндпоинт JWT токеном
-  @ApiBearerAuth() // Добавляем в Swagger документацию
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Получение текущего авторизованного пользователя' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -129,7 +125,7 @@ export class UsersController {
   @Patch(':id')
   @ApiOperation({ summary: 'Обновление данных пользователя' })
   @ApiParam({ name: 'id', description: 'UUID пользователя' })
-  @ApiBody({ type: UpdateUserDto }) // Добавить эту строку!
+  @ApiBody({ type: UpdateUserDto })
   @ApiOkResponse({
     description: 'Пользователь обновлен',
     type: UserResponseDto,
@@ -154,5 +150,34 @@ export class UsersController {
   @ApiNotFoundResponse({ description: 'Пользователь не найден' })
   async remove(@Param('id') id: string): Promise<void> {
     await this.usersService.remove(id);
+  }
+
+  @Post('cache/clear')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Очистка кэша пользователей (только админ)' })
+  async clearCache() {
+    await this.usersCacheService.clearAllUsersCache();
+    return { message: 'Cache cleared successfully' };
+  }
+
+  @Get('cache/stats')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Статистика кэша пользователей (только админ)' })
+  async getCacheStats() {
+    const keys = await redisClient.keys('user:*');
+    const stats = {
+      totalCachedUsers: keys.length,
+      keys: keys,
+      memory: await redisClient.info('memory').then(info => {
+        const match = info.match(/used_memory_human:(\d+\.?\d*\s*\w+)/);
+        return match ? match[1] : 'unknown';
+      })
+    };
+    return stats;
   }
 }

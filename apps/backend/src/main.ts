@@ -10,6 +10,7 @@ import {
 import cookieParser from 'cookie-parser';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { join } from 'path';
+import redisClient from './config/redis';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule); // 👈 ИЗМЕНИТЬ (добавить <NestExpressApplication>)
@@ -47,6 +48,9 @@ async function bootstrap() {
     defaultVersion: '1',
     prefix: 'api/v',
   });
+
+  // Дожидаемся подключения Redis
+  await redisClient.connect();
 
   // Swagger Configuration
   const config = new DocumentBuilder()

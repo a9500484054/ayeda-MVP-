@@ -17,6 +17,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { EmailService } from '../email/email.service';
+import { setUserSession } from 'src/utils/redis.utils';
 
 
 @Injectable()
@@ -79,6 +80,14 @@ export class AuthService {
 
     // Генерируем токены
     const tokens = await this.generateTokens(user);
+
+    // Сохраняем сессию в Redis
+    await setUserSession(user.id, {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      lastLoginAt: new Date(),
+    }, 86400); // 24 часа
 
     return {
       ...tokens,

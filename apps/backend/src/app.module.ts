@@ -18,6 +18,9 @@ import { MenuPlannerModule } from './modules/menu-planner/menu-planner.module';
 import { ShoppingCategoriesModule } from './modules/shopping-categories/shopping-categories.module';
 import { ShoppingListsModule } from './modules/shopping-lists/shopping-lists.module';
 import { ArticlesModule } from './modules/articles/articles.module';
+import { RedisModule } from './modules/redis/redis.module';
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-yet';
 
 @Module({
   imports: [
@@ -25,6 +28,19 @@ import { ArticlesModule } from './modules/articles/articles.module';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+    }),
+
+    // Добавьте CacheModule для глобального кэширования
+    CacheModule.registerAsync({
+      isGlobal: true,
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        store: await redisStore({
+          url: configService.get('REDIS_URL', 'redis://localhost:6379'),
+          ttl: 3600, // 1 час по умолчанию
+        }),
+      }),
     }),
 
     // Асинхронно подключаем TypeORM
@@ -59,6 +75,7 @@ import { ArticlesModule } from './modules/articles/articles.module';
     ShoppingCategoriesModule,
     ShoppingListsModule,
     ArticlesModule,
+    RedisModule,
   ],
   controllers: [],
   providers: [],

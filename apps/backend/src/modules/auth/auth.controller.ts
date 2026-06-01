@@ -24,6 +24,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
+import { RateLimitGuard } from './guards/rate-limit.guard';
 
 // Расширяем интерфейс Request, чтобы добавить user
 interface RequestWithUser extends Request {
@@ -56,6 +57,7 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @UseGuards(RateLimitGuard) // Добавьте guard для защиты от брутфорса
   @ApiOperation({ summary: 'Вход в систему' })
   @ApiResponse({
     status: HttpStatus.OK,
