@@ -16,9 +16,12 @@ export default defineNuxtConfig({
         '/login',
         '/register',
         '/forgot-password',
+        '/terms',
+        '/privacy',
         '/reset-password',
       ],
-      crawlLinks: true
+      crawlLinks: false,  // ← ИЗМЕНЕНО с true на false
+      failOnError: false  // ← ДОБАВЬТЕ эту строку
     }
   },
   vite: {
@@ -151,8 +154,8 @@ export default defineNuxtConfig({
     telegramBotToken: process.env.TELEGRAM_BOT_TOKEN,
     telegramChatId: process.env.TELEGRAM_CHAT_ID,
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE_URL || "http://localhost:3001/api/v1",
-      apiUrl: process.env.NUXT_PUBLIC_API_URL || "http://localhost:3001", // Добавьте эту строку
+      apiBase: process.env.NUXT_PUBLIC_API_BASE_URL || "https://ayeda.ru/api/v1",
+      apiUrl: process.env.NUXT_PUBLIC_API_URL || "https://ayeda.ru", // Добавьте эту строку
       sentryDsn: process.env.NUXT_PUBLIC_SENTRY_DSN || "",
       yandexMetricaId: process.env.NUXT_PUBLIC_YANDEX_METRICA_ID || "",
     },
@@ -164,9 +167,11 @@ export default defineNuxtConfig({
     "/support": { prerender: true },
     "/policy": { prerender: true },
     "/offer": { prerender: true },
-    "/verify-email": { prerender: true },
-    "/login": { prerender: true },
-    "/register": { prerender: true },
+    "/verify-email": { ssr: false },
+    "/login": { ssr: true },
+    "/register": { ssr: true },
+    "/terms": { prerender: true },
+    "/privacy": { prerender: true },
     "/recipes/**": { ssr: true },
     "/blog/**": { ssr: true },
     "/cabinet/**": { ssr: false },
