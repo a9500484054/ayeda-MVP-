@@ -69,27 +69,27 @@ services:
       redis:
         condition: service_healthy
 
-  frontend:
-    build:
-      context: ./apps/frontend
-      target: production
-    container_name: ayeda_frontend
-    restart: always
-    environment:
-      NUXT_PUBLIC_API_BASE: ${API_BASE_URL:-http://localhost:3001}
-      NODE_ENV: production
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
-    networks:
-      - dev
-    deploy:
-      resources:
-        limits:
-          memory: 6G  # Добавьте эту секцию
-        reservations:
-          memory: 2G
+  # frontend:
+  #   build:
+  #     context: ./apps/frontend
+  #     target: production
+  #   container_name: ayeda_frontend
+  #   restart: always
+  #   environment:
+  #     NUXT_PUBLIC_API_BASE: ${API_BASE_URL:-http://localhost:3001}
+  #     NODE_ENV: production
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - backend
+  #   networks:
+  #     - dev
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 6G  # Добавьте эту секцию
+  #       reservations:
+  #         memory: 2G
 
   pgadmin:
     image: dpage/pgadmin4:latest
