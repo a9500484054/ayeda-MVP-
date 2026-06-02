@@ -5,6 +5,17 @@ export default defineNuxtConfig({
   sourcemap: false,  // отключает генерацию sourcemap
   nitro: {
     sourceMap: false,
+    prerender: {
+      routes: [
+        '/',
+        '/about',
+        '/support',
+        '/policy',
+        '/offer',
+        '/verify-email'
+      ],
+      crawlLinks: true
+    }
   },
   vite: {
     build: {
@@ -145,12 +156,13 @@ export default defineNuxtConfig({
 
   routeRules: {
     "/": { prerender: true },
-    "/recipes/**": { ssr: true, },
-    "/blog/**": { ssr: true, },
-    "/about": { ssr: true },
-    "/support": { ssr: true },
-    "/policy": { ssr: true },
-    "/offer": { ssr: true },
+    "/recipes/**": { ssr: true, prerender: false },
+    "/blog/**": { ssr: true, prerender: false },
+    "/about": { prerender: true },  // Изменили на prerender
+    "/support": { prerender: true },
+    "/policy": { prerender: true },
+    "/offer": { prerender: true },
+    "/verify-email": { prerender: true },  // Добавили
     "/cabinet/**": { ssr: false },
     "/admin/**": { ssr: false },
   },
