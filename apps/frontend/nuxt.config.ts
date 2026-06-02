@@ -7,12 +7,16 @@ export default defineNuxtConfig({
     sourceMap: false,
     prerender: {
       routes: [
-        '/',
+       '/',
         '/about',
         '/support',
         '/policy',
         '/offer',
-        '/verify-email'
+        '/verify-email',
+        '/login',
+        '/register',
+        '/forgot-password',
+        '/reset-password',
       ],
       crawlLinks: true
     }
@@ -156,15 +160,17 @@ export default defineNuxtConfig({
 
   routeRules: {
     "/": { prerender: true },
-    "/recipes/**": { ssr: true, prerender: false },
-    "/blog/**": { ssr: true, prerender: false },
-    "/about": { prerender: true },  // Изменили на prerender
+    "/about": { prerender: true },
     "/support": { prerender: true },
     "/policy": { prerender: true },
     "/offer": { prerender: true },
-    "/verify-email": { prerender: true },  // Добавили
+    "/verify-email": { prerender: true },
+    "/login": { prerender: true },
+    "/register": { prerender: true },
+    "/recipes/**": { ssr: true },
+    "/blog/**": { ssr: true },
     "/cabinet/**": { ssr: false },
-    "/admin/**": { ssr: false },
+    "/admin/**": { ssr: false }
   },
 
   typescript: {
