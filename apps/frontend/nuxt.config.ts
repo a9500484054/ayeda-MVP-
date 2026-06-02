@@ -2,7 +2,15 @@
 export default defineNuxtConfig({
   compatibilityDate: "2026-03-06",
   ssr: true,
-  sourcemap: false,
+  sourcemap: false,  // отключает генерацию sourcemap
+  nitro: {
+    sourceMap: false,
+  },
+  vite: {
+    build: {
+      sourcemap: false,
+    },
+  },
   modules: [
     "@nuxt/ui",
     "@pinia/nuxt",
