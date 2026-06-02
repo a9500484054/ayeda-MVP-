@@ -56,7 +56,7 @@ services:
       DB_HOST: postgres
       REDIS_HOST: redis
       NODE_ENV: production
-
+      FRONTEND_URL: https://ayeda.ru  # ← ДОБАВЬТЕ ЭТУ СТРОКУ
     ports:
       - "3001:4000"
 
