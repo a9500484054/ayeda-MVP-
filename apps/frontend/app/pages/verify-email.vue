@@ -112,11 +112,13 @@ const status = ref<"loading" | "success" | "error">("loading");
 const message = ref("");
 const countdown = ref(5);
 const token = ref("");
+const config = useRuntimeConfig()
+
 
 // Функция подтверждения email
 const verifyEmail = async (token: string) => {
   try {
-    const response = await $fetch('http://localhost:3001/api/v1/auth/verify-email', {
+    const response = await $fetch(`${config.public.apiUrl}/auth/verify-email`, {
       method: 'POST',
       headers: {
         'accept': '*/*',

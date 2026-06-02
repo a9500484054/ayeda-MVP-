@@ -194,7 +194,7 @@ const getImageUrl = (recipe: RecipeResponse) => {
   const src = recipe.photo?.src
   if (!src) return ''
   if (src.startsWith('http')) return src
-  const apiUrl = config.public.apiUrl || 'http://localhost:3001'
+  const apiUrl = config.public.apiBase || 'http://localhost:3001'
   if (src.startsWith('/')) return `${apiUrl}${src}`
   return `${apiUrl}/${src}`
 }

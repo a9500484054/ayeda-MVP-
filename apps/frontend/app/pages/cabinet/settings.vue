@@ -282,7 +282,7 @@ const { user } = useAuth();
 
 // Базовый URL API
 const config = useRuntimeConfig();
-const API_BASE_URL = 'http://localhost:3001';
+const API_BASE_URL = config.public.apiBase;
 
 // Роли пользователя
 const roleBadge = computed(() => {

@@ -23,6 +23,7 @@ useHead({
   ],
 })
 
+const config = useRuntimeConfig()
 
 const pending = ref(false);
 const success = ref(false);
@@ -55,8 +56,9 @@ const onSubmit = handleSubmit(async (values) => {
     // Здесь будет запрос на сброс пароля
     // await $fetch('/api/auth/forgot-password', { method: 'POST', body: { email: values.email } })
 
+
     // Имитация запроса
-    const response = await $fetch('http://localhost:3001/api/v1/auth/forgot-password', {
+    const response = await $fetch(`${config.public.apiUrl}/auth/forgot-password`, {
       method: 'POST',
       headers: {
         'accept': '*/*',

@@ -149,7 +149,10 @@ const emit = defineEmits<{
 const fileInput = ref<HTMLInputElement>()
 const isDragOver = ref(false)
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+const config = useRuntimeConfig()
+
+
+const API_BASE_URL = config.public.apiBase || 'http://localhost:3001'
 
 const imageUrl = computed(() => {
   if (!props.modelValue) return ''

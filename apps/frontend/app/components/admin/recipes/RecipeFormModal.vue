@@ -308,7 +308,9 @@ import SEOForm from './SEOForm.vue'
 import IngredientsForm from './IngredientsForm.vue'
 import AutoCompleteTags from './AutoCompleteTags.vue'
 
-const API_BASE_URL = 'http://localhost:3001'
+const config = useRuntimeConfig()
+
+const API_BASE_URL = config.public.apiBase
 
 interface Props {
   modelValue: boolean

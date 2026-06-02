@@ -204,6 +204,7 @@ definePageMeta({
   layout: false,
   ssr: false
 })
+const config = useRuntimeConfig()
 
 useHead({
   title: 'Сброс пароля | АУеда',
@@ -276,7 +277,7 @@ const onSubmit = handleSubmit(async (values) => {
   serverError.value = "";
 
   try {
-    const response = await $fetch('http://localhost:3001/api/v1/auth/reset-password', {
+    const response = await $fetch(`${config.public.apiUrl}/auth/reset-password`, {
       method: 'POST',
       headers: {
         'accept': '*/*',

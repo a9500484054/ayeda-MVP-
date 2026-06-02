@@ -45,7 +45,7 @@ const authorName = computed(() => {
 const getImageUrl = (path: string) => {
   if (!path) return ''
   if (path.startsWith('http')) return path
-  const apiUrl = config.public.apiUrl || 'http://localhost:3001'
+  const apiUrl = config.public.apiBase || 'http://localhost:3001'
   if (path.startsWith('/')) return `${apiUrl}${path}`
   return `${apiUrl}/${path}`
 }

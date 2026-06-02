@@ -328,6 +328,7 @@ const router = useRouter()
 const isMobileMenuOpen = ref(false)
 const showLogoutModal = ref(false)
 const isDemoOpen = ref(false)
+const config = useRuntimeConfig()
 
 // Проверка на режим разработки
 const isDevMode = computed(() => {
@@ -477,7 +478,7 @@ const avatarPreview = computed(() => {
   const avatar = userStore.user?.avatar
   if (!avatar) return null
   if (avatar.startsWith('http')) return avatar
-  const API_BASE_URL = 'http://localhost:3001'
+  const API_BASE_URL = config.public.apiUrl
   return `${API_BASE_URL}${avatar}`
 })
 </script>

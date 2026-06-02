@@ -235,7 +235,9 @@ const isMyRecipesTab = computed(() => props.activeTab === 'my')
 const isFavoritesTab = computed(() => props.activeTab === 'favorites')
 const showModerationButton = computed(() => props.activeTab === 'my')
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+const config = useRuntimeConfig()
+
+const API_BASE_URL = config.public.apiBase || 'http://localhost:3001'
 
 // Показывать кнопки редактирования/удаления только для черновиков, приватных и отклоненных
 const showEditDeleteButtons = computed(() => {

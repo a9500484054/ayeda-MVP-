@@ -33,8 +33,9 @@ import type { TableColumn } from '@nuxt/ui'
 
 const UBadge = resolveComponent('UBadge')
 const UButton = resolveComponent('UButton')
+const config = useRuntimeConfig()
 
-const API_BASE_URL = 'http://localhost:3001'
+const API_BASE_URL = config.public.apiBase
 
 interface Props {
   recipes: any[]

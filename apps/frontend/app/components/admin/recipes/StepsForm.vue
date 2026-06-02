@@ -113,7 +113,8 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 
-const API_BASE_URL = 'http://localhost:3001'
+const config = useRuntimeConfig()
+const API_BASE_URL = config.public.apiBase
 
 interface Props {
   steps: any[]
