@@ -1,102 +1,115 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: "2026-03-06",
-  ssr: true,
-  sourcemap: false,  // отключает генерацию sourcemap
-  nitro: {
-    sourceMap: false,
-    prerender: {
-      routes: [
-       '/',
-        '/about',
-        '/support',
-        '/policy',
-        '/offer',
-        '/verify-email',
-        '/login',
-        '/register',
-        '/forgot-password',
-        '/terms',
-        '/privacy',
-        '/reset-password',
-      ],
-      crawlLinks: false,  // ← ИЗМЕНЕНО с true на false
-      failOnError: false  // ← ДОБАВЬТЕ эту строку
-    }
-  },
-  vite: {
-    build: {
-      sourcemap: false,
-    },
-  },
-  modules: [
-    "@nuxt/ui",
-    "@pinia/nuxt",
-    "@vite-pwa/nuxt",
-    "@vee-validate/nuxt",
-    '@vite-pwa/nuxt',
-  ],
+  compatibilityDate: '2026-03-06',
 
-  devtools: { enabled: true },
-  css: ["~/assets/css/main.css"],
+  ssr: true,
+
+  devtools: {
+    enabled: process.env.NODE_ENV !== 'production'
+  },
+
+  sourcemap: false,
+
+  css: ['~/assets/css/main.css'],
+
+  modules: [
+    '@nuxt/ui',
+    '@pinia/nuxt',
+    '@vee-validate/nuxt',
+    '@vite-pwa/nuxt'
+  ],
 
   ui: {
     colorMode: false,
+    icons: {
+      clientBundle: {
+      // Автоматически сканирует компоненты в проекте на наличие <UIcon name="...">
+      scan: true,
+
+      // Можно также указать явно, если автопоиск не сработает:
+      // icons: ['lucide:menu', 'lucide:x', 'lucide:utensils'],
+
+      // Размер бандла (опционально)
+      sizeLimitKb: 256,
+    }
+    },
+    // icons: {
+    //   dynamic: true
+    // }
+  },
+  app: {
+    baseURL: '/',
+    head: {
+      htmlAttrs: {
+        lang: 'ru'
+      }
+    }
   },
 
-  // PWA Configuration
+  vite: {
+    build: {
+      sourcemap: false
+    }
+  },
+
+  nitro: {
+    sourceMap: false,
+    compressPublicAssets: true,
+
+    // ✅ ВКЛЮЧАЕМ CRAWLER PRERENDER
+    prerender: {
+      crawlLinks: true
+    }
+  },
+
+  /**
+   * ROUTE RULES
+   */
+  routeRules: {
+    // SEO static pages
+    '/': { prerender: true },
+    '/about': { prerender: true },
+    '/support': { prerender: true },
+    '/policy': { prerender: true },
+    '/offer': { prerender: true },
+
+    // ⚠️ теперь blog и recipes тоже участвуют в prerender
+    '/blog/**': { prerender: true },
+    '/recipes/**': { prerender: true },
+
+    '/terms': { ssr: true },
+    '/privacy': { ssr: true },
+
+    // auth SPA
+    '/login': { ssr: false },
+    '/register': { ssr: false },
+    '/forgot-password': { ssr: false },
+    '/reset-password': { ssr: false },
+    '/verify-email': { ssr: false },
+
+    // private areas SPA
+    '/cabinet/**': { ssr: false },
+    '/admin/**': { ssr: false }
+  },
+
   pwa: {
     registerType: 'autoUpdate',
+
     manifest: {
       name: 'АУеда',
       short_name: 'АУеда',
       description: 'Кулинарные рецепты и списки покупок',
+
       theme_color: '#f97316',
       background_color: '#ffffff',
+
       display: 'standalone',
-      scope: '/',
       start_url: '/',
-      orientation: 'portrait',
+      scope: '/',
+
       icons: [
-        {
-          src: '/icons/icon-72x72.png',
-          sizes: '72x72',
-          type: 'image/png',
-          purpose: 'any maskable'
-        },
-        {
-          src: '/icons/icon-96x96.png',
-          sizes: '96x96',
-          type: 'image/png',
-          purpose: 'any maskable'
-        },
-        {
-          src: '/icons/icon-128x128.png',
-          sizes: '128x128',
-          type: 'image/png',
-          purpose: 'any maskable'
-        },
-        {
-          src: '/icons/icon-144x144.png',
-          sizes: '144x144',
-          type: 'image/png',
-          purpose: 'any maskable'
-        },
-        {
-          src: '/icons/icon-152x152.png',
-          sizes: '152x152',
-          type: 'image/png',
-          purpose: 'any maskable'
-        },
         {
           src: '/icons/icon-192x192.png',
           sizes: '192x192',
-          type: 'image/png',
-          purpose: 'any maskable'
-        },
-        {
-          src: '/icons/icon-384x384.png',
-          sizes: '384x384',
           type: 'image/png',
           purpose: 'any maskable'
         },
@@ -108,9 +121,14 @@ export default defineNuxtConfig({
         }
       ]
     },
+
     workbox: {
-      navigateFallback: '/',
-      globPatterns: ['**/*.{js,css,html,png,svg,ico,webp,woff2}'],
+      navigateFallback: undefined,
+
+      cleanupOutdatedCaches: true,
+
+      globPatterns: ['**/*.{js,css,html,png,svg,ico,woff2,webp}'],
+
       runtimeCaching: [
         {
           urlPattern: /^https:\/\/api\.ayeda\.ru\/.*/i,
@@ -119,72 +137,58 @@ export default defineNuxtConfig({
             cacheName: 'api-cache',
             expiration: {
               maxEntries: 100,
-              maxAgeSeconds: 60 * 60 * 24 // 24 часа
+              maxAgeSeconds: 60 * 60 * 24
             },
             cacheableResponse: {
               statuses: [0, 200]
             }
           }
         },
+
         {
-          urlPattern: /\.(png|jpg|jpeg|svg|webp|gif)$/,
+          urlPattern: /\.(png|jpg|jpeg|svg|webp|gif)$/i,
           handler: 'CacheFirst',
           options: {
             cacheName: 'image-cache',
             expiration: {
-              maxEntries: 50,
-              maxAgeSeconds: 60 * 60 * 24 * 30 // 30 дней
+              maxEntries: 200,
+              maxAgeSeconds: 60 * 60 * 24 * 30
             }
           }
         }
       ]
     },
+
     client: {
       installPrompt: true,
       periodicSyncForUpdates: 3600
     },
+
     devOptions: {
-      enabled: process.env.NODE_ENV === 'production' ? false : true,
+      enabled: process.env.NODE_ENV !== 'production',
       type: 'module'
     }
   },
 
   runtimeConfig: {
-    apiSecret: process.env.NUXT_API_SECRET || "",
+    apiSecret: process.env.NUXT_API_SECRET || '',
+
     telegramBotToken: process.env.TELEGRAM_BOT_TOKEN,
     telegramChatId: process.env.TELEGRAM_CHAT_ID,
-    public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE_URL || "https://ayeda.ru/api/v1",
-      apiUrl: process.env.NUXT_PUBLIC_API_URL || "https://ayeda.ru", // Добавьте эту строку
-      sentryDsn: process.env.NUXT_PUBLIC_SENTRY_DSN || "",
-      yandexMetricaId: process.env.NUXT_PUBLIC_YANDEX_METRICA_ID || "",
-    },
-  },
 
-  routeRules: {
-    "/": { prerender: true },
-    "/about": { prerender: true },
-    "/support": { prerender: true },
-    "/policy": { prerender: true },
-    "/offer": { prerender: true },
-    "/verify-email": { ssr: false },
-    "/login": { ssr: true },
-    "/register": { ssr: true },
-    "/terms": { prerender: true },
-    "/privacy": { prerender: true },
-    "/recipes/**": { ssr: true },
-    "/blog/**": { ssr: true },
-    "/cabinet/**": { ssr: false },
-    "/admin/**": { ssr: false }
+    public: {
+      apiBase:
+        process.env.NUXT_PUBLIC_API_BASE_URL ||
+        'https://ayeda.ru/api/v1',
+
+      apiUrl:
+        process.env.NUXT_PUBLIC_API_URL ||
+        'https://ayeda.ru'
+    }
   },
 
   typescript: {
     strict: true,
-    typeCheck: false,
-    tsConfig: {
-      compilerOptions: {
-        verbatimModuleSyntax: true,
-      },
-    },
-  },
-});
+    typeCheck: false
+  }
+})

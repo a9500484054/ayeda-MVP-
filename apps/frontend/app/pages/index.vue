@@ -102,8 +102,8 @@
             <div class="relative z-10 bg-white/60 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-6 transform rotate-2 hover:rotate-0 transition-all duration-500">
               <!-- AI Badge -->
               <div class="absolute -top-3 -right-3 bg-gradient-to-r from-amber-400 to-orange-400 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-                🤖 AI план
-                <!-- 🤖 Твой план -->
+                <!-- 🤖 AI план -->
+                🤖 план
               </div>
 
               <!-- Демо меню -->
@@ -261,7 +261,7 @@
               <!-- Иллюстрация -->
               <div class="lg:w-1/2">
                 <div class="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-6 shadow-lg">
-                  <img :src="step.image" :alt="step.title" class="w-full rounded-xl">
+                  <!-- <img :src="step.image" :alt="step.title" class="w-full rounded-xl"> -->
                 </div>
               </div>
             </div>

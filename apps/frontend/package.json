@@ -3,7 +3,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "NODE_OPTIONS=\"--max-old-space-size=2048\" nuxt build",
+    "build": "nuxt build",
     "dev": "nuxt dev",
     "lint": "eslint app --ext .ts,.vue --quiet --rule \"no-undef: off\"",
     "type-check": "nuxt typecheck",
@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "@hey-api/openapi-ts": "^0.87.0",
-    "@iconify-json/lucide": "^1.2.105",
+    "@iconify-json/lucide": "^1.2.111",
     "@pinia/nuxt": "^0.11.3",
     "@playwright/test": "^1.57.0",
     "@types/sortablejs": "^1.15.9",
