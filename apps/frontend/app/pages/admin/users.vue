@@ -300,11 +300,14 @@ const updateUser = async () => {
   try {
     const updateData: UpdateUserDto = {
       username: formData.value.username,
+      email: formData.value.email, // ← ДОБАВЬТЕ ЭТУ СТРОЧКУ!
       firstName: formData.value.firstName || undefined,
       lastName: formData.value.lastName || undefined,
       bio: formData.value.bio || undefined,
       role: formData.value.role
     }
+
+    console.log('Updating user with data:', updateData); // Для отладки
 
     await usersApi.updateUser(selectedUser.value.id, updateData)
 
@@ -327,7 +330,6 @@ const updateUser = async () => {
     isLoading.value = false
   }
 }
-
 const deleteUser = async () => {
   if (!selectedUser.value) return
 

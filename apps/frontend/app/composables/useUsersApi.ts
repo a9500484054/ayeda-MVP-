@@ -8,6 +8,7 @@ export interface CreateUserDto {
 
 export interface UpdateUserDto {
   username?: string;
+  email?: string // ← УБЕДИТЕСЬ, ЧТО ЭТОТ ПОЛЕ ЕСТЬ
   firstName?: string;
   lastName?: string;
   bio?: string;
