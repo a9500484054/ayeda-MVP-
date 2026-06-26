@@ -182,7 +182,7 @@ export default defineNuxtConfig({
         'https://ayeda.ru/api/v1',
 
       apiUrl:
-        process.env.NUXT_PUBLIC_API_URL ||
+        process.env.NUXT_PUBLIC_APP_URL ||
         'https://ayeda.ru'
     }
   },

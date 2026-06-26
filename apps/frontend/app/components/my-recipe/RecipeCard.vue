@@ -237,7 +237,7 @@ const showModerationButton = computed(() => props.activeTab === 'my')
 
 const config = useRuntimeConfig()
 
-const API_BASE_URL = config.public.apiBase || 'http://localhost:3001'
+const API_BASE_URL = config.public.apiUrl || 'http://localhost:3001'
 
 // Показывать кнопки редактирования/удаления только для черновиков, приватных и отклоненных
 const showEditDeleteButtons = computed(() => {
@@ -247,6 +247,7 @@ const showEditDeleteButtons = computed(() => {
 
 const imageUrl = computed(() => {
   const path = props.recipe.photo?.src
+  console.log('path', path)
   if (!path) return 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop'
   if (path.startsWith('http')) return path
   return `${API_BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`

@@ -152,8 +152,7 @@ const isDragOver = ref(false)
 const config = useRuntimeConfig()
 
 
-const API_BASE_URL = config.public.apiBase || 'http://localhost:3001'
-
+const API_BASE_URL = config.public.apiUrl || 'http://localhost:3001'
 const imageUrl = computed(() => {
   if (!props.modelValue) return ''
 
