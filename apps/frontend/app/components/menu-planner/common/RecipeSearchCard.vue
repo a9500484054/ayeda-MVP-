@@ -89,7 +89,7 @@ const recipeImage = computed(() => {
   if (props.recipe.photo?.src) {
     return config.public.apiUrl + props.recipe.photo.src
   }
-  return '/images/placeholder-recipe.jpg'
+  return '/placeholder-recipe.jpg'
 })
 </script>
 

@@ -28,7 +28,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
     // Если после восстановления все еще нет пользователя
     if (!userStore.user) {
       token.value = null;
-      return navigateTo(`/login?redirect=${encodeURIComponent(to.fullPath)}`);
+      return navigateTo(`/login?redirect=${encodeURIComponent(to.fullPath)}`);ф
     }
   }
 });

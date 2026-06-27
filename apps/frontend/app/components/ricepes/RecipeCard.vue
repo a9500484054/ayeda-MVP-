@@ -143,15 +143,33 @@ const authorName = computed(() => {
   return 'Пользователь'
 })
 
+// const recipeImage = computed(() => {
+//   console.log('props.recipe.photo?.src', props.recipe.photo?.src)
+//   if (props.recipe.photo?.src) {
+//     const src = props.recipe.photo.src
+//     if (src.startsWith('http')) return src
+//     if (src.startsWith('/')) return `${config.public.apiUrl}${src}`
+//     console.log('props.recipe.photo?.src',`${config.public.apiUrl}/${src}`)
+//     return `${config.public.apiUrl}/${src}`
+//   }
+//   return '/placeholder-recipe.jpg'
+// })
+
+
 const recipeImage = computed(() => {
-  if (props.recipe.photo?.src) {
-    const src = props.recipe.photo.src
-    if (src.startsWith('http')) return src
-    if (src.startsWith('/')) return `${config.public.apiUrl}${src}`
-    return `${config.public.apiUrl}/${src}`
+  if (props.recipe?.photo?.src) {
+    return getImageUrl(props.recipe?.photo?.src)
   }
-  return '/images/placeholder-recipe.jpg'
+  return 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop'
 })
+
+const getImageUrl = (path: string) => {
+  if (!path) return ''
+  if (path.startsWith('http')) return path
+  const apiUrl = config.public.appUrl || 'http://localhost:3001'
+  if (path.startsWith('/')) return `${apiUrl}${path}`
+  return `${apiUrl}/${path}`
+}
 
 const openRecipe = () => {
   emit('open', props.recipe)
@@ -169,6 +187,6 @@ const toggleLike = () => {
 
 const handleImageError = (e: Event) => {
   const target = e.target as HTMLImageElement
-  target.src = '/images/placeholder-recipe.jpg'
+  target.src = '/placeholder-recipe.jpg'
 }
 </script>
