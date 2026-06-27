@@ -118,7 +118,7 @@ const config = useRuntimeConfig()
 // Функция подтверждения email
 const verifyEmail = async (token: string) => {
   try {
-    const response = await $fetch(`${config.public.apiUrl}/auth/verify-email`, {
+    const response = await $fetch(`${config.public.apiBase}/auth/verify-email`, {
       method: 'POST',
       headers: {
         'accept': '*/*',
