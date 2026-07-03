@@ -116,8 +116,8 @@ export default defineNuxtConfig({
   pwa: {
     registerType: 'autoUpdate',
     manifest: {
-      name: 'АУеда',
-      short_name: 'АУеда',
+      name: 'AyEda',
+      short_name: 'AyEda',
       description: 'Кулинарные рецепты и списки покупок',
       theme_color: '#166534',
       background_color: '#ffffff',

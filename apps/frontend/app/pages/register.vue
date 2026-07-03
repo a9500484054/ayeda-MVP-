@@ -8,12 +8,15 @@
       <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-teal-400 rounded-full blur-3xl opacity-30"></div>
 
       <div class="relative z-10">
-        <div class="flex items-center gap-2">
-          <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
-            <UIcon name="i-lucide-utensils" class="w-5 h-5 text-emerald-600" />
+        <NuxtLink to="/">
+          <div class="flex items-center gap-2">
+            <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
+              <UIcon name="i-lucide-utensils" class="w-5 h-5 text-emerald-600" />
+            </div>
+            <span class="text-2xl font-bold text-white">AyEda</span>
           </div>
-          <span class="text-2xl font-bold text-white">AyEda</span>
-        </div>
+        </NuxtLink>
+
       </div>
 
       <div class="relative z-10">
@@ -29,19 +32,19 @@
             <div class="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
               <UIcon name="i-lucide-check" class="w-3 h-3" />
             </div>
-            <span>14 дней бесплатно</span>
+            <span>Лучшие рецепты в одном месте</span>
           </div>
           <div class="flex items-center gap-3 text-white/80 text-sm">
             <div class="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
               <UIcon name="i-lucide-check" class="w-3 h-3" />
             </div>
-            <span>500+ проверенных рецептов</span>
+            <span>Сбалансированное меню</span>
           </div>
           <div class="flex items-center gap-3 text-white/80 text-sm">
             <div class="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
               <UIcon name="i-lucide-check" class="w-3 h-3" />
             </div>
-            <span>Умные списки покупок</span>
+            <span>Готовый план покупок</span>
           </div>
         </div>
 
@@ -204,11 +207,11 @@
               </div>
               <span class="text-sm text-gray-600 group-hover:text-gray-800 transition">
                 Я соглашаюсь с
-                <NuxtLink to="/terms" class="text-emerald-600 hover:text-emerald-700 font-medium underline underline-offset-2">
+                <NuxtLink to="/offer" class="text-emerald-600 hover:text-emerald-700 font-medium underline underline-offset-2">
                   условиями использования
                 </NuxtLink>
                 и
-                <NuxtLink to="/privacy" class="text-emerald-600 hover:text-emerald-700 font-medium underline underline-offset-2">
+                <NuxtLink to="/policy" class="text-emerald-600 hover:text-emerald-700 font-medium underline underline-offset-2">
                   политикой конфиденциальности
                 </NuxtLink>
               </span>
@@ -264,17 +267,17 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Регистрация | АУеда',
+  title: 'Регистрация | AyEda',
   meta: [
-    { name: 'description', content: 'Создайте аккаунт на АУеда за 30 секунд. 14 дней бесплатно, 500+ рецептов и умные списки покупок.', key: 'description' },
+    { name: 'description', content: 'Создайте аккаунт на AyEda за 30 секунд. 14 дней бесплатно, 500+ рецептов и умные списки покупок.', key: 'description' },
     { name: 'robots', content: 'noindex, nofollow', key: 'robots' },
-    { property: 'og:title', content: 'Регистрация | АУеда', key: 'og:title' },
+    { property: 'og:title', content: 'Регистрация | AyEda', key: 'og:title' },
     { property: 'og:description', content: 'Создайте аккаунт и начните планировать питание', key: 'og:description' },
     { property: 'og:type', content: 'website', key: 'og:type' },
     { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
-    { property: 'og:image:alt', content: 'Регистрация на АУеда', key: 'og:image:alt' },
+    { property: 'og:image:alt', content: 'Регистрация на AyEda', key: 'og:image:alt' },
     { property: 'og:url', content: 'https://ayeda.ru/register', key: 'og:url' },
-    { property: 'og:site_name', content: 'АУеда', key: 'og:site_name' },
+    { property: 'og:site_name', content: 'AyEda', key: 'og:site_name' },
   ],
 })
 

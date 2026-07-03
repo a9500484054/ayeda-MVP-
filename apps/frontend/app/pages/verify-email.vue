@@ -92,17 +92,17 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Подтверждение email | АУеда',
+  title: 'Подтверждение email | AyEda',
   meta: [
-    { name: 'description', content: 'Подтверждение email адреса для активации аккаунта на АУеда.', key: 'description' },
+    { name: 'description', content: 'Подтверждение email адреса для активации аккаунта на AyEda.', key: 'description' },
     { name: 'robots', content: 'noindex, nofollow', key: 'robots' },
-    { property: 'og:title', content: 'Подтверждение email | АУеда', key: 'og:title' },
+    { property: 'og:title', content: 'Подтверждение email | AyEda', key: 'og:title' },
     { property: 'og:description', content: 'Подтверждение email адреса', key: 'og:description' },
     { property: 'og:type', content: 'website', key: 'og:type' },
     { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
-    { property: 'og:image:alt', content: 'Подтверждение email АУеда', key: 'og:image:alt' },
+    { property: 'og:image:alt', content: 'Подтверждение email AyEda', key: 'og:image:alt' },
     { property: 'og:url', content: 'https://ayeda.ru/verify-email', key: 'og:url' },
-    { property: 'og:site_name', content: 'АУеда', key: 'og:site_name' },
+    { property: 'og:site_name', content: 'AyEda', key: 'og:site_name' },
   ],
 })
 

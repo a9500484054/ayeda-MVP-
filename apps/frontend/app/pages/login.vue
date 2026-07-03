@@ -17,7 +17,7 @@
             <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
               <UIcon name="i-lucide-utensils" class="w-5 h-5 text-emerald-600" />
             </div>
-            <span class="text-2xl font-bold text-white">АУеда</span>
+            <span class="text-2xl font-bold text-white">AyEda</span>
           </div>
         </NuxtLink>
       </div>
@@ -172,17 +172,17 @@ definePageMeta({
 
 
 useHead({
-  title: 'Вход | АУеда',
+  title: 'Вход | AyEda',
   meta: [
-    { name: 'description', content: 'Войдите в свой аккаунт АУеда, чтобы управлять рецептами, планировать меню и создавать списки покупок.', key: 'description' },
+    { name: 'description', content: 'Войдите в свой аккаунт AyEda, чтобы управлять рецептами, планировать меню и создавать списки покупок.', key: 'description' },
     { name: 'robots', content: 'noindex, nofollow', key: 'robots' },
-    { property: 'og:title', content: 'Вход | АУеда', key: 'og:title' },
-    { property: 'og:description', content: 'Войдите в свой аккаунт АУеда', key: 'og:description' },
+    { property: 'og:title', content: 'Вход | AyEda', key: 'og:title' },
+    { property: 'og:description', content: 'Войдите в свой аккаунт AyEda', key: 'og:description' },
     { property: 'og:type', content: 'website', key: 'og:type' },
     { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
-    { property: 'og:image:alt', content: 'Вход в аккаунт АУеда', key: 'og:image:alt' },
+    { property: 'og:image:alt', content: 'Вход в аккаунт AyEda', key: 'og:image:alt' },
     { property: 'og:url', content: 'https://ayeda.ru/login', key: 'og:url' },
-    { property: 'og:site_name', content: 'АУеда', key: 'og:site_name' },
+    { property: 'og:site_name', content: 'AyEda', key: 'og:site_name' },
   ],
 })
 

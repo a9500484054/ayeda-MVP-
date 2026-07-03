@@ -84,15 +84,15 @@ definePageMeta({ layout: 'cabinet' })
 useHead({
   title: 'Рецепты',
   meta: [
-    { name: 'description', content: 'Коллекция кулинарных рецептов на АУеда. Готовьте с удовольствием, делитесь рецептами и открывайте новые блюда.', key: 'description' },
+    { name: 'description', content: 'Коллекция кулинарных рецептов на AyEda. Готовьте с удовольствием, делитесь рецептами и открывайте новые блюда.', key: 'description' },
     { name: 'robots', content: 'index, follow', key: 'robots' },
-    { property: 'og:title', content: 'Рецепты | АУеда', key: 'og:title' },
-    { property: 'og:description', content: 'Коллекция кулинарных рецептов на АУеда', key: 'og:description' },
+    { property: 'og:title', content: 'Рецепты | AyEda', key: 'og:title' },
+    { property: 'og:description', content: 'Коллекция кулинарных рецептов на AyEda', key: 'og:description' },
     { property: 'og:type', content: 'website', key: 'og:type' },
     { property: 'og:image', content: 'https://ayeda.ru/og-recipes.jpg', key: 'og:image' },
-    { property: 'og:image:alt', content: 'Рецепты на АУеда', key: 'og:image:alt' },
+    { property: 'og:image:alt', content: 'Рецепты на AyEda', key: 'og:image:alt' },
     { property: 'og:url', content: 'https://ayeda.ru/recipes', key: 'og:url' },
-    { property: 'og:site_name', content: 'АУеда', key: 'og:site_name' },
+    { property: 'og:site_name', content: 'AyEda', key: 'og:site_name' },
   ],
 })
 

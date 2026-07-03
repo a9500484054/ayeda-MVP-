@@ -17,7 +17,6 @@
 
       <div class="relative z-10">
         <div class="mb-6">
-          <div class="text-7xl mb-4">🔑</div>
           <h2 class="text-4xl font-bold text-white mb-3">Создайте новый пароль</h2>
           <p class="text-emerald-100 text-lg leading-relaxed">
             Придумайте надежный пароль, который вы не используете на других сайтах.
@@ -207,17 +206,17 @@ definePageMeta({
 const config = useRuntimeConfig()
 
 useHead({
-  title: 'Сброс пароля | АУеда',
+  title: 'Сброс пароля | AyEda',
   meta: [
-    { name: 'description', content: 'Создайте новый пароль для доступа к вашему аккаунту на АУеда. Придумайте надежный пароль, который вы не используете на других сайтах.', key: 'description' },
+    { name: 'description', content: 'Создайте новый пароль для доступа к вашему аккаунту на AyEda. Придумайте надежный пароль, который вы не используете на других сайтах.', key: 'description' },
     { name: 'robots', content: 'noindex, nofollow', key: 'robots' },
-    { property: 'og:title', content: 'Сброс пароля | АУеда', key: 'og:title' },
+    { property: 'og:title', content: 'Сброс пароля | AyEda', key: 'og:title' },
     { property: 'og:description', content: 'Создайте новый пароль для доступа к аккаунту', key: 'og:description' },
     { property: 'og:type', content: 'website', key: 'og:type' },
     { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
-    { property: 'og:image:alt', content: 'Сброс пароля АУеда', key: 'og:image:alt' },
+    { property: 'og:image:alt', content: 'Сброс пароля AyEda', key: 'og:image:alt' },
     { property: 'og:url', content: 'https://ayeda.ru/reset-password', key: 'og:url' },
-    { property: 'og:site_name', content: 'АУеда', key: 'og:site_name' },
+    { property: 'og:site_name', content: 'AyEda', key: 'og:site_name' },
   ],
 })
 
@@ -277,7 +276,7 @@ const onSubmit = handleSubmit(async (values) => {
   serverError.value = "";
 
   try {
-    const response = await $fetch(`${config.public.apiUrl}/auth/reset-password`, {
+    const response = await $fetch(`${config.public.apiUrl}/api/v1/auth/reset-password`, {
       method: 'POST',
       headers: {
         'accept': '*/*',

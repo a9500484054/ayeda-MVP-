@@ -9,17 +9,17 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Восстановление пароля | АУеда',
+  title: 'Восстановление пароля | AyEda',
   meta: [
-    { name: 'description', content: 'Забыли пароль? Введите email и мы отправим инструкции для восстановления доступа к вашему аккаунту на АУеда.', key: 'description' },
+    { name: 'description', content: 'Забыли пароль? Введите email и мы отправим инструкции для восстановления доступа к вашему аккаунту на AyEda.', key: 'description' },
     { name: 'robots', content: 'noindex, nofollow', key: 'robots' },
-    { property: 'og:title', content: 'Восстановление пароля | АУеда', key: 'og:title' },
-    { property: 'og:description', content: 'Восстановите доступ к своему аккаунту на АУеда', key: 'og:description' },
+    { property: 'og:title', content: 'Восстановление пароля | AyEda', key: 'og:title' },
+    { property: 'og:description', content: 'Восстановите доступ к своему аккаунту на AyEda', key: 'og:description' },
     { property: 'og:type', content: 'website', key: 'og:type' },
     { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
-    { property: 'og:image:alt', content: 'Восстановление пароля АУеда', key: 'og:image:alt' },
+    { property: 'og:image:alt', content: 'Восстановление пароля AyEda', key: 'og:image:alt' },
     { property: 'og:url', content: 'https://ayeda.ru/forgot-password', key: 'og:url' },
-    { property: 'og:site_name', content: 'АУеда', key: 'og:site_name' },
+    { property: 'og:site_name', content: 'AyEda', key: 'og:site_name' },
   ],
 })
 
@@ -58,7 +58,7 @@ const onSubmit = handleSubmit(async (values) => {
 
 
     // Имитация запроса
-    const response = await $fetch(`${config.public.apiUrl}/auth/forgot-password`, {
+    const response = await $fetch(`${config.public.apiUrl}/api/v1/auth/forgot-password`, {
       method: 'POST',
       headers: {
         'accept': '*/*',
@@ -89,17 +89,18 @@ const onSubmit = handleSubmit(async (values) => {
       <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-teal-400 rounded-full blur-3xl opacity-30"></div>
 
       <div class="relative z-10">
-        <div class="flex items-center gap-2">
-          <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
-            <UIcon name="i-lucide-utensils" class="w-5 h-5 text-emerald-600" />
+        <NuxtLink to="/">
+          <div class="flex items-center gap-2">
+            <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
+              <UIcon name="i-lucide-utensils" class="w-5 h-5 text-emerald-600" />
+            </div>
+            <span class="text-2xl font-bold text-white">AyEda</span>
           </div>
-          <span class="text-2xl font-bold text-white">AyEda</span>
-        </div>
+        </NuxtLink>
       </div>
 
       <div class="relative z-10">
         <div class="mb-6">
-          <div class="text-7xl mb-4">🔐</div>
           <h2 class="text-4xl font-bold text-white mb-3">Восстановление доступа</h2>
           <p class="text-emerald-100 text-lg leading-relaxed">
             Не волнуйтесь! Мы отправим инструкции по восстановлению пароля на вашу почту.

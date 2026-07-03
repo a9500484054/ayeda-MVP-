@@ -23,7 +23,7 @@
             <h2 class="text-2xl font-bold mb-3">1. Общие положения</h2>
             <p class="text-gray-600 mb-3">
               Настоящий документ «Публичная оферта» (далее — Оферта) представляет собой официальное предложение
-              Сервиса «АУеда» (далее — Исполнитель) любому физическому лицу (далее — Заказчик) заключить договор
+              Сервиса «AyEda» (далее — Исполнитель) любому физическому лицу (далее — Заказчик) заключить договор
               на оказание информационно-консультационных услуг по планированию питания на условиях, изложенных ниже.
             </p>
             <p class="text-gray-600">
@@ -193,7 +193,7 @@
               Реквизиты Исполнителя
             </h3>
             <div class="space-y-2 text-sm text-gray-600">
-              <p><span class="font-semibold">ООО «АУеда»</span></p>
+              <p><span class="font-semibold">ООО «AyEda»</span></p>
               <p>ИНН: 7701234567</p>
               <p>КПП: 770101001</p>
               <p>ОГРН: 1237700123456</p>
@@ -212,21 +212,21 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 
 useHead({
-  title: 'Публичная оферта | АУеда',
+  title: 'Публичная оферта | AyEda',
   meta: [
-    { name: 'description', content: 'Публичная оферта сервиса АУеда. Условия использования, тарифы, порядок оплаты и возврата денежных средств. Юридическая информация.', key: 'description' },
+    { name: 'description', content: 'Публичная оферта сервиса AyEda. Условия использования, тарифы, порядок оплаты и возврата денежных средств. Юридическая информация.', key: 'description' },
     { name: 'keywords', content: 'публичная оферта, договор, условия использования, тарифы, возврат средств, юридическая информация', key: 'keywords' },
     { name: 'robots', content: 'index, follow', key: 'robots' },
-    { property: 'og:title', content: 'Публичная оферта | АУеда', key: 'og:title' },
-    { property: 'og:description', content: 'Условия использования сервиса АУеда, тарифы и порядок оплаты', key: 'og:description' },
+    { property: 'og:title', content: 'Публичная оферта | AyEda', key: 'og:title' },
+    { property: 'og:description', content: 'Условия использования сервиса AyEda, тарифы и порядок оплаты', key: 'og:description' },
     { property: 'og:type', content: 'website', key: 'og:type' },
     { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
-    { property: 'og:image:alt', content: 'Публичная оферта АУеда', key: 'og:image:alt' },
+    { property: 'og:image:alt', content: 'Публичная оферта AyEda', key: 'og:image:alt' },
     { property: 'og:url', content: 'https://ayeda.ru/offer', key: 'og:url' },
-    { property: 'og:site_name', content: 'АУеда', key: 'og:site_name' },
+    { property: 'og:site_name', content: 'AyEda', key: 'og:site_name' },
     { name: 'twitter:card', content: 'summary_large_image', key: 'twitter:card' },
-    { name: 'twitter:title', content: 'Публичная оферта | АУеда', key: 'twitter:title' },
-    { name: 'twitter:description', content: 'Условия использования сервиса АУеда', key: 'twitter:description' },
+    { name: 'twitter:title', content: 'Публичная оферта | AyEda', key: 'twitter:title' },
+    { name: 'twitter:description', content: 'Условия использования сервиса AyEda', key: 'twitter:description' },
   ],
   link: [
     { rel: 'canonical', href: 'https://ayeda.ru/offer', key: 'canonical' },

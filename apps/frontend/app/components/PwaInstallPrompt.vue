@@ -3,7 +3,7 @@
     <div class="rounded-xl bg-white shadow-xl border border-zinc-200 p-4 animate-in slide-in-from-bottom-2 duration-300">
       <div class="flex items-start gap-3">
         <div class="flex-shrink-0">
-          <img src="/icons/icon-144x144.png" alt="АУеда" class="h-12 w-12 rounded-xl" />
+          <img src="/icons/icon-144x144.png" alt="AyEda" class="h-12 w-12 rounded-xl" />
         </div>
         <div class="flex-1">
           <h3 class="font-semibold text-zinc-900">Установить приложение</h3>

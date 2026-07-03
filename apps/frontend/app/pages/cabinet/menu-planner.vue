@@ -137,13 +137,13 @@ useHead({
     { name: 'description', content: 'Составляйте меню на дни, календарь или банкет. Планируйте питание и создавайте списки покупок.', key: 'description' },
     { name: 'robots', content: 'noindex, follow', key: 'robots' },
     // OG теги для соцсетей
-    { property: 'og:title', content: 'Планировщик меню | АУеда', key: 'og:title' },
+    { property: 'og:title', content: 'Планировщик меню | AyEda', key: 'og:title' },
     { property: 'og:description', content: 'Составляйте меню на дни, календарь или банкет. Планируйте питание и создавайте списки покупок.', key: 'og:description' },
     { property: 'og:type', content: 'website', key: 'og:type' },
     { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
-    { property: 'og:image:alt', content: 'Планировщик меню на АУеда', key: 'og:image:alt' },
+    { property: 'og:image:alt', content: 'Планировщик меню на AyEda', key: 'og:image:alt' },
     { property: 'og:url', content: 'https://ayeda.ru/cabinet/menu-planner', key: 'og:url' },
-    { property: 'og:site_name', content: 'АУеда', key: 'og:site_name' },
+    { property: 'og:site_name', content: 'AyEda', key: 'og:site_name' },
   ],
 })
 

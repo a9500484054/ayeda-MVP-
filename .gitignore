@@ -41,3 +41,4 @@ tmp/
 temp/
 docker-compose.override.yml
 .env
+ayeda_backup_20260703_155438.sql

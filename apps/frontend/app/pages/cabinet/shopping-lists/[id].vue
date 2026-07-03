@@ -173,13 +173,13 @@ definePageMeta({ layout: 'cabinet' ,   ssr: false });
 //   meta: [
 //     { name: 'description', content: 'Управляйте списком покупок: добавляйте, редактируйте и отмечайте продукты. Удобное планирование покупок.', key: 'description' },
 //     { name: 'robots', content: 'noindex, follow', key: 'robots' },
-//     { property: 'og:title', content: () => `${listTitle.value} | АУеда`, key: 'og:title' },
-//     { property: 'og:description', content: 'Управляйте списком покупок на АУеда', key: 'og:description' },
+//     { property: 'og:title', content: () => `${listTitle.value} | AyEda`, key: 'og:title' },
+//     { property: 'og:description', content: 'Управляйте списком покупок на AyEda', key: 'og:description' },
 //     { property: 'og:type', content: 'website', key: 'og:type' },
 //     { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
-//     { property: 'og:image:alt', content: 'Список покупок на АУеда', key: 'og:image:alt' },
+//     { property: 'og:image:alt', content: 'Список покупок на AyEda', key: 'og:image:alt' },
 //     { property: 'og:url', content: () => `https://ayeda.ru/cabinet/shopping-lists/${listId.value}`, key: 'og:url' },
-//     { property: 'og:site_name', content: 'АУеда', key: 'og:site_name' },
+//     { property: 'og:site_name', content: 'AyEda', key: 'og:site_name' },
 //   ],
 // })
 

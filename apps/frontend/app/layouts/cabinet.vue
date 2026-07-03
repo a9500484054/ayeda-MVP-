@@ -12,7 +12,7 @@
               <UIcon name="i-lucide-utensils" class="w-4 h-4 text-emerald-600" />
             </div>
             <div>
-              <div class="text-lg font-semibold text-white">АУеда</div>
+              <div class="text-lg font-semibold text-white">AyEda</div>
               <div class="text-[10px] text-emerald-200 tracking-wide">Кулинарное пространство</div>
             </div>
           </div>
@@ -63,7 +63,7 @@
                   <UIcon name="i-lucide-utensils" class="w-4 h-4 text-emerald-600" />
                 </div>
                 <div>
-                  <div class="text-lg font-semibold text-white">АУеда</div>
+                  <div class="text-lg font-semibold text-white">AyEda</div>
                   <div class="text-[10px] text-emerald-200 tracking-wide">Кулинарное пространство</div>
                 </div>
               </div>

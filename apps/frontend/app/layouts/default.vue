@@ -38,7 +38,10 @@ onUnmounted(() => {
                 </div>
               </div>
             </div>
-            <span class="text-2xl font-black bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">АУеда</span>
+            <!-- <span class="text-2xl font-black bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">Ay-<span>Eda</span></span> -->
+            <span class="text-2xl font-black bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+                Ay<span class="text-emerald-400">Eda</span>
+            </span>
           </div>
 
           <!-- Навигация -->
