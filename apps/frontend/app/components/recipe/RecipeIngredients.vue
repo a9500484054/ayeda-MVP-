@@ -44,7 +44,8 @@
         <p class="text-xs md:text-sm">Ингредиенты не добавлены</p>
       </div>
 
-      <div class="mt-4">
+      <!-- Кнопки действий -->
+      <div class="mt-4 flex flex-col gap-2">
         <Button
           size="sm"
           variant="solid"
@@ -56,16 +57,35 @@
           <UIcon name="i-lucide-shopping-cart" class="h-4 w-4" />
           <span>В список покупок</span>
         </Button>
+
+        <Button
+          size="sm"
+          variant="outline"
+          color="primary"
+          :disabled="!ingredients?.length"
+          @click="openPartnersModal"
+          block
+        >
+          <UIcon name="i-lucide-truck" class="h-4 w-4" />
+          <span>Заказать у партнеров</span>
+        </Button>
       </div>
     </div>
 
-    <!-- Модальное окно подтверждения -->
+    <!-- Модальное окно подтверждения для списка покупок -->
     <AddToShoppingListModal
       v-model:open="showConfirmModal"
       :items="shoppingItems"
       :recipe-title="recipeTitle"
       :loading="isAddingToList"
       @confirm="handleAddToShoppingList"
+    />
+
+    <!-- Модальное окно партнеров -->
+    <PartnersModal
+      v-model:open="showPartnersModal"
+      :recipe-title="recipeTitle"
+      :ingredients="shoppingItems"
     />
   </div>
 </template>
@@ -76,6 +96,7 @@ import Button from '~/shared/ui/button/Button.vue'
 import Loader from '~/shared/ui/loader/Loader.vue'
 import RecipeServingsControl from './RecipeServingsControl.vue'
 import AddToShoppingListModal from './AddToShoppingListModal.vue'
+import PartnersModal from './PartnersModal.vue'
 
 interface Ingredient {
   id?: string
@@ -108,9 +129,11 @@ const emit = defineEmits<{
   'add-to-shopping-list': [items: Array<{ name: string; quantity: number; unit: string }>]
 }>()
 
+const toast = useToast()
 const servings = ref(props.baseServings)
 const checkedIngredients = ref<boolean[]>([])
 const showConfirmModal = ref(false)
+const showPartnersModal = ref(false)
 const isAddingToList = ref(false)
 
 // Формируем список товаров для модалки
@@ -184,7 +207,27 @@ const toggleIngredient = (index: number) => {
 }
 
 const openConfirmModal = () => {
+  if (!props.ingredients?.length) {
+    toast.add({
+      title: 'Нет ингредиентов',
+      description: 'В этом рецепте нет ингредиентов для добавления в список покупок',
+      color: 'warning'
+    })
+    return
+  }
   showConfirmModal.value = true
+}
+
+const openPartnersModal = () => {
+  if (!props.ingredients?.length) {
+    toast.add({
+      title: 'Нет ингредиентов',
+      description: 'В этом рецепте нет ингредиентов для заказа',
+      color: 'warning'
+    })
+    return
+  }
+  showPartnersModal.value = true
 }
 
 const handleAddToShoppingList = () => {

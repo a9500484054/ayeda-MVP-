@@ -1,4 +1,3 @@
-<!-- apps/frontend/app/pages/cabinet/shopping-lists/[id].vue -->
 <template>
   <div class="mx-auto w-full  max-w-3xl md:max-w-5xl px-4 py-6 md:px-6">
     <div>
@@ -23,6 +22,20 @@
               @sort-change="sortBy = $event"
               @search-change="searchQuery = $event"
             />
+
+            <!-- Кнопка "Заказать у партнеров" под хедером -->
+            <div class="mt-4 flex justify-end">
+              <Button
+                size="sm"
+                variant="outline"
+                color="primary"
+                :disabled="store.totalItemsCount === 0"
+                @click="openPartnersModal"
+              >
+                <UIcon name="i-lucide-truck" class="h-4 w-4" />
+                <span>Заказать у партнеров</span>
+              </Button>
+            </div>
           </div>
 
           <ShoppingListItems
@@ -72,6 +85,21 @@
             @sort-change="sortBy = $event"
             @search-change="searchQuery = $event"
           />
+
+          <!-- Кнопка "Заказать у партнеров" под хедером (мобильная) -->
+          <div class="mt-4 flex justify-end">
+            <Button
+              size="sm"
+              variant="outline"
+              color="primary"
+              :disabled="store.totalItemsCount === 0"
+              @click="openPartnersModal"
+              block
+            >
+              <UIcon name="i-lucide-truck" class="h-4 w-4" />
+              <span>Заказать у партнеров</span>
+            </Button>
+          </div>
 
           <ShoppingListItems
             :list-id="listId"
@@ -139,6 +167,13 @@
       </div>
     </Modal>
 
+    <!-- Модальное окно партнеров -->
+    <PartnersModal
+      v-model:open="showPartnersModal"
+      :list-title="store.currentList?.title || 'Список покупок'"
+      :items="shoppingItemsForPartners"
+    />
+
     <!-- Плавающая кнопка добавления (Mobile/Tablet) -->
     <Button
       v-if="!isAddItemModalOpen"
@@ -165,23 +200,9 @@ import { useApi } from "~/composables/useApi";
 import ShoppingListHeader from '~/components/shopping/list/ShoppingListHeader.vue';
 import Button from '~/shared/ui/button/Button.vue';
 import Modal from '~/shared/ui/modal/Modal.vue';
+import PartnersModal from '~/components/recipe/PartnersModal.vue';
 
 definePageMeta({ layout: 'cabinet' ,   ssr: false });
-
-// useHead({
-//   title: () => listTitle.value,
-//   meta: [
-//     { name: 'description', content: 'Управляйте списком покупок: добавляйте, редактируйте и отмечайте продукты. Удобное планирование покупок.', key: 'description' },
-//     { name: 'robots', content: 'noindex, follow', key: 'robots' },
-//     { property: 'og:title', content: () => `${listTitle.value} | AyEda`, key: 'og:title' },
-//     { property: 'og:description', content: 'Управляйте списком покупок на AyEda', key: 'og:description' },
-//     { property: 'og:type', content: 'website', key: 'og:type' },
-//     { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
-//     { property: 'og:image:alt', content: 'Список покупок на AyEda', key: 'og:image:alt' },
-//     { property: 'og:url', content: () => `https://ayeda.ru/cabinet/shopping-lists/${listId.value}`, key: 'og:url' },
-//     { property: 'og:site_name', content: 'AyEda', key: 'og:site_name' },
-//   ],
-// })
 
 const route = useRoute();
 const router = useRouter();
@@ -201,6 +222,7 @@ const isItemModalOpen = ref(false);
 const isShareModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
 const isAddItemModalOpen = ref(false);
+const showPartnersModal = ref(false);
 const editingItem = ref<ShoppingListItem | null>(null);
 const selectedList = ref<ShoppingList | null>(null);
 
@@ -218,6 +240,15 @@ const popularItems = ref([
   { name: 'Огурцы', unit: 'кг' },
   { name: 'Курица', unit: 'кг' },
 ]);
+
+// Формируем список товаров для партнеров
+const shoppingItemsForPartners = computed(() => {
+  return store.currentItems.map(item => ({
+    name: item.name,
+    quantity: item.quantity,
+    unit: item.unit
+  }));
+});
 
 // Загрузка данных
 async function loadCategories() {
@@ -431,6 +462,19 @@ async function handleAddPopularMobile(item: { name: string; categoryId?: string;
     unit: item.unit || 'шт',
   });
   isAddItemModalOpen.value = false;
+}
+
+// Открытие модального окна партнеров
+function openPartnersModal() {
+  if (store.totalItemsCount === 0) {
+    toast.add({
+      title: 'Список пуст',
+      description: 'Добавьте продукты в список, чтобы заказать их у партнеров',
+      color: 'warning'
+    });
+    return;
+  }
+  showPartnersModal.value = true;
 }
 
 function scrollToBottom() {
