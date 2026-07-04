@@ -21,6 +21,7 @@ import { ArticlesModule } from './modules/articles/articles.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
+import { DashboardModule } from './modules/dashboard/dashboard.module'; // 👈 ДОБАВИТЬ
 
 @Module({
   imports: [
@@ -76,6 +77,7 @@ import { redisStore } from 'cache-manager-redis-yet';
     ShoppingListsModule,
     ArticlesModule,
     RedisModule,
+    DashboardModule, // 👈 ДОБАВИТЬ
   ],
   controllers: [],
   providers: [],
