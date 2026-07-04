@@ -310,7 +310,7 @@ import AutoCompleteTags from './AutoCompleteTags.vue'
 
 const config = useRuntimeConfig()
 
-const API_BASE_URL = config.public.apiBase
+const API_BASE_URL = config.public.apiUrl
 
 interface Props {
   modelValue: boolean

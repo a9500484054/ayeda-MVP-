@@ -35,7 +35,7 @@ const UBadge = resolveComponent('UBadge')
 const UButton = resolveComponent('UButton')
 const config = useRuntimeConfig()
 
-const API_BASE_URL = config.public.apiBase
+const API_BASE_URL = config.public.apiUrl
 
 interface Props {
   recipes: any[]
