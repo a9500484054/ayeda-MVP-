@@ -444,19 +444,24 @@ const validateForm = () => {
     }
     return false
   } finally {
-    isValidating.value = false
+    // Сбрасываем флаг после завершения валидации
+    nextTick(() => {
+      isValidating.value = false
+    })
   }
 }
 
 // Debounced версия валидации
 const debouncedValidate = useDebounceFn(() => {
-  if (props.modelValue && !isClosing.value) {
+  if (props.modelValue && !isClosing.value && !isValidating.value) {
     validateForm()
   }
 }, 300)
 
 // Валидация отдельного поля
 const validateField = (fieldName: string) => {
+  if (isValidating.value) return
+
   try {
     const fieldSchema = recipeSchema.shape[fieldName as keyof typeof recipeSchema.shape]
     if (fieldSchema) {
@@ -479,7 +484,8 @@ const validateField = (fieldName: string) => {
 watch(
   formData,
   () => {
-    if (!props.modelValue || isClosing.value) return
+    // Проверяем флаг валидации, чтобы избежать рекурсии
+    if (!props.modelValue || isClosing.value || isValidating.value) return
     debouncedValidate()
   },
   { deep: true }

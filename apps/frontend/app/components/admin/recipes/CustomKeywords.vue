@@ -1,3 +1,4 @@
+<!-- apps\frontend\app\components\admin\recipes\CustomKeywords.vue -->
 <template>
   <div class="space-y-2">
     <label class="text-sm font-medium">Ключевые слова</label>
@@ -34,10 +35,6 @@
         />
       </div>
     </div>
-
-    <!-- <div class="text-xs text-gray-400">
-      Введите слово и нажмите Enter или запятую для добавления
-    </div> -->
   </div>
 </template>
 
@@ -55,14 +52,28 @@ const emit = defineEmits<{
 const localKeywords = ref<string[]>([...props.modelValue])
 const inputValue = ref('')
 const inputRef = ref<HTMLInputElement>()
+const isUpdating = ref(false)
 
-// Синхронизация с родителем
+// Синхронизация с родителем - с проверкой на изменение
 watch(() => props.modelValue, (newVal) => {
-  localKeywords.value = [...newVal]
+  // Сравниваем массивы, чтобы избежать лишних обновлений
+  if (JSON.stringify(localKeywords.value) !== JSON.stringify(newVal)) {
+    localKeywords.value = [...newVal]
+  }
 }, { deep: true })
 
+// Отправка изменений родителю - с проверкой и флагом
 watch(localKeywords, (newVal) => {
-  emit('update:modelValue', newVal)
+  if (isUpdating.value) return
+
+  const currentValue = props.modelValue || []
+  if (JSON.stringify(newVal) !== JSON.stringify(currentValue)) {
+    isUpdating.value = true
+    emit('update:modelValue', newVal)
+    nextTick(() => {
+      isUpdating.value = false
+    })
+  }
 }, { deep: true })
 
 const addKeyword = () => {
