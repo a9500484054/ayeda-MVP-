@@ -63,8 +63,6 @@
         </span>
       </div>
     </div>
-
-    <p v-if="hint" class="mt-1 text-xs text-gray-400">{{ hint }}</p>
   </div>
 </template>
 
