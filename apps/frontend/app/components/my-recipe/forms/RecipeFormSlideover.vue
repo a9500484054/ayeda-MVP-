@@ -57,6 +57,23 @@
               @update:model-value="touched.categoryIds = true"
               @search="handleCategorySearch"
             />
+            <!-- Help message -->
+            <div class="mt-3 flex items-start gap-2 rounded-lg bg-blue-50 dark:bg-blue-950/20 p-3 border border-blue-100 dark:border-blue-800/30">
+              <UIcon name="i-lucide-info" class="mt-0.5 h-4 w-4 text-blue-500 dark:text-blue-400 flex-shrink-0" />
+              <div class="text-xs text-blue-700 dark:text-blue-300">
+                <span class="font-medium">Не нашли подходящую категорию?</span>
+                <span class="ml-1">Напишите нам в</span>
+                <a
+                  href="/support"
+                  target="_blank"
+                  class="inline-flex items-center gap-1 font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors underline underline-offset-2"
+                >
+                  службу поддержки
+                  <UIcon name="i-lucide-external-link" class="h-3 w-3" />
+                </a>
+                <span class="ml-1">— мы добавим её вручную.</span>
+              </div>
+            </div>
           </div>
 
           <!-- Parameters -->
@@ -148,6 +165,23 @@
               @update:model-value="touched.ingredients = true"
               @search="handleIngredientSearch"
             />
+            <!-- Help message -->
+            <div class="mt-3 flex items-start gap-2 rounded-lg bg-blue-50 dark:bg-blue-950/20 p-3 border border-blue-100 dark:border-blue-800/30">
+              <UIcon name="i-lucide-info" class="mt-0.5 h-4 w-4 text-blue-500 dark:text-blue-400 flex-shrink-0" />
+              <div class="text-xs text-blue-700 dark:text-blue-300">
+                <span class="font-medium">Не нашли подходящий ингредиент?</span>
+                <span class="ml-1">Напишите нам в</span>
+                <a
+                  href="/support"
+                  target="_blank"
+                  class="inline-flex items-center gap-1 font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors underline underline-offset-2"
+                >
+                  службу поддержки
+                  <UIcon name="i-lucide-external-link" class="h-3 w-3" />
+                </a>
+                <span class="ml-1">— мы добавим её вручную.</span>
+              </div>
+            </div>
           </div>
 
           <!-- Steps -->
