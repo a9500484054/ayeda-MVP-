@@ -201,6 +201,82 @@ export class CommentsService {
     return recipe?.commentsCount || 0;
   }
 
+    // ==================== НОВЫЙ МЕТОД ДЛЯ МОДЕРАТОРА ====================
+
+  async findModeratorComments(filters: {
+    page: number;
+    limit: number;
+    search?: string;
+    recipeId?: string;
+    authorId?: string;
+    isHidden?: boolean;
+    startDate?: Date;
+    endDate?: Date;
+    sortBy?: 'createdAt' | 'updatedAt';
+    sortOrder?: 'ASC' | 'DESC';
+  }): Promise<PaginatedResponseDto<Comment>> {
+    const {
+      page,
+      limit,
+      search,
+      recipeId,
+      authorId,
+      isHidden,
+      startDate,
+      endDate,
+      sortBy = 'createdAt',
+      sortOrder = 'DESC'
+    } = filters;
+
+    const skip = (page - 1) * limit;
+
+    const queryBuilder = this.commentsRepository
+      .createQueryBuilder('comment')
+      .leftJoinAndSelect('comment.author', 'author')
+      .leftJoinAndSelect('comment.recipe', 'recipe')
+      .where('comment.deletedAt IS NULL');
+
+    // Поиск по тексту
+    if (search && search.trim()) {
+      queryBuilder.andWhere('comment.text ILIKE :search', {
+        search: `%${search.trim()}%`,
+      });
+    }
+
+    // Фильтр по рецепту
+    if (recipeId) {
+      queryBuilder.andWhere('comment.recipeId = :recipeId', { recipeId });
+    }
+
+    // Фильтр по автору
+    if (authorId) {
+      queryBuilder.andWhere('comment.authorId = :authorId', { authorId });
+    }
+
+    // Фильтр по статусу скрытия
+    if (isHidden !== undefined) {
+      queryBuilder.andWhere('comment.isHidden = :isHidden', { isHidden });
+    }
+
+    // Фильтр по дате
+    if (startDate) {
+      queryBuilder.andWhere('comment.createdAt >= :startDate', { startDate });
+    }
+    if (endDate) {
+      queryBuilder.andWhere('comment.createdAt <= :endDate', { endDate });
+    }
+
+    // Сортировка
+    queryBuilder
+      .orderBy(`comment.${sortBy}`, sortOrder)
+      .skip(skip)
+      .take(limit);
+
+    const [comments, total] = await queryBuilder.getManyAndCount();
+
+    return new PaginatedResponseDto(comments, total, page, limit);
+  }
+
   toResponseDto(comment: Comment): CommentResponseDto {
     return {
       id: comment.id,
@@ -213,4 +289,5 @@ export class CommentsService {
       deletedAt: comment.deletedAt,
     };
   }
+
 }

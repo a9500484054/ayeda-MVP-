@@ -178,4 +178,72 @@ export class CommentsController {
     const comment = await this.commentsService.unhide(id, req.user.id);
     return this.commentsService.toResponseDto(comment);
   }
+
+  @Get('moderator/all')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.MODERATOR, UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Получить все комментарии для модерации (только модератор/админ)',
+    description: 'Возвращает все комментарии по всем рецептам с пагинацией и фильтрацией',
+  })
+  @ApiQuery({ name: 'page', required: false, example: 1, description: 'Номер страницы' })
+  @ApiQuery({ name: 'limit', required: false, example: 20, description: 'Количество на странице' })
+  @ApiQuery({ name: 'search', required: false, description: 'Поиск по тексту комментария' })
+  @ApiQuery({ name: 'recipeId', required: false, description: 'Фильтр по рецепту' })
+  @ApiQuery({ name: 'authorId', required: false, description: 'Фильтр по автору' })
+  @ApiQuery({ name: 'isHidden', required: false, enum: ['true', 'false'], description: 'Фильтр по статусу скрытия' })
+  @ApiQuery({ name: 'startDate', required: false, description: 'Начальная дата (YYYY-MM-DD)' })
+  @ApiQuery({ name: 'endDate', required: false, description: 'Конечная дата (YYYY-MM-DD)' })
+  @ApiQuery({ name: 'sortBy', required: false, enum: ['createdAt', 'updatedAt'], default: 'createdAt', description: 'Поле для сортировки' })
+  @ApiQuery({ name: 'sortOrder', required: false, enum: ['ASC', 'DESC'], default: 'DESC', description: 'Направление сортировки' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Список всех комментариев для модерации',
+    type: PaginatedResponseDto<CommentResponseDto>,
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Недостаточно прав (требуется moderator или admin)',
+  })
+  async getModeratorComments(
+    @Query() query: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      recipeId?: string;
+      authorId?: string;
+      isHidden?: string;
+      startDate?: string;
+      endDate?: string;
+      sortBy?: 'createdAt' | 'updatedAt';
+      sortOrder?: 'ASC' | 'DESC';
+    },
+  ): Promise<PaginatedResponseDto<CommentResponseDto>> {
+    const result = await this.commentsService.findModeratorComments({
+      page: query.page || 1,
+      limit: query.limit || 20,
+      search: query.search,
+      recipeId: query.recipeId,
+      authorId: query.authorId,
+      isHidden: query.isHidden === 'true' ? true : query.isHidden === 'false' ? false : undefined,
+      startDate: query.startDate ? new Date(query.startDate) : undefined,
+      endDate: query.endDate ? new Date(query.endDate) : undefined,
+      sortBy: query.sortBy || 'createdAt',
+      sortOrder: query.sortOrder || 'DESC',
+    });
+
+    const commentDtos = result.data.map((comment) =>
+      this.commentsService.toResponseDto(comment),
+    );
+
+    return new PaginatedResponseDto(
+      commentDtos,
+      result.total,
+      result.page,
+      result.limit,
+    );
+  }
+
 }
+
