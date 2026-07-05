@@ -205,63 +205,48 @@ export function useModerationApi() {
 
   /**
    * Получить все комментарии для модерации
-   * Используем API /comments для получения всех комментариев
-   * Сортируем по дате создания (сначала новые)
+   * Используем новый метод getCommentsForModeration из useRecipesComments
    */
   async function getCommentsModerationQueue(params?: {
     page?: number
     limit?: number
     search?: string
     isHidden?: boolean
+    recipeId?: string
+    authorId?: string
+    sortBy?: string
+    sortOrder?: 'asc' | 'desc'
+    startDate?: string
+    endDate?: string
   }): Promise<CommentsModerationResponse> {
     try {
-      // Используем API /comments для получения всех комментариев
-      const response = await api('/comments', {
-        method: 'GET',
-        params: {
-          page: params?.page || 1,
-          limit: params?.limit || 10,
-          ...(params?.search ? { search: params.search } : {}),
-          ...(params?.isHidden !== undefined ? { isHidden: params.isHidden } : {})
-        }
-      })
+      const response = await commentsApi.getCommentsForModeration(params)
 
-      console.log('📥 getCommentsModerationQueue response:', response)
-
-      if (response && typeof response === 'object') {
-        if ('data' in response && Array.isArray(response.data)) {
-          return {
-            data: response.data as ModerationComment[],
-            total: response.total || response.data.length,
-            page: response.page || params?.page || 1,
-            limit: response.limit || params?.limit || 10,
-            pages: response.pages || Math.ceil((response.total || response.data.length) / (params?.limit || 10)),
-            hasNext: response.hasNext || false,
-            hasPrev: response.hasPrev || false
-          }
-        }
-
-        if (Array.isArray(response)) {
-          return {
-            data: response as ModerationComment[],
-            total: response.length,
-            page: params?.page || 1,
-            limit: params?.limit || 10,
-            pages: Math.ceil(response.length / (params?.limit || 10)),
-            hasNext: false,
-            hasPrev: false
-          }
-        }
-      }
+      // Преобразуем CommentDto в ModerationComment
+      const data = response.data.map((comment: any) => ({
+        id: comment.id,
+        text: comment.text,
+        recipeId: comment.recipeId,
+        recipeTitle: comment.recipeTitle || comment.recipe?.title || 'Рецепт',
+        author: comment.author || {
+          id: comment.authorId || '',
+          username: comment.authorName || 'Пользователь',
+          email: comment.authorEmail || '',
+          avatar: comment.authorAvatar || null
+        },
+        isHidden: comment.isHidden || false,
+        createdAt: comment.createdAt,
+        updatedAt: comment.updatedAt
+      }))
 
       return {
-        data: [],
-        total: 0,
-        page: params?.page || 1,
-        limit: params?.limit || 10,
-        pages: 0,
-        hasNext: false,
-        hasPrev: false
+        data,
+        total: response.total || data.length,
+        page: response.page || params?.page || 1,
+        limit: response.limit || params?.limit || 10,
+        pages: response.pages || Math.ceil((response.total || data.length) / (params?.limit || 10)),
+        hasNext: response.hasNext || false,
+        hasPrev: response.hasPrev || false
       }
     } catch (error) {
       console.error('❌ Error in getCommentsModerationQueue:', error)
@@ -271,12 +256,25 @@ export function useModerationApi() {
 
   /**
    * Скрыть комментарий
-   * Используем метод hideComment из useRecipesComments
    */
   async function hideComment(recipeId: string, commentId: string): Promise<ModerationComment> {
     try {
       const response = await commentsApi.hideComment(recipeId, commentId)
-      return response as ModerationComment
+      return {
+        id: response.id,
+        text: response.text,
+        recipeId: response.recipeId,
+        recipeTitle: response.recipe?.title || 'Рецепт',
+        author: response.author || {
+          id: response.authorId || '',
+          username: response.authorName || 'Пользователь',
+          email: response.authorEmail || '',
+          avatar: response.authorAvatar || null
+        },
+        isHidden: response.isHidden || false,
+        createdAt: response.createdAt,
+        updatedAt: response.updatedAt
+      }
     } catch (error) {
       console.error('❌ Error hiding comment:', error)
       throw error
@@ -285,12 +283,25 @@ export function useModerationApi() {
 
   /**
    * Показать комментарий (снять скрытие)
-   * Используем метод unhideComment из useRecipesComments
    */
   async function showComment(recipeId: string, commentId: string): Promise<ModerationComment> {
     try {
       const response = await commentsApi.unhideComment(recipeId, commentId)
-      return response as ModerationComment
+      return {
+        id: response.id,
+        text: response.text,
+        recipeId: response.recipeId,
+        recipeTitle: response.recipe?.title || 'Рецепт',
+        author: response.author || {
+          id: response.authorId || '',
+          username: response.authorName || 'Пользователь',
+          email: response.authorEmail || '',
+          avatar: response.authorAvatar || null
+        },
+        isHidden: response.isHidden || false,
+        createdAt: response.createdAt,
+        updatedAt: response.updatedAt
+      }
     } catch (error) {
       console.error('❌ Error showing comment:', error)
       throw error
@@ -299,7 +310,6 @@ export function useModerationApi() {
 
   /**
    * Удалить комментарий
-   * Используем метод deleteComment из useRecipesComments
    */
   async function deleteComment(recipeId: string, commentId: string): Promise<void> {
     try {

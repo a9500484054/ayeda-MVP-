@@ -54,6 +54,7 @@ const loadCommentsQueue = async () => {
 
     console.log('📤 Sending request with params:', params)
 
+    // Получаем все комментарии для модерации
     const response = await moderationApi.getCommentsModerationQueue(params)
 
     console.log('📥 Full API response:', response)

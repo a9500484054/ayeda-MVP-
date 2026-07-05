@@ -91,6 +91,50 @@ export function useRecipesComments() {
     }
   }
 
+  /**
+   * Получить все комментарии для модерации (только для модераторов/админов)
+   * @param params - параметры фильтрации и пагинации
+   * @returns CommentsModerationResponse
+   */
+  async function getCommentsForModeration(params?: {
+    page?: number
+    limit?: number
+    search?: string
+    isHidden?: boolean
+    recipeId?: string
+    authorId?: string
+    sortBy?: string
+    sortOrder?: 'asc' | 'desc'
+    startDate?: string
+    endDate?: string
+  }): Promise<CommentsModerationResponse> {
+    try {
+      // Если recipeId указан, используем его, иначе получаем все комментарии
+      const recipeId = params?.recipeId || ''
+      const endpoint = '/recipes/${recipeId}/comments/moderator/all'
+
+      const response = await api<CommentsModerationResponse>(endpoint, {
+        method: "GET",
+        params: {
+          page: params?.page || 1,
+          limit: params?.limit || 10,
+          ...(params?.search ? { search: params.search } : {}),
+          ...(params?.isHidden !== undefined ? { isHidden: params.isHidden } : {}),
+          ...(params?.authorId ? { authorId: params.authorId } : {}),
+          ...(params?.sortBy ? { sortBy: params.sortBy } : {}),
+          ...(params?.sortOrder ? { sortOrder: params.sortOrder } : {}),
+          ...(params?.startDate ? { startDate: params.startDate } : {}),
+          ...(params?.endDate ? { endDate: params.endDate } : {})
+        }
+      });
+
+      return response;
+    } catch (error) {
+      console.error("Get comments for moderation error:", error);
+      throw error;
+    }
+  }
+
   return {
     createComment,
     getComments,
@@ -99,5 +143,6 @@ export function useRecipesComments() {
     deleteComment,
     hideComment,
     unhideComment,
+    getCommentsForModeration,
   };
 }
