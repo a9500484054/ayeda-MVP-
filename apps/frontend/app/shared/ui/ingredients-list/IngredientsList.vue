@@ -68,7 +68,7 @@
             :disabled="disabled"
             @update:model-value="emitUpdate"
           />
-
+          <!-- {{ ingredient }} -->
           <div class="flex min-w-[80px] items-center rounded-lg px-2 text-sm text-gray-500 dark:text-darkMode-500">
             {{ ingredient.unitName || '—' }}
           </div>
