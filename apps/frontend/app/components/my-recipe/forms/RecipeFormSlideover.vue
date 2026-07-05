@@ -64,7 +64,7 @@
                 <span class="font-medium">Не нашли подходящую категорию?</span>
                 <span class="ml-1">Напишите нам в</span>
                 <a
-                  href="/support"
+                  href="/support?tab=contact"
                   target="_blank"
                   class="inline-flex items-center gap-1 font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors underline underline-offset-2"
                 >
@@ -172,7 +172,7 @@
                 <span class="font-medium">Не нашли подходящий ингредиент?</span>
                 <span class="ml-1">Напишите нам в</span>
                 <a
-                  href="/support"
+                  href="/support?tab=contact"
                   target="_blank"
                   class="inline-flex items-center gap-1 font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors underline underline-offset-2"
                 >

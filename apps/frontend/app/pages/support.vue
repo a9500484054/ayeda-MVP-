@@ -12,7 +12,7 @@
     <div class="flex gap-2 border-b border-gray-200 dark:border-darkMode-300 mb-8">
       <button
         @click="activeTab = 'faq'"
-        class="px-6 py-3 text-sm font-medium transition-all duration-200 relative"
+        class="px-6 py-3 text-sm font-medium transition-all duration-200 relative cursor-pointer"
         :class="activeTab === 'faq'
           ? 'text-emerald-600 border-b-2 border-emerald-600'
           : 'text-gray-500 hover:text-gray-700 dark:text-darkMode-500 dark:hover:text-darkMode-600'"
@@ -24,7 +24,7 @@
       </button>
       <button
         @click="activeTab = 'contact'"
-        class="px-6 py-3 text-sm font-medium transition-all duration-200 relative"
+        class="px-6 py-3 text-sm font-medium transition-all duration-200 relative cursor-pointer"
         :class="activeTab === 'contact'
           ? 'text-emerald-600 border-b-2 border-emerald-600'
           : 'text-gray-500 hover:text-gray-700 dark:text-darkMode-500 dark:hover:text-darkMode-600'"
@@ -200,9 +200,9 @@
       <div class="mt-6 pt-6 border-t border-gray-100 dark:border-darkMode-300">
         <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Или свяжитесь с нами напрямую:</h3>
         <div class="flex flex-wrap gap-4 text-sm">
-          <a href="mailto:support@ayeda.ru" class="flex items-center gap-2 text-gray-600 dark:text-darkMode-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition">
+          <a href="mailto:ayedaru@yandex.ru" class="flex items-center gap-2 text-gray-600 dark:text-darkMode-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition">
             <UIcon name="i-lucide-mail" class="w-4 h-4" />
-            support@ayeda.ru
+            ayedaru@yandex.ru
           </a>
           <a href="https://t.me/ayeda_support_bot" class="flex items-center gap-2 text-gray-600 dark:text-darkMode-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition">
             <UIcon name="i-lucide-telegram" class="w-4 h-4" />
@@ -242,19 +242,23 @@ useHead({
   ],
 })
 
+const route = useRoute();
 const pending = ref(false);
 const success = ref(false);
 const serverError = ref("");
 const activeTab = ref('faq');
 
+// Проверяем query-параметр при монтировании
+onMounted(() => {
+  if (route.query.tab === 'contact') {
+    activeTab.value = 'contact';
+  }
+});
+
 // Конфигурация Telegram бота
 const TELEGRAM_BOT_TOKEN = '8568457132:AAHbjeYBKRP64FZznyfvXuT8vfzRVOF1wJY'; // Замените на ваш токен
 const TELEGRAM_CHAT_ID = '365136832'; // Замените на ваш chat ID
-// const botToken = process.env.TELEGRAM_BOT_TOKEN;
-// const chatId = process.env.TELEGRAM_CHAT_ID;
 
-// console.log("Telegram Bot Token:", botToken);
-// console.log("Telegram Chat ID:", chatId);
 // Схема валидации для формы обратной связи
 const zodSchema = z.object({
   name: z.string()
@@ -341,20 +345,6 @@ const escapeHtml = (str: string) => {
     .replace(/'/g, '&#39;');
 };
 
-// Альтернативный вариант через API маршрут (рекомендуемый)
-const sendToTelegramViaAPI = async (data: {
-  name: string;
-  email: string;
-  subject: string;
-  message: string;
-}) => {
-  const response = await $fetch('/api/support/telegram', {
-    method: 'POST',
-    body: data,
-  });
-  return response;
-};
-
 const onSubmit = handleSubmit(async (values) => {
   pending.value = true;
   serverError.value = "";
@@ -362,12 +352,6 @@ const onSubmit = handleSubmit(async (values) => {
   try {
     // Отправка в Telegram (прямой запрос)
     await sendToTelegram(values);
-
-    // Или через API маршрут (более безопасно)
-    // await sendToTelegramViaAPI(values);
-
-    // Имитация дополнительной задержки (опционально)
-    // await new Promise(resolve => setTimeout(resolve, 500));
 
     success.value = true;
     resetForm();
