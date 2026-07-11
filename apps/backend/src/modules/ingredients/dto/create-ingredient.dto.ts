@@ -6,25 +6,30 @@ import {
   IsUUID,
   IsOptional,
   IsObject,
-  IsUrl,
 } from 'class-validator';
 import * as ingredientEntity from '../entities/ingredient.entity';
 
 export class CreateIngredientDto {
-  @ApiProperty({ example: 'milk', description: 'Уникальный код' })
+  @ApiProperty({ example: 'abrikos', description: 'Уникальный путь (slug)' })
+  @IsString()
+  @IsOptional()
+  @MaxLength(120)
+  srcPath?: string;
+
+  @ApiProperty({ example: 'abrikos', description: 'Уникальный код' })
   @IsString()
   @MinLength(2)
   @MaxLength(50)
   code: string;
 
-  @ApiProperty({ example: 'Молоко', description: 'Название' })
+  @ApiProperty({ example: 'Абрикос', description: 'Название' })
   @IsString()
   @MinLength(2)
   @MaxLength(100)
   name: string;
 
   @ApiPropertyOptional({
-    example: 'Свежее пастеризованное молоко 3.2% жирности',
+    example: 'Сладкий сочный абрикос, богатый витаминами',
     description: 'Описание ингредиента',
   })
   @IsString()
@@ -33,10 +38,10 @@ export class CreateIngredientDto {
   description?: string;
 
   @ApiPropertyOptional({
-    example: 'https://example.com/images/milk.jpg',
-    description: 'URL фото ингредиента',
+    example: '/uploads/general/.../image.png',
+    description: 'Путь к фото ингредиента',
   })
-  @IsUrl()
+  @IsString()
   @IsOptional()
   @MaxLength(512)
   photo?: string;
@@ -55,9 +60,9 @@ export class CreateIngredientDto {
 
   @ApiPropertyOptional({
     example: {
-      title: 'Молоко - полезные свойства',
-      description: 'Все о молоке',
-      keywords: ['молоко', 'польза', 'состав']
+      title: 'Абрикос - полезные свойства',
+      description: 'Все об абрикосе',
+      keywords: ['абрикос', 'польза', 'состав']
     },
     description: 'SEO данные',
   })

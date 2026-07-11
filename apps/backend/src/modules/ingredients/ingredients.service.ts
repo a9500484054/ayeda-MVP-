@@ -18,6 +18,27 @@ export class IngredientsService {
     private unitsService: UnitsService,
   ) {}
 
+  private async ensureUniqueSrcPath(srcPath: string): Promise<string> {
+    let uniquePath = srcPath;
+    let counter = 1;
+
+    while (true) {
+      const exists = await this.ingredientsRepository.findOne({
+        where: { srcPath: uniquePath },
+        withDeleted: true,
+      });
+
+      if (!exists) {
+        break;
+      }
+
+      uniquePath = `${srcPath}-${counter}`;
+      counter++;
+    }
+
+    return uniquePath;
+  }
+
   async create(createIngredientDto: CreateIngredientDto): Promise<Ingredient> {
     // Проверяем существование unit
     const unit = await this.unitsService.findOne(createIngredientDto.unitId);
@@ -30,8 +51,16 @@ export class IngredientsService {
       throw new ConflictException('Ингредиент с таким кодом уже существует');
     }
 
+    // Если srcPath не передан - он сгенерируется в entity
+    let srcPath = createIngredientDto.srcPath;
+    if (srcPath) {
+      // Проверяем уникальность srcPath
+      srcPath = await this.ensureUniqueSrcPath(srcPath);
+    }
+
     // Создаем ингредиент
     const ingredient = this.ingredientsRepository.create({
+      srcPath,
       code: createIngredientDto.code,
       name: createIngredientDto.name,
       description: createIngredientDto.description,
@@ -55,6 +84,17 @@ export class IngredientsService {
   async findOne(id: string): Promise<Ingredient> {
     const ingredient = await this.ingredientsRepository.findOne({
       where: { id },
+      relations: ['unit'],
+    });
+    if (!ingredient) {
+      throw new NotFoundException('Ингредиент не найден');
+    }
+    return ingredient;
+  }
+
+  async findBySrcPath(srcPath: string): Promise<Ingredient> {
+    const ingredient = await this.ingredientsRepository.findOne({
+      where: { srcPath },
       relations: ['unit'],
     });
     if (!ingredient) {
@@ -113,6 +153,21 @@ export class IngredientsService {
         throw new ConflictException('Ингредиент с таким кодом уже существует');
       }
       ingredient.code = updateIngredientDto.code;
+    }
+
+    // Проверяем уникальность srcPath при изменении
+    if (
+      updateIngredientDto.srcPath &&
+      updateIngredientDto.srcPath !== ingredient.srcPath
+    ) {
+      const existingSrcPath = await this.ingredientsRepository.findOne({
+        where: { srcPath: updateIngredientDto.srcPath },
+        withDeleted: true,
+      });
+      if (existingSrcPath) {
+        throw new ConflictException('Ингредиент с таким путем уже существует');
+      }
+      ingredient.srcPath = updateIngredientDto.srcPath;
     }
 
     // Обновляем поля
@@ -190,11 +245,9 @@ export class IngredientsService {
     return [ingredients, total];
   }
 
-  // Новый метод для получения похожих ингредиентов
   async findSimilar(id: string, limit: number = 5): Promise<Ingredient[]> {
     const ingredient = await this.findOne(id);
 
-    // Ищем ингредиенты с похожим названием или категорией
     const results = await this.ingredientsRepository
       .createQueryBuilder('ingredient')
       .leftJoinAndSelect('ingredient.unit', 'unit')

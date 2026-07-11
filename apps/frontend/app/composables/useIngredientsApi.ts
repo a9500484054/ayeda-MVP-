@@ -2,10 +2,19 @@
 import { useApi } from "./useApi";
 
 export interface NutritionInfo {
-  calories: number;
-  proteins: number;
-  fats: number;
-  carbohydrates: number;
+  calories?: number;
+  proteins?: number;
+  fats?: number;
+  carbohydrates?: number;
+  fiber?: number;
+  sugar?: number;
+}
+
+export interface SeoData {
+  title?: string;
+  description?: string;
+  keywords?: string[];
+  ogImage?: string;
 }
 
 export interface Unit {
@@ -22,8 +31,11 @@ export interface Ingredient {
   id: string;
   code: string;
   name: string;
+  description?: string;
+  photo?: string;
   unit: Unit;
   nutritionInfo: NutritionInfo;
+  seo?: SeoData;
   createdAt: string;
   updatedAt: string;
 }
@@ -31,15 +43,21 @@ export interface Ingredient {
 export interface CreateIngredientDto {
   code: string;
   name: string;
+  description?: string;
+  photo?: string;
   unitId: string;
-  nutritionInfo: NutritionInfo;
+  nutritionInfo?: NutritionInfo;
+  seo?: SeoData;
 }
 
 export interface UpdateIngredientDto {
   code?: string;
   name?: string;
+  description?: string;
+  photo?: string;
   unitId?: string;
   nutritionInfo?: NutritionInfo;
+  seo?: SeoData;
 }
 
 export interface IngredientsResponse {
@@ -64,7 +82,7 @@ export function useIngredientsApi() {
       });
     },
 
-    // Поиск ингредиентов - используем правильный эндпоинт с параметром q
+    // Поиск ингредиентов
     async searchIngredients(query: string, page: number = 1, limit: number = 10): Promise<IngredientsResponse> {
       return await api('/ingredients/search', {
         method: 'GET',

@@ -53,7 +53,7 @@
       <NuxtLink
         v-for="item in ingredients"
         :key="item.id"
-        :to="`/ingredients/${item.id}`"
+        :to="`/ingredients/${item.srcPath}`"
         class="group bg-white border border-zinc-200 rounded-xl overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1"
       >
         <!-- Photo -->

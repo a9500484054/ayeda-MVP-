@@ -7,6 +7,9 @@ export class IngredientResponseDto {
   id: string;
 
   @ApiProperty()
+  srcPath: string;
+
+  @ApiProperty()
   code: string;
 
   @ApiProperty()

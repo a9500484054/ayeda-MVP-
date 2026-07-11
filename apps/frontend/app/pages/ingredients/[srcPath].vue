@@ -41,7 +41,7 @@
         <div class="flex-shrink-0 w-full md:w-48">
           <div v-if="ingredient.photo" class="w-full aspect-square rounded-2xl overflow-hidden shadow-lg">
             <img
-              :src="ingredient.photo"
+              :src="getImageUrl(ingredient.photo)"
               :alt="ingredient.name"
               class="w-full h-full object-cover"
               loading="lazy"
@@ -58,6 +58,7 @@
             <div>
               <h1 class="text-3xl md:text-4xl font-bold">{{ ingredient.name }}</h1>
               <p class="text-sm text-zinc-500 mt-1 font-mono">Код: {{ ingredient.code }}</p>
+              <p class="text-xs text-zinc-400 mt-0.5 font-mono">Путь: {{ ingredient.srcPath }}</p>
             </div>
             <UBadge color="primary" variant="soft" class="text-sm px-3 py-1 whitespace-nowrap">
               {{ ingredient.unit.name }}
@@ -180,14 +181,14 @@
           <NuxtLink
             v-for="item in similarIngredients"
             :key="item.id"
-            :to="`/ingredients/${item.id}`"
+            :to="`/ingredients/${item.srcPath}`"
             class="group bg-white border rounded-xl p-4 hover:shadow-lg transition-all hover:-translate-y-1"
           >
             <div class="flex items-center gap-4">
               <div class="w-12 h-12 rounded-lg bg-zinc-100 overflow-hidden flex-shrink-0">
                 <img
                   v-if="item.photo"
-                  :src="item.photo"
+                  :src="getImageUrl(item.photo)"
                   :alt="item.name"
                   class="w-full h-full object-cover"
                   loading="lazy"
@@ -228,25 +229,34 @@ const config = useRuntimeConfig()
 const route = useRoute()
 const router = useRouter()
 
-// Получаем параметр id из маршрута
-const id = computed(() => route.params.id as string)
+// Получаем параметр srcPath из маршрута
+const srcPath = computed(() => route.params.srcPath as string)
 
 // Состояние
 const similarIngredients = ref<any[]>([])
 
+// Функция для получения полного URL изображения
+const getImageUrl = (path: string | null | undefined): string => {
+  if (!path) return ''
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path
+  }
+  return `${config.public.apiUrl}${path.startsWith('/') ? '' : '/'}${path}`
+}
+
 // ============ SSR DATA FETCHING ============
 const { data: ingredientData, pending, error: fetchError } = await useAsyncData(
-  `ingredient-${id.value}`,
+  `ingredient-${srcPath.value}`,
   async () => {
-    console.log('🚀 useAsyncData started for ingredient:', id.value)
+    console.log('🚀 useAsyncData started for ingredient:', srcPath.value)
 
-    if (!id.value) {
-      console.error('❌ No id provided')
-      throw new Error('ID ингредиента не указан')
+    if (!srcPath.value) {
+      console.error('❌ No srcPath provided')
+      throw new Error('Путь ингредиента не указан')
     }
 
     const apiBase = config.public.apiBase || 'http://localhost:3001'
-    const url = `${apiBase}/ingredients/${id.value}`
+    const url = `${apiBase}/ingredients/by-path/${srcPath.value}`
     console.log('📡 Request URL:', url)
 
     try {
@@ -260,6 +270,7 @@ const { data: ingredientData, pending, error: fetchError } = await useAsyncData(
 
       console.log('✅ Response received:', response)
       console.log('📦 Ingredient ID:', response?.id)
+      console.log('📦 Ingredient srcPath:', response?.srcPath)
 
       if (!response?.id) {
         console.error('❌ Ingredient has no id')
@@ -317,21 +328,20 @@ if (ingredient.value) {
       { property: 'og:title', content: `${seoTitle} | AyEda`, key: 'og:title' },
       { property: 'og:description', content: seoDescription, key: 'og:description' },
       { property: 'og:type', content: 'article', key: 'og:type' },
-      { property: 'og:image', content: ingredient.value.photo || 'https://ayeda.ru/images/ingredient-placeholder.jpg', key: 'og:image' },
+      { property: 'og:image', content: getImageUrl(ingredient.value.photo) || 'https://ayeda.ru/images/ingredient-placeholder.jpg', key: 'og:image' },
       { property: 'og:image:alt', content: ingredient.value.name, key: 'og:image:alt' },
-      { property: 'og:url', content: `https://ayeda.ru/ingredients/${ingredient.value.id}`, key: 'og:url' },
+      { property: 'og:url', content: `https://ayeda.ru/ingredients/${ingredient.value.srcPath}`, key: 'og:url' },
       { property: 'og:site_name', content: 'AyEda', key: 'og:site_name' },
       { name: 'twitter:card', content: 'summary_large_image', key: 'twitter:card' },
       { name: 'twitter:title', content: `${seoTitle} | AyEda`, key: 'twitter:title' },
       { name: 'twitter:description', content: seoDescription, key: 'twitter:description' },
-      { name: 'twitter:image', content: ingredient.value.photo || 'https://ayeda.ru/images/ingredient-placeholder.jpg', key: 'twitter:image' },
+      { name: 'twitter:image', content: getImageUrl(ingredient.value.photo) || 'https://ayeda.ru/images/ingredient-placeholder.jpg', key: 'twitter:image' },
     ],
     link: [
-      { rel: 'canonical', href: `https://ayeda.ru/ingredients/${ingredient.value.id}`, key: 'canonical' },
-      { rel: 'alternate', hreflang: 'ru', href: `https://ayeda.ru/ingredients/${ingredient.value.id}` },
+      { rel: 'canonical', href: `https://ayeda.ru/ingredients/${ingredient.value.srcPath}`, key: 'canonical' },
+      { rel: 'alternate', hreflang: 'ru', href: `https://ayeda.ru/ingredients/${ingredient.value.srcPath}` },
     ],
     script: [
-      // Schema.org разметка для SEO
       {
         type: 'application/ld+json',
         children: JSON.stringify({
@@ -339,7 +349,7 @@ if (ingredient.value) {
           '@type': 'Product',
           'name': ingredient.value.name,
           'description': ingredient.value.description || `${ingredient.value.name} — продукт для кулинарии`,
-          'image': ingredient.value.photo || undefined,
+          'image': getImageUrl(ingredient.value.photo) || undefined,
           'sku': ingredient.value.code,
           'nutrition': {
             '@type': 'NutritionInformation',

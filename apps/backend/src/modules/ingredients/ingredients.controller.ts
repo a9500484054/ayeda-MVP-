@@ -155,4 +155,19 @@ export class IngredientsController {
   remove(@Param('id') id: string): Promise<void> {
     return this.ingredientsService.remove(id);
   }
+
+  // Добавить в класс IngredientsController:
+
+  // ✅ ПУБЛИЧНЫЙ - получение ингредиента по srcPath (без авторизации)
+  @Get('by-path/:srcPath')
+  @ApiOperation({ summary: 'Получить ингредиент по srcPath (публичный)' })
+  @ApiParam({ name: 'srcPath', description: 'Уникальный путь ингредиента' })
+  @ApiResponse({ status: HttpStatus.OK, type: IngredientResponseDto })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Ингредиент не найден',
+  })
+  async findBySrcPath(@Param('srcPath') srcPath: string): Promise<IngredientResponseDto> {
+    return this.ingredientsService.findBySrcPath(srcPath);
+  }
 }
