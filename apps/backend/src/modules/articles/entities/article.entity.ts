@@ -11,6 +11,13 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../users/entities/user.entity';
 
+export interface ArticleStep {
+  id: string;
+  text: string;
+  image?: string | null;
+  sort: number;
+}
+
 @Entity('articles')
 export class Article {
   @ApiProperty()
@@ -29,9 +36,13 @@ export class Article {
   @Column({ type: 'varchar', length: 200, unique: true })
   slug: string;
 
-  @ApiProperty()
-  @Column({ type: 'text' })
-  content: string;
+  @ApiProperty({ nullable: true })
+  @Column({ type: 'text', nullable: true })
+  content: string | null;
+
+  @ApiProperty({ type: 'jsonb', nullable: true })
+  @Column({ type: 'jsonb', nullable: true })
+  steps: ArticleStep[] | null;
 
   @ApiProperty({ nullable: true })
   @Column({ type: 'varchar', length: 500, nullable: true })

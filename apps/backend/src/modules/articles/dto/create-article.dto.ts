@@ -4,10 +4,12 @@ import {
   IsOptional,
   IsArray,
   IsEnum,
-  IsBoolean,
   IsObject,
   MaxLength,
   IsNotEmpty,
+  ValidateNested,
+  IsNumber,
+  IsUUID,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -39,6 +41,27 @@ class SeoDto {
   canonical_url?: string;
 }
 
+export class ArticleStepDto {
+  @ApiProperty({ description: 'ID шага (для существующих)' })
+  @IsOptional()
+  @IsUUID()
+  id?: string;
+
+  @ApiProperty({ description: 'Текст шага' })
+  @IsString()
+  @IsNotEmpty()
+  text: string;
+
+  @ApiProperty({ required: false, description: 'URL изображения шага' })
+  @IsOptional()
+  @IsString()
+  image?: string | null;
+
+  @ApiProperty({ description: 'Порядок сортировки' })
+  @IsNumber()
+  sort: number;
+}
+
 export class CreateArticleDto {
   @ApiProperty({ description: 'Заголовок статьи', example: '10 советов для начинающих' })
   @IsString()
@@ -46,10 +69,17 @@ export class CreateArticleDto {
   @MaxLength(200)
   title: string;
 
-  @ApiProperty({ description: 'HTML контент', example: '<h1>Совет 1</h1><p>Текст...</p>' })
+  @ApiProperty({ required: false, description: 'HTML контент (устаревает, используйте steps)' })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  content: string;
+  content?: string;
+
+  @ApiProperty({ type: [ArticleStepDto], required: false, description: 'Шаги статьи' })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ArticleStepDto)
+  steps?: ArticleStepDto[];
 
   @ApiProperty({ required: false, description: 'ЧПУ (генерируется если не указан)' })
   @IsOptional()

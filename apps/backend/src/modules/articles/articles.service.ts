@@ -6,11 +6,12 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, In, FindOptionsWhere } from 'typeorm';
-import { Article } from './entities/article.entity';
-import { CreateArticleDto } from './dto/create-article.dto';
+import { Article, ArticleStep } from './entities/article.entity';
+import { CreateArticleDto, ArticleStepDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { ArticleResponseDto } from './dto/article-response.dto';
 import { ArticlesQueryDto } from './dto/articles-query.dto';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class ArticlesService {
@@ -64,12 +65,27 @@ export class ArticlesService {
     return Object.keys(seo).length > 0 ? seo : null;
   }
 
+  private normalizeSteps(steps?: ArticleStepDto[]): ArticleStep[] | null {
+    if (!steps || steps.length === 0) return null;
+
+    return steps
+      .filter(step => step.text.trim().length > 0)
+      .map(step => ({
+        id: step.id || uuidv4(),
+        text: step.text,
+        image: step.image || null,
+        sort: step.sort || 0,
+      }))
+      .sort((a, b) => a.sort - b.sort);
+  }
+
   private toResponseDto(article: Article): ArticleResponseDto {
     return {
       id: article.id,
       title: article.title,
       slug: article.slug,
       content: article.content,
+      steps: article.steps || null,
       excerpt: article.excerpt,
       featured_image: article.featuredImage,
       categories: article.categories,
@@ -107,11 +123,14 @@ export class ArticlesService {
       }
     }
 
+    const steps = this.normalizeSteps(dto.steps);
+
     const article = this.articlesRepository.create({
       userId,
       title: dto.title,
       slug,
-      content: dto.content,
+      content: dto.content || null,
+      steps: steps,
       excerpt: dto.excerpt,
       featuredImage: dto.featured_image,
       categories: dto.categories,
@@ -216,7 +235,10 @@ export class ArticlesService {
     }
 
     if (dto.title !== undefined) article.title = dto.title;
-    if (dto.content !== undefined) article.content = dto.content;
+    if (dto.content !== undefined) article.content = dto.content || null;
+    if (dto.steps !== undefined) {
+      article.steps = this.normalizeSteps(dto.steps);
+    }
     if (dto.excerpt !== undefined) article.excerpt = dto.excerpt;
     if (dto.featured_image !== undefined) article.featuredImage = dto.featured_image;
     if (dto.categories !== undefined) article.categories = dto.categories;
