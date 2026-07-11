@@ -34,12 +34,13 @@ import {
 
 @ApiTags('ingredients')
 @Controller('ingredients')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@ApiBearerAuth()
 export class IngredientsController {
   constructor(private readonly ingredientsService: IngredientsService) {}
 
+  // 🔒 Создание - только admin/moderator
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
   @Roles(UserRole.ADMIN, UserRole.MODERATOR)
   @ApiOperation({ summary: 'Создать ингредиент (admin/moderator)' })
   @ApiResponse({ status: HttpStatus.CREATED, type: IngredientResponseDto })
@@ -57,23 +58,9 @@ export class IngredientsController {
     return this.ingredientsService.create(createIngredientDto);
   }
 
-  // @Get()
-  // @ApiOperation({ summary: 'Получить список всех ингредиентов' })
-  // @ApiResponse({ status: HttpStatus.OK, type: [IngredientResponseDto] })
-  // findAll(): Promise<IngredientResponseDto[]> {
-  //   return this.ingredientsService.findAll();
-  // }
-
-  // @Get('search')
-  // @ApiOperation({ summary: 'Поиск ингредиентов по названию или коду' })
-  // @ApiQuery({ name: 'q', description: 'Поисковый запрос' })
-  // @ApiResponse({ status: HttpStatus.OK, type: [IngredientResponseDto] })
-  // search(@Query('q') query: string): Promise<IngredientResponseDto[]> {
-  //   return this.ingredientsService.search(query);
-  // }
-
+  // ✅ ПУБЛИЧНЫЙ - список ингредиентов (без авторизации)
   @Get()
-  @ApiOperation({ summary: 'Получить список всех ингредиентов (с пагинацией)' })
+  @ApiOperation({ summary: 'Получить список всех ингредиентов (публичный)' })
   @ApiResponse({
     status: HttpStatus.OK,
     type: PaginatedResponseDto<IngredientResponseDto>,
@@ -90,8 +77,9 @@ export class IngredientsController {
     return new PaginatedResponseDto(ingredients, total, page, limit);
   }
 
+  // ✅ ПУБЛИЧНЫЙ - поиск ингредиентов (без авторизации)
   @Get('search')
-  @ApiOperation({ summary: 'Поиск ингредиентов (с пагинацией)' })
+  @ApiOperation({ summary: 'Поиск ингредиентов (публичный)' })
   @ApiQuery({ name: 'q', description: 'Поисковый запрос', required: true })
   @ApiQuery({ name: 'page', description: 'Номер страницы', required: false, type: Number })
   @ApiQuery({ name: 'limit', description: 'Количество элементов', required: false, type: Number })
@@ -112,8 +100,9 @@ export class IngredientsController {
     return new PaginatedResponseDto(ingredients, total, pageNum, limitNum);
   }
 
+  // ✅ ПУБЛИЧНЫЙ - получение ингредиента по ID (без авторизации)
   @Get(':id')
-  @ApiOperation({ summary: 'Получить ингредиент по ID' })
+  @ApiOperation({ summary: 'Получить ингредиент по ID (публичный)' })
   @ApiParam({ name: 'id', description: 'UUID ингредиента' })
   @ApiResponse({ status: HttpStatus.OK, type: IngredientResponseDto })
   @ApiResponse({
@@ -124,7 +113,10 @@ export class IngredientsController {
     return this.ingredientsService.findOne(id);
   }
 
+  // 🔒 Обновление - только admin/moderator
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
   @Roles(UserRole.ADMIN, UserRole.MODERATOR)
   @ApiOperation({ summary: 'Обновить ингредиент (admin/moderator)' })
   @ApiParam({ name: 'id', description: 'UUID ингредиента' })
@@ -144,7 +136,10 @@ export class IngredientsController {
     return this.ingredientsService.update(id, updateIngredientDto);
   }
 
+  // 🔒 Удаление - только admin
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
   @Roles(UserRole.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Удалить ингредиент (только admin)' })
