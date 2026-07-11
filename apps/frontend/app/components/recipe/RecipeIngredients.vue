@@ -29,9 +29,15 @@
             >
               <UIcon v-if="checkedIngredients[idx]" name="i-lucide-check" class="h-2.5 w-2.5 md:h-3 md:w-3" />
             </button>
-            <span class="text-xs text-zinc-800 md:text-sm" :class="{ 'line-through text-zinc-400': checkedIngredients[idx] }">
+            <!-- Ссылка на ингредиент -->
+            <NuxtLink
+              :to="getIngredientLink(ing)"
+              class="text-xs text-zinc-800 hover:text-emerald-600 hover:underline transition-colors md:text-sm"
+              :class="{ 'line-through text-zinc-400 hover:text-zinc-400': checkedIngredients[idx] }"
+              @click.stop
+            >
               {{ getIngredientName(ing) }}
-            </span>
+            </NuxtLink>
           </div>
           <span class="ml-2 text-xs text-zinc-500 md:text-sm">
             {{ formatIngredientAmount(ing) }}
@@ -101,7 +107,12 @@ import PartnersModal from './PartnersModal.vue'
 interface Ingredient {
   id?: string
   ingredientId?: string
-  ingredient?: { id: string; name: string; unitId?: string }
+  ingredient?: {
+    id: string;
+    name: string;
+    unitId?: string;
+    srcPath?: string;
+  }
   name?: string
   amount: number | string
   unitId?: string
@@ -168,6 +179,20 @@ const getIngredientName = (ing: Ingredient) => {
   if (ing.ingredient?.name) return ing.ingredient.name
   if (ing.name) return ing.name
   return 'Ингредиент'
+}
+
+// Получение ссылки на ингредиент
+const getIngredientLink = (ing: Ingredient): string => {
+  if (ing.ingredient?.srcPath) {
+    return `/ingredients/${ing.ingredient.srcPath}`
+  }
+  if (ing.ingredient?.id) {
+    return `/ingredients/${ing.ingredient.id}`
+  }
+  if (ing.id) {
+    return `/ingredients/${ing.id}`
+  }
+  return '#'
 }
 
 // Получение единицы измерения из данных
