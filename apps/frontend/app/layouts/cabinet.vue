@@ -433,6 +433,7 @@ const exploreLinks = [
 // Ссылки для администратора/модератора
 const adminLinks = [
   { to: '/admin', label: 'Админ панель', icon: 'i-lucide-shield' },
+  { to: '/ingredients', label: 'Ингридиенты', icon: 'i-lucide-utensils-crossed' },
 ]
 
 // Группировка демо компонентов

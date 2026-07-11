@@ -3,6 +3,7 @@ import { h, resolveComponent, ref, computed, watch, onMounted } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
 import { useIngredientsApi, type Ingredient, type CreateIngredientDto, type UpdateIngredientDto, type NutritionInfo, type SeoData } from '~/composables/useIngredientsApi'
 import { useUnitsApi, type Unit } from '~/composables/useUnitsApi'
+import CustomKeywords from '~/components/admin/recipes/CustomKeywords.vue'
 
 definePageMeta({
   layout: 'admin',
@@ -434,7 +435,7 @@ const openEditModal = (ingredient: Ingredient) => {
     seo: {
       title: ingredient.seo?.title || '',
       description: ingredient.seo?.description || '',
-      keywords: ingredient.seo?.keywords || [],
+      keywords: Array.isArray(ingredient.seo?.keywords) ? ingredient.seo.keywords : [],
       ogImage: ingredient.seo?.ogImage || ''
     }
   }
@@ -452,7 +453,29 @@ const onNameChange = () => {
   if (formData.value.name && !formData.value.srcPath) {
     formData.value.srcPath = generateSrcPath(formData.value.name)
   }
+  // Автозаполнение SEO title
+  if (formData.value.name && !formData.value.seo.title) {
+    formData.value.seo.title = formData.value.name
+  }
 }
+
+// Обновление SEO
+const updateSeo = (seo: SeoData) => {
+  formData.value.seo = seo
+}
+
+// Предпросмотр SEO
+const previewTitle = computed(() =>
+  formData.value.seo.title || formData.value.name || 'Ингредиент'
+)
+
+const previewUrl = computed(() =>
+  `https://ayeda.ru/ingredients/${formData.value.srcPath || '...'}`
+)
+
+const previewDescription = computed(() =>
+  formData.value.seo.description || formData.value.description || 'Описание ингредиента'
+)
 
 const createIngredient = async () => {
   if (!formData.value.unitId) {
@@ -893,37 +916,39 @@ onMounted(async () => {
               <h3 class="text-sm font-medium mb-3">SEO настройки</h3>
 
               <div class="space-y-4">
-                <UFormField label="SEO Заголовок" name="seoTitle">
+                <!-- SEO Заголовок -->
+                <div class="space-y-2 flex flex-col">
                   <UInput
                     v-model="formData.seo.title"
-                    placeholder="Абрикос - полезные свойства"
-                    maxlength="70"
+                    placeholder="SEO заголовок (до 60 символов)"
+                    maxlength="60"
                   />
-                  <div class="text-xs text-muted-foreground mt-1">
-                    {{ (formData.seo.title?.length || 0) }}/70 символов
+                  <div class="text-xs text-muted-foreground">
+                    Осталось символов: {{ 60 - (formData.seo.title?.length || 0) }}
                   </div>
-                </UFormField>
+                </div>
 
-                <UFormField label="SEO Описание" name="seoDescription">
+                <!-- SEO Описание -->
+                <div class="space-y-2 flex flex-col">
+                  <label class="text-sm font-medium">SEO описание</label>
                   <UTextarea
                     v-model="formData.seo.description"
-                    placeholder="Все об абрикосе: состав, калорийность, польза..."
-                    :rows="2"
+                    placeholder="SEO описание (до 160 символов)"
+                    :rows="3"
                     maxlength="160"
                   />
-                  <div class="text-xs text-muted-foreground mt-1">
-                    {{ (formData.seo.description?.length || 0) }}/160 символов
+                  <div class="text-xs text-muted-foreground">
+                    Осталось символов: {{ 160 - (formData.seo.description?.length || 0) }}
                   </div>
-                </UFormField>
+                </div>
 
-                <UFormField label="Ключевые слова" name="seoKeywords">
-                  <UInput
-                    v-model="formData.seo.keywords"
-                    placeholder="абрикос, польза абрикоса, состав абрикоса"
-                    description="Введите через запятую"
-                  />
-                </UFormField>
+                <!-- Ключевые слова с CustomKeywords -->
+                <CustomKeywords
+                  :model-value="formData.seo.keywords"
+                  @update:model-value="(val) => formData.seo.keywords = val"
+                />
 
+                <!-- OG Изображение -->
                 <UFormField label="OG Изображение" name="seoOgImage">
                   <UInput
                     v-model="formData.seo.ogImage"
@@ -931,6 +956,22 @@ onMounted(async () => {
                     description="Изображение для соцсетей"
                   />
                 </UFormField>
+
+                <!-- Предпросмотр SEO -->
+                <div class="mt-4 pt-4 border-t">
+                  <label class="text-sm font-medium mb-2 block">Предпросмотр в поисковой выдаче</label>
+                  <div class="p-3 border rounded-lg bg-muted/30 space-y-1">
+                    <div class="text-sm font-semibold text-primary hover:underline cursor-pointer">
+                      {{ previewTitle }}
+                    </div>
+                    <div class="text-xs text-muted-foreground">
+                      {{ previewUrl }}
+                    </div>
+                    <div class="text-xs text-muted-foreground line-clamp-2">
+                      {{ previewDescription }}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -983,7 +1024,7 @@ onMounted(async () => {
             <!-- Основная информация -->
             <div class="grid grid-cols-2 gap-4">
               <UFormField label="Название" name="name" required>
-                <UInput v-model="formData.name" placeholder="Абрикос" />
+                <UInput v-model="formData.name" placeholder="Абрикос" @input="onNameChange" />
               </UFormField>
 
               <UFormField label="Код" name="code" required>
@@ -1047,8 +1088,7 @@ onMounted(async () => {
 
             <!-- Единица измерения -->
             <UFormField label="Единица измерения" name="unitId" required>
-              <USelect
-                v-model="formData.unitId"
+              <USelect                v-model="formData.unitId"
                 :items="units.map(unit => ({
                   label: `${unit.name} (${unit.short || unit.code})`,
                   value: unit.id
@@ -1126,42 +1166,61 @@ onMounted(async () => {
               <h3 class="text-sm font-medium mb-3">SEO настройки</h3>
 
               <div class="space-y-4">
-                <UFormField label="SEO Заголовок" name="seoTitle">
+                <!-- SEO Заголовок -->
+                <div class="space-y-2 flex flex-col">
                   <UInput
                     v-model="formData.seo.title"
-                    placeholder="Абрикос - полезные свойства"
-                    maxlength="70"
+                    placeholder="SEO заголовок (до 60 символов)"
+                    maxlength="60"
                   />
-                  <div class="text-xs text-muted-foreground mt-1">
-                    {{ (formData.seo.title?.length || 0) }}/70 символов
+                  <div class="text-xs text-muted-foreground">
+                    Осталось символов: {{ 60 - (formData.seo.title?.length || 0) }}
                   </div>
-                </UFormField>
+                </div>
 
-                <UFormField label="SEO Описание" name="seoDescription">
+                <!-- SEO Описание -->
+                <div class="space-y-2 flex flex-col">
+                  <label class="text-sm font-medium">SEO описание</label>
                   <UTextarea
                     v-model="formData.seo.description"
-                    placeholder="Все об абрикосе: состав, калорийность, польза..."
-                    :rows="2"
+                    placeholder="SEO описание (до 160 символов)"
+                    :rows="3"
                     maxlength="160"
                   />
-                  <div class="text-xs text-muted-foreground mt-1">
-                    {{ (formData.seo.description?.length || 0) }}/160 символов
+                  <div class="text-xs text-muted-foreground">
+                    Осталось символов: {{ 160 - (formData.seo.description?.length || 0) }}
                   </div>
-                </UFormField>
+                </div>
 
-                <UFormField label="Ключевые слова" name="seoKeywords">
-                  <UInput
-                    v-model="formData.seo.keywords"
-                    placeholder="абрикос, польза абрикоса, состав абрикоса"
-                  />
-                </UFormField>
+                <!-- Ключевые слова с CustomKeywords -->
+                <CustomKeywords
+                  :model-value="formData.seo.keywords"
+                  @update:model-value="(val) => formData.seo.keywords = val"
+                />
 
+                <!-- OG Изображение -->
                 <UFormField label="OG Изображение" name="seoOgImage">
                   <UInput
                     v-model="formData.seo.ogImage"
                     placeholder="https://example.com/og-image.jpg"
                   />
                 </UFormField>
+
+                <!-- Предпросмотр SEO -->
+                <div class="mt-4 pt-4 border-t">
+                  <label class="text-sm font-medium mb-2 block">Предпросмотр в поисковой выдаче</label>
+                  <div class="p-3 border rounded-lg bg-muted/30 space-y-1">
+                    <div class="text-sm font-semibold text-primary hover:underline cursor-pointer">
+                      {{ previewTitle }}
+                    </div>
+                    <div class="text-xs text-muted-foreground">
+                      {{ previewUrl }}
+                    </div>
+                    <div class="text-xs text-muted-foreground line-clamp-2">
+                      {{ previewDescription }}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
