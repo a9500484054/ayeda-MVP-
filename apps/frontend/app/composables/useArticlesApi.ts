@@ -1,6 +1,10 @@
 // composables/useArticlesApi.ts
-import type { Article, CreateArticleDto, UpdateArticleDto, ArticlesResponse } from '~/shared/types/articles.types';
-import { useApi } from './useApi';
+import type {
+  Article,
+  CreateArticleDto,
+  UpdateArticleDto,
+  ArticlesResponse
+} from '~/shared/types/articles.types';
 
 export function useArticlesApi() {
   const api = useApi();
@@ -15,68 +19,47 @@ export function useArticlesApi() {
       category?: string;
       search?: string;
     }): Promise<ArticlesResponse> {
-      return api('/articles', {
-        method: 'GET',
-        params,
-      });
+      return api.get('/articles', { params });
     },
 
     // Получить статью по ID (для редактирования)
     async getArticleById(id: string): Promise<Article> {
-      return api(`/articles/id/${id}`, {
-        method: 'GET',
-      });
+      return api.get(`/articles/id/${id}`);
     },
 
     // Создать статью
     async createArticle(data: CreateArticleDto): Promise<Article> {
-      return api('/articles', {
-        method: 'POST',
-        body: data,
-      });
+      return api.post('/articles', data);
     },
 
     // Обновить статью
     async updateArticle(id: string, data: UpdateArticleDto): Promise<Article> {
-      return api(`/articles/${id}`, {
-        method: 'PATCH',
-        body: data,
-      });
+      return api.patch(`/articles/${id}`, data);
     },
 
     // Удалить статью (soft delete)
     async deleteArticle(id: string): Promise<void> {
-      return api(`/articles/${id}`, {
-        method: 'DELETE',
-      });
+      return api.delete(`/articles/${id}`);
     },
 
     // Опубликовать статью
     async publishArticle(id: string): Promise<Article> {
-      return api(`/articles/${id}/publish`, {
-        method: 'PATCH',
-      });
+      return api.patch(`/articles/${id}/publish`);
     },
 
     // Снять с публикации
     async unpublishArticle(id: string): Promise<Article> {
-      return api(`/articles/${id}/unpublish`, {
-        method: 'PATCH',
-      });
+      return api.patch(`/articles/${id}/unpublish`);
     },
 
     // Получить список категорий
     async getCategories(): Promise<string[]> {
-      return api('/articles/categories', {
-        method: 'GET',
-      });
+      return api.get('/articles/categories');
     },
 
     // Получить статью по slug (публичная страница)
     async getArticleBySlug(slug: string): Promise<Article> {
-      return api(`/articles/${slug}`, {
-        method: 'GET',
-      });
+      return api.get(`/articles/${slug}`);
     },
   };
 }

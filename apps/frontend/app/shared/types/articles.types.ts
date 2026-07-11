@@ -1,62 +1,80 @@
 // shared/types/articles.types.ts
 
-export interface SeoData {
-  title?: string;
-  description?: string;
-  keywords?: string[];
-  og_image?: string;
-  canonical_url?: string;
-}
-
-export interface ArticleAuthor {
-  id: string;
-  username: string;
-  email: string;
-  avatar?: string | null;
-  first_name?: string | null;
-  last_name?: string | null;
+export interface ArticleStep {
+  id?: string;
+  text: string;
+  image: string | null;
+  sort: number;
 }
 
 export interface Article {
   id: string;
   title: string;
   slug: string;
-  content: string;
-  excerpt?: string | null;
-  featured_image?: string | null;
-  categories: string[];
-  type: 'article' | 'recipe' | 'news';
+  content: string | null;
+  steps: ArticleStep[] | null;
+  excerpt: string | null;
+  featured_image: string | null;
+  categories: string[] | null;
+  type: 'article' | 'tip' | 'news';
   status: 'draft' | 'published' | 'archived';
   views: number;
-  seo?: SeoData;
-  published_at?: string | null;
+  seo: {
+    title?: string;
+    description?: string;
+    keywords?: string[];
+    og_image?: string;
+    canonical_url?: string;
+  } | null;
+  published_at: string | null;
   created_at: string;
   updated_at: string;
-  author: ArticleAuthor;
+  author: {
+    id: string;
+    username: string;
+    email: string;
+    avatar: string | null;
+    first_name: string | null;
+    last_name: string | null;
+  };
 }
 
 export interface CreateArticleDto {
   title: string;
-  content: string;
-  slug: string;
+  slug?: string;
+  content?: string;
+  steps?: Omit<ArticleStep, 'id'>[];
   excerpt?: string;
   featured_image?: string;
   categories?: string[];
-  type?: 'article' | 'recipe' | 'news';
+  type?: 'article' | 'tip' | 'news';
   status?: 'draft' | 'published' | 'archived';
-  seo?: SeoData;
+  seo?: {
+    title?: string;
+    description?: string;
+    keywords?: string[];
+    og_image?: string;
+    canonical_url?: string;
+  };
 }
 
 export interface UpdateArticleDto {
   title?: string;
-  content?: string;
   slug?: string;
-  excerpt?: string;
-  featured_image?: string;
-  categories?: string[];
-  type?: 'article' | 'recipe' | 'news';
+  content?: string | null;
+  steps?: ArticleStep[];
+  excerpt?: string | null;
+  featured_image?: string | null;
+  categories?: string[] | null;
+  type?: 'article' | 'tip' | 'news';
   status?: 'draft' | 'published' | 'archived';
-  seo?: SeoData;
+  seo?: {
+    title?: string;
+    description?: string;
+    keywords?: string[];
+    og_image?: string;
+    canonical_url?: string;
+  } | null;
 }
 
 export interface ArticlesResponse {
