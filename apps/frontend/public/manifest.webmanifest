@@ -1,0 +1,96 @@
+// public/manifest.webmanifest
+{
+  "name": "Ayeda",
+  "short_name": "Ayeda",
+  "description": "Кулинарные рецепты и списки покупок",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#166534",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/pwa-icons/pwa-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-icons/pwa-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-icons/pwa-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-icons/pwa-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-icons/pwa-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-icons/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/pwa-icons/pwa-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/pwa-icons/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["food", "lifestyle", "utilities"],
+  "lang": "ru",
+  "dir": "ltr",
+  "shortcuts": [
+    {
+      "name": "Рецепты",
+      "url": "/recipes",
+      "description": "Просмотр рецептов"
+    },
+    {
+      "name": "Мои рецепты",
+      "url": "/cabinet/my-recipes",
+      "description": "Мои рецепты"
+    },
+    {
+      "name": "Списки покупок",
+      "url": "/cabinet/shopping-lists",
+      "description": "Мои списки покупок"
+    },
+    {
+      "name": "Планировщик меню",
+      "url": "/cabinet/menu-planner",
+      "description": "Планирование меню"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-1.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Главная страница"
+    }
+  ]
+}

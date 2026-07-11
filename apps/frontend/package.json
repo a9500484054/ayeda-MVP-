@@ -3,16 +3,18 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "nuxt build",
+    "build": "npm run generate-pwa-icons && nuxt build",
     "dev": "nuxt dev",
     "lint": "eslint app --ext .ts,.vue --quiet --rule \"no-undef: off\"",
     "type-check": "nuxt typecheck",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "generate": "nuxt generate",
+    "generate": "npm run generate-pwa-icons && nuxt generate",
     "generate:api": "openapi-ts --input http://localhost:3000/api/swagger.json --output packages/shared-api",
+    "generate-icons": "node scripts/generate-icons.js",
+    "generate-pwa-icons": "node scripts/generate-pwa-icons.js",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "npm run generate-pwa-icons && nuxt prepare"
   },
   "dependencies": {
     "@hey-api/client-fetch": "^0.13.1",
