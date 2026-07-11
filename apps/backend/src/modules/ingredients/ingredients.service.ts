@@ -30,13 +30,16 @@ export class IngredientsService {
       throw new ConflictException('Ингредиент с таким кодом уже существует');
     }
 
-    // Создаем ингредиент с nutritionInfo по умолчанию
+    // Создаем ингредиент
     const ingredient = this.ingredientsRepository.create({
       code: createIngredientDto.code,
       name: createIngredientDto.name,
+      description: createIngredientDto.description,
+      photo: createIngredientDto.photo,
       unit,
       unitId: createIngredientDto.unitId,
-      nutritionInfo: createIngredientDto.nutritionInfo || {}, // если не передан - пустой объект
+      nutritionInfo: createIngredientDto.nutritionInfo || {},
+      seo: createIngredientDto.seo || {},
     });
 
     return this.ingredientsRepository.save(ingredient);
@@ -112,16 +115,32 @@ export class IngredientsService {
       ingredient.code = updateIngredientDto.code;
     }
 
-    // Обновляем name если передан
+    // Обновляем поля
     if (updateIngredientDto.name) {
       ingredient.name = updateIngredientDto.name;
     }
 
-    // Обновляем nutritionInfo если передан (мержим с существующим)
+    if (updateIngredientDto.description !== undefined) {
+      ingredient.description = updateIngredientDto.description;
+    }
+
+    if (updateIngredientDto.photo !== undefined) {
+      ingredient.photo = updateIngredientDto.photo;
+    }
+
+    // Обновляем nutritionInfo если передан
     if (updateIngredientDto.nutritionInfo) {
       ingredient.nutritionInfo = {
         ...ingredient.nutritionInfo,
         ...updateIngredientDto.nutritionInfo,
+      };
+    }
+
+    // Обновляем seo если передан
+    if (updateIngredientDto.seo) {
+      ingredient.seo = {
+        ...ingredient.seo,
+        ...updateIngredientDto.seo,
       };
     }
 
@@ -169,5 +188,25 @@ export class IngredientsService {
     const [ingredients, total] = await queryBuilder.getManyAndCount();
 
     return [ingredients, total];
+  }
+
+  // Новый метод для получения похожих ингредиентов
+  async findSimilar(id: string, limit: number = 5): Promise<Ingredient[]> {
+    const ingredient = await this.findOne(id);
+
+    // Ищем ингредиенты с похожим названием или категорией
+    const results = await this.ingredientsRepository
+      .createQueryBuilder('ingredient')
+      .leftJoinAndSelect('ingredient.unit', 'unit')
+      .where('ingredient.id != :id', { id })
+      .andWhere(
+        '(LOWER(ingredient.name) LIKE LOWER(:search) OR LOWER(ingredient.code) LIKE LOWER(:search))',
+        { search: `%${ingredient.name.split(' ')[0]}%` }
+      )
+      .orderBy('ingredient.name', 'ASC')
+      .take(limit)
+      .getMany();
+
+    return results;
   }
 }

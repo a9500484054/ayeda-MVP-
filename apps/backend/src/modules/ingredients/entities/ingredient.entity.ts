@@ -7,7 +7,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Unit } from '../../units/entities/unit.entity';
 
 export interface NutritionInfo {
@@ -17,7 +17,15 @@ export interface NutritionInfo {
   carbohydrates?: number;
   fiber?: number;
   sugar?: number;
-  [key: string]: number | undefined; // для других полей
+  [key: string]: number | undefined;
+}
+
+export interface SeoData {
+  title?: string;
+  description?: string;
+  keywords?: string[];
+  ogImage?: string;
+  [key: string]: any;
 }
 
 @Entity('ingredients')
@@ -33,6 +41,20 @@ export class Ingredient {
   @ApiProperty({ example: 'Молоко', description: 'Название ингредиента' })
   @Column({ length: 100 })
   name: string;
+
+  @ApiPropertyOptional({
+    example: 'Свежее пастеризованное молоко 3.2% жирности',
+    description: 'Описание ингредиента',
+  })
+  @Column({ type: 'text', nullable: true })
+  description?: string;
+
+  @ApiPropertyOptional({
+    example: 'https://example.com/images/milk.jpg',
+    description: 'URL фото ингредиента',
+  })
+  @Column({ type: 'varchar', length: 512, nullable: true })
+  photo?: string;
 
   @ApiProperty({ type: () => Unit, description: 'Единица измерения' })
   @ManyToOne(() => Unit, { eager: true })
@@ -56,6 +78,14 @@ export class Ingredient {
   })
   @Column({ type: 'jsonb', name: 'nutrition_info', default: {} })
   nutritionInfo: NutritionInfo;
+
+  @ApiPropertyOptional({
+    description: 'SEO данные для ингредиента',
+    type: 'object',
+    additionalProperties: true,
+  })
+  @Column({ type: 'jsonb', name: 'seo', nullable: true, default: {} })
+  seo?: SeoData;
 
   @ApiProperty()
   @CreateDateColumn({ name: 'created_at' })
