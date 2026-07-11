@@ -18,254 +18,13 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     '@vee-validate/nuxt',
     '@vite-pwa/nuxt',
-    '@nuxtjs/sitemap',
+    // ❌ Удаляем @nuxtjs/sitemap - будем использовать ручную генерацию
+    // '@nuxtjs/sitemap',
   ],
 
-  // ==================== SITE CONFIG (для sitemap) ====================
-  site: {
-    url: process.env.NUXT_PUBLIC_APP_URL || 'https://ayeda.ru'
-  },
-
-  // ==================== SITEMAP ====================
-  sitemap: {
-    hostname: process.env.NUXT_PUBLIC_APP_URL || 'https://ayeda.ru',
-
-    exclude: [
-      '/admin/**',
-      '/cabinet/**',
-      '/login',
-      '/register',
-      '/forgot-password',
-      '/reset-password',
-      '/verify-email',
-      '/demo/**',
-      '/pwa-install',
-      '/in-development',
-      '/offline',
-      '/shared/**',
-    ],
-
-    defaults: {
-      changefreq: 'daily',
-      priority: 0.5,
-      lastmod: () => new Date().toISOString(),
-    },
-
-    autoLastmod: true,
-    trailingSlash: false,
-    gzip: true,
-    cacheMaxAgeSeconds: 60 * 60 * 24,
-
-    include: [
-      '/',
-      '/about',
-      '/recipes',
-      '/ingredients',
-      '/blog',
-      '/support',
-      '/policy',
-      '/offer',
-    ],
-
-    // ==================== ДИНАМИЧЕСКИЕ URL ИЗ API ====================
-    urls: async () => {
-      console.log('🚀 Sitemap: Начинаем генерацию динамических URL...')
-
-      const dynamicUrls: any[] = []
-      const apiBaseUrl = process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api/v1'
-      const appUrl = process.env.NUXT_PUBLIC_APP_URL || 'http://localhost:3001'
-
-      console.log(`📍 APP URL: ${appUrl}`)
-      console.log(`📍 API URL: ${apiBaseUrl}`)
-
-      const now = new Date().toISOString()
-
-      // ============================================================
-      // 1. РЕЦЕПТЫ
-      // ============================================================
-      try {
-        console.log('📡 Запрашиваем рецепты...')
-        let allRecipes: any[] = []
-        let page = 1
-        const limit = 100
-        let hasNext = true
-
-        while (hasNext) {
-          const url = `${apiBaseUrl}/recipes?status=public&page=${page}&limit=${limit}`
-          console.log(`📡 Запрос: ${url}`)
-
-          const response = await fetch(url)
-
-          if (!response.ok) {
-            console.error(`❌ Ошибка получения рецептов: ${response.status}`)
-            break
-          }
-
-          const data = await response.json()
-          const items = data?.data || []
-
-          if (items.length === 0) break
-
-          allRecipes = allRecipes.concat(items)
-
-          // Проверяем наличие следующей страницы
-          hasNext = data?.hasNext === true
-
-          // Альтернативная проверка через pages
-          if (!hasNext && data?.pages && page >= data.pages) {
-            hasNext = false
-          }
-
-          page++
-
-          // Защита от бесконечного цикла
-          if (page > 100) {
-            console.warn('⚠️ Достигнут лимит страниц (100) для рецептов')
-            break
-          }
-        }
-
-        console.log(`✅ Найдено рецептов: ${allRecipes.length}`)
-
-        dynamicUrls.push(
-          ...allRecipes.map((recipe: any) => ({
-            loc: `/recipes/${recipe.srcPath}`,
-            lastmod: recipe.updatedAt?.split('T')[0] || now,
-            changefreq: 'weekly',
-            priority: 0.8,
-            images: recipe.photo?.src ? [{ loc: recipe.photo.src }] : undefined,
-          }))
-        )
-      } catch (error) {
-        console.error('❌ Ошибка при получении рецептов:', error)
-      }
-
-      // ============================================================
-      // 2. СТАТЬИ БЛОГА
-      // ============================================================
-      try {
-        console.log('📡 Запрашиваем статьи...')
-        let allArticles: any[] = []
-        let page = 1
-        const limit = 100
-        let hasNext = true
-
-        while (hasNext) {
-          const url = `${apiBaseUrl}/articles?status=published&page=${page}&limit=${limit}`
-          console.log(`📡 Запрос: ${url}`)
-
-          const response = await fetch(url)
-
-          if (!response.ok) {
-            console.error(`❌ Ошибка получения статей: ${response.status}`)
-            break
-          }
-
-          const data = await response.json()
-          const items = data?.items || []
-
-          if (items.length === 0) break
-
-          allArticles = allArticles.concat(items)
-
-          // Проверяем наличие следующей страницы
-          hasNext = data?.hasNext === true
-
-          // Альтернативная проверка через pages
-          if (!hasNext && data?.pages && page >= data.pages) {
-            hasNext = false
-          }
-
-          page++
-
-          // Защита от бесконечного цикла
-          if (page > 100) {
-            console.warn('⚠️ Достигнут лимит страниц (100) для статей')
-            break
-          }
-        }
-
-        console.log(`✅ Найдено статей: ${allArticles.length}`)
-
-        dynamicUrls.push(
-          ...allArticles.map((article: any) => ({
-            loc: `/blog/${article.slug}`,
-            lastmod: article.updated_at?.split('T')[0] || now,
-            changefreq: 'weekly',
-            priority: 0.7,
-            images: article.featured_image ? [{ loc: article.featured_image }] : undefined,
-          }))
-        )
-      } catch (error) {
-        console.error('❌ Ошибка при получении статей:', error)
-      }
-
-      // ============================================================
-      // 3. ИНГРЕДИЕНТЫ
-      // ============================================================
-      try {
-        console.log('📡 Запрашиваем ингредиенты...')
-        let allIngredients: any[] = []
-        let page = 1
-        const limit = 100
-        let hasNext = true
-
-        while (hasNext) {
-          const url = `${apiBaseUrl}/ingredients?page=${page}&limit=${limit}`
-          console.log(`📡 Запрос: ${url}`)
-
-          const response = await fetch(url)
-
-          if (!response.ok) {
-            console.error(`❌ Ошибка получения ингредиентов: ${response.status}`)
-            break
-          }
-
-          const data = await response.json()
-          const items = data?.data || []
-
-          if (items.length === 0) break
-
-          allIngredients = allIngredients.concat(items)
-
-          // Проверяем наличие следующей страницы
-          hasNext = data?.hasNext === true
-
-          // Альтернативная проверка через pages
-          if (!hasNext && data?.pages && page >= data.pages) {
-            hasNext = false
-          }
-
-          page++
-
-          // Защита от бесконечного цикла
-          if (page > 100) {
-            console.warn('⚠️ Достигнут лимит страниц (100) для ингредиентов')
-            break
-          }
-        }
-
-        console.log(`✅ Найдено ингредиентов: ${allIngredients.length}`)
-
-        dynamicUrls.push(
-          ...allIngredients.map((ingredient: any) => ({
-            loc: `/ingredients/${ingredient.srcPath}`,
-            lastmod: ingredient.updatedAt?.split('T')[0] || now,
-            changefreq: 'monthly',
-            priority: 0.6,
-            images: ingredient.photo ? [{ loc: ingredient.photo }] : undefined,
-          }))
-        )
-      } catch (error) {
-        console.error('❌ Ошибка при получении ингредиентов:', error)
-      }
-
-      console.log(`✅ Sitemap готов: ${dynamicUrls.length} динамических URL`)
-      console.log(`📋 Всего URL в sitemap: ${dynamicUrls.length + 8} (включая статические)`)
-
-      return dynamicUrls
-    },
-  },
+  // ❌ Удаляем блоки site и sitemap
+  // site: { ... },
+  // sitemap: { ... },
 
   // ==================== ICONS ====================
   icon: {
@@ -307,6 +66,7 @@ export default defineNuxtConfig({
         { name: 'twitter:description', content: 'Ayeda — сервис рецептов и планирования меню' },
         { name: 'twitter:image', content: '/og-image.jpg' },
         { name: 'yandex-verification', content: '7f3f124077fe2229' },
+        // PWA meta
         { name: 'theme-color', content: '#166534' },
         { name: 'msapplication-TileColor', content: '#166534' },
         { name: 'msapplication-TileImage', content: '/pwa-icons/pwa-144x144.png' },
@@ -316,11 +76,14 @@ export default defineNuxtConfig({
         { name: 'format-detection', content: 'telephone=no' }
       ],
       link: [
+        // Favicon
         { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' },
         { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32x32.png' },
         { rel: 'icon', type: 'image/png', sizes: '16x16', href: '/favicon-16x16.png' },
+        // PWA
         { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
         { rel: 'manifest', href: '/manifest.webmanifest' },
+        // Preconnect для шрифтов
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: 'anonymous' }
       ]
@@ -351,11 +114,20 @@ export default defineNuxtConfig({
 
     experimental: {
       openAPI: true
-    }
+    },
+
+    // Добавляем статические файлы для sitemap
+    publicAssets: [
+      {
+        dir: 'public',
+        maxAge: 60 * 60 * 24 * 30 // 30 дней кэширования для статики
+      }
+    ]
   },
 
   // ==================== ROUTE RULES ====================
   routeRules: {
+    // Статические страницы (prerender)
     '/': { ssr: true },
     '/about': { prerender: true },
     '/offer': { prerender: true },
@@ -364,10 +136,14 @@ export default defineNuxtConfig({
     '/in-development': { prerender: true },
     '/sitemap.xml': { prerender: true },
     '/robots.txt': { prerender: true },
+
+    // Динамические страницы (SSR)
     '/recipes': { ssr: true },
     '/recipes/**': { ssr: true },
     '/blog': { ssr: true },
     '/blog/**': { ssr: true },
+
+    // Клиентские страницы (SPA)
     '/cabinet/**': { ssr: false },
     '/admin/**': { ssr: false },
     '/login': { ssr: false },
@@ -375,6 +151,8 @@ export default defineNuxtConfig({
     '/forgot-password': { ssr: false },
     '/reset-password': { ssr: false },
     '/verify-email': { ssr: false },
+
+    // API прокси
     '/api/**': {
       proxy: {
         to: process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api/v1'
@@ -398,7 +176,7 @@ export default defineNuxtConfig({
             cacheName: 'image-cache',
             expiration: {
               maxEntries: 200,
-              maxAgeSeconds: 60 * 60 * 24 * 30
+              maxAgeSeconds: 60 * 60 * 24 * 30 // 30 дней
             }
           }
         },
@@ -409,7 +187,7 @@ export default defineNuxtConfig({
             cacheName: 'api-cache',
             expiration: {
               maxEntries: 100,
-              maxAgeSeconds: 60 * 60 * 24
+              maxAgeSeconds: 60 * 60 * 24 // 1 день
             }
           }
         },
@@ -420,7 +198,7 @@ export default defineNuxtConfig({
             cacheName: 'google-fonts-cache',
             expiration: {
               maxEntries: 10,
-              maxAgeSeconds: 60 * 60 * 24 * 30
+              maxAgeSeconds: 60 * 60 * 24 * 30 // 30 дней
             }
           }
         },
@@ -431,7 +209,7 @@ export default defineNuxtConfig({
             cacheName: 'google-fonts-cache',
             expiration: {
               maxEntries: 10,
-              maxAgeSeconds: 60 * 60 * 24 * 30
+              maxAgeSeconds: 60 * 60 * 24 * 30 // 30 дней
             }
           }
         }
