@@ -158,13 +158,13 @@ onUnmounted(() => {
 
             <!-- Бейдж приложения -->
             <div class="mt-4 flex gap-2">
-              <NuxtLink to="/in-development">
+              <NuxtLink to="/pwa-install">
                 <div class="bg-gray-800 rounded-lg p-2 flex items-center gap-2">
                   <UIcon name="i-lucide-apple" class="w-5 h-5" />
                   <span class="text-xs">App Store</span>
                 </div>
               </NuxtLink>
-              <NuxtLink to="/in-development">
+              <NuxtLink to="/pwa-install">
                 <div class="bg-gray-800 rounded-lg p-2 flex items-center gap-2">
                   <UIcon name="i-lucide-play" class="w-5 h-5" />
                   <span class="text-xs">Google Play</span>
