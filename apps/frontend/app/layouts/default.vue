@@ -1,24 +1,3 @@
-<script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import GlobalLoader from '~/components/GlobalLoader.vue';
-import PwaInstallPrompt from '~/components/PwaInstallPrompt.vue';
-import { publicNavigation } from "~/shared/constants/navigation";
-
-const scrolled = ref(false)
-
-const handleScroll = () => {
-  scrolled.value = window.scrollY > 50
-}
-
-onMounted(() => {
-  window.addEventListener('scroll', handleScroll)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
-})
-</script>
-
 <template>
   <div class="min-h-screen">
     <!-- Глобальный лоадер -->
@@ -176,7 +155,7 @@ onUnmounted(() => {
 
         <!-- Нижняя часть -->
         <div class="pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
-          <span>© 2026 AyEda. Все права защищены.</span>
+          <span>© {{ currentYear }} АуЕда. Все права защищены.</span>
           <div class="flex gap-6">
             <NuxtLink to="/policy" class="hover:text-emerald-400 transition">Политика конфиденциальности</NuxtLink>
             <NuxtLink to="/offer" class="hover:text-emerald-400 transition">Пользовательское соглашение</NuxtLink>
@@ -186,6 +165,30 @@ onUnmounted(() => {
     </footer>
   </div>
 </template>
+
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted } from 'vue'
+import GlobalLoader from '~/components/GlobalLoader.vue';
+import PwaInstallPrompt from '~/components/PwaInstallPrompt.vue';
+import { publicNavigation } from "~/shared/constants/navigation";
+
+const { currentYear } = useDate();
+
+const scrolled = ref(false)
+
+const handleScroll = () => {
+  scrolled.value = window.scrollY > 50
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
+</script>
+
 
 <style scoped>
 /* Кастомный скроллбар */

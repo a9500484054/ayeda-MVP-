@@ -39,7 +39,7 @@
       </div>
 
       <div class="relative z-10 text-white/40 text-sm">
-        © 2026 AyEda
+        © {{ currentYear }} АуЕда
       </div>
     </div>
 
@@ -107,17 +107,11 @@
             <p v-if="errors.password" class="text-xs text-red-500 mt-1">{{ errors.password }}</p>
           </div>
 
-          <!-- Запомнить меня -->
-          <div class="flex items-center justify-between">
-            <label class="flex items-center gap-2 cursor-pointer group">
-              <input
-                type="checkbox"
-                v-model="rememberMe"
-                class="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
-              />
-              <span class="text-sm text-gray-600 group-hover:text-gray-800 transition">Запомнить меня</span>
-            </label>
-          </div>
+          <!-- Запомнить меня - Используем компонент Checkbox -->
+          <Checkbox
+            v-model="rememberMe"
+            label="Запомнить меня"
+          />
 
           <!-- Server error -->
           <div v-if="serverError" class="p-3 bg-red-50 rounded-xl border border-red-200">
@@ -164,12 +158,12 @@ import { useForm } from "vee-validate";
 import * as z from "zod";
 import { useAuth } from "~/composables/useAuth";
 import { useUserStore } from "~/stores/userStore";
+import Checkbox from "~/shared/ui/checkbox/Checkbox.vue";
 
 definePageMeta({
   layout: false,
   ssr: false
 })
-
 
 useHead({
   title: 'Вход | AyEda',
@@ -186,6 +180,7 @@ useHead({
   ],
 })
 
+const { currentYear } = useDate();
 const { login, restoreSession, user, isAuthenticated } = useAuth();
 const userStore = useUserStore();
 const router = useRouter();

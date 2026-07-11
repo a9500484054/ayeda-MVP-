@@ -437,7 +437,7 @@ export class EmailService {
               Это письмо отправлено автоматически, пожалуйста, не отвечайте на него.
             </div>
             <div class="copyright">
-              © ${new Date().getFullYear()} AyEda. Все права защищены.
+              © ${new Date().getFullYear()} АуЕда. Все права защищены.
             </div>
           </div>
         </div>

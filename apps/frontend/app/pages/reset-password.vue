@@ -53,7 +53,7 @@
       </div>
 
       <div class="relative z-10 text-white/40 text-sm">
-        © 2026 AyEda
+        © {{ currentYear }} АуЕда
       </div>
     </div>
 
@@ -220,6 +220,7 @@ useHead({
   ],
 })
 
+const { currentYear } = useDate();
 const route = useRoute();
 const router = useRouter();
 const token = ref("");

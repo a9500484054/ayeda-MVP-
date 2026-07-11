@@ -2,7 +2,6 @@
   <div class="min-h-screen grid lg:grid-cols-2">
     <!-- Левая часть - Брендинг -->
     <div class="relative hidden lg:flex flex-col justify-between p-12 bg-gradient-to-br from-emerald-700 to-teal-800 overflow-hidden">
-      <!-- ... остальная левая часть без изменений ... -->
       <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent"></div>
       <div class="absolute -top-40 -right-40 w-80 h-80 bg-emerald-400 rounded-full blur-3xl opacity-30"></div>
       <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-teal-400 rounded-full blur-3xl opacity-30"></div>
@@ -16,7 +15,6 @@
             <span class="text-2xl font-bold text-white">AyEda</span>
           </div>
         </NuxtLink>
-
       </div>
 
       <div class="relative z-10">
@@ -57,7 +55,7 @@
       </div>
 
       <div class="relative z-10 text-white/40 text-sm">
-        © 2026 AyEda
+        © {{ currentYear }} АуЕда
       </div>
     </div>
 
@@ -195,17 +193,13 @@
             <p v-if="errors.confirmPassword" class="text-xs text-red-500 mt-1">{{ errors.confirmPassword }}</p>
           </div>
 
-          <!-- Чекбокс согласия с правилами -->
+          <!-- Чекбокс согласия с правилами - Используем компонент Checkbox -->
           <div class="space-y-3">
-            <label class="flex items-start gap-3 cursor-pointer group">
-              <div class="flex-shrink-0 mt-0.5">
-                <input
-                  type="checkbox"
-                  v-model="agreedToTerms"
-                  class="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 focus:ring-2 cursor-pointer"
-                />
-              </div>
-              <span class="text-sm text-gray-600 group-hover:text-gray-800 transition">
+            <Checkbox
+              v-model="agreedToTerms"
+              :error="errors.agreedToTerms"
+            >
+              <span class="text-sm text-gray-600">
                 Я соглашаюсь с
                 <NuxtLink to="/offer" class="text-emerald-600 hover:text-emerald-700 font-medium underline underline-offset-2">
                   условиями использования
@@ -215,7 +209,7 @@
                   политикой конфиденциальности
                 </NuxtLink>
               </span>
-            </label>
+            </Checkbox>
             <p v-if="errors.agreedToTerms" class="text-xs text-red-500 mt-1">{{ errors.agreedToTerms }}</p>
           </div>
 
@@ -260,6 +254,7 @@ import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import * as z from "zod";
 import { useAuth } from "~/composables/useAuth";
+import Checkbox from "~/shared/ui/checkbox/Checkbox.vue";
 
 definePageMeta({
   layout: false,
@@ -281,6 +276,7 @@ useHead({
   ],
 })
 
+const { currentYear } = useDate();
 const { register, resendConfirmation } = useAuth();
 const pending = ref(false);
 const serverError = ref("");

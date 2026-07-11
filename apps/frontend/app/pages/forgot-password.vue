@@ -1,85 +1,3 @@
-<script setup lang="ts">
-import { toTypedSchema } from "@vee-validate/zod";
-import { useForm } from "vee-validate";
-import * as z from "zod";
-
-definePageMeta({
-  layout: false,
-  ssr: false
-})
-
-useHead({
-  title: 'Восстановление пароля | AyEda',
-  meta: [
-    { name: 'description', content: 'Забыли пароль? Введите email и мы отправим инструкции для восстановления доступа к вашему аккаунту на AyEda.', key: 'description' },
-    { name: 'robots', content: 'noindex, nofollow', key: 'robots' },
-    { property: 'og:title', content: 'Восстановление пароля | AyEda', key: 'og:title' },
-    { property: 'og:description', content: 'Восстановите доступ к своему аккаунту на AyEda', key: 'og:description' },
-    { property: 'og:type', content: 'website', key: 'og:type' },
-    { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
-    { property: 'og:image:alt', content: 'Восстановление пароля AyEda', key: 'og:image:alt' },
-    { property: 'og:url', content: 'https://ayeda.ru/forgot-password', key: 'og:url' },
-    { property: 'og:site_name', content: 'AyEda', key: 'og:site_name' },
-  ],
-})
-
-const config = useRuntimeConfig()
-
-const pending = ref(false);
-const success = ref(false);
-const serverError = ref("");
-
-// Схема валидации с zod
-const validationSchema = toTypedSchema(z.object({
-  email: z.string()
-    .min(1, "Email обязателен")
-    .email("Введите корректный email")
-}));
-
-// useForm с vee-validate
-const { defineField, errors, handleSubmit, setFieldError } = useForm({
-  validationSchema,
-  initialValues: {
-    email: ""
-  }
-});
-
-// Поля формы
-const [email, emailAttrs] = defineField("email");
-
-// Отправка формы
-const onSubmit = handleSubmit(async (values) => {
-  pending.value = true;
-  serverError.value = "";
-
-  try {
-    // Здесь будет запрос на сброс пароля
-    // await $fetch('/api/auth/forgot-password', { method: 'POST', body: { email: values.email } })
-
-
-    // Имитация запроса
-    const response = await $fetch(`${config.public.apiUrl}/api/v1/auth/forgot-password`, {
-      method: 'POST',
-      headers: {
-        'accept': '*/*',
-        'Content-Type': 'application/json'
-      },
-      body: {
-        email: values.email
-      }
-    });
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    success.value = true;
-  } catch (err: any) {
-    serverError.value = err.message || "Не удалось отправить запрос. Попробуйте позже.";
-    if (err.message?.includes("email")) setFieldError("email", err.message);
-  } finally {
-    pending.value = false;
-  }
-});
-</script>
-
 <template>
   <div class="min-h-screen grid lg:grid-cols-2">
     <!-- Левая часть - Брендинг -->
@@ -137,7 +55,7 @@ const onSubmit = handleSubmit(async (values) => {
       </div>
 
       <div class="relative z-10 text-white/40 text-sm">
-        © 2026 AyEda
+        © {{ currentYear }} AyEda
       </div>
     </div>
 
@@ -239,6 +157,89 @@ const onSubmit = handleSubmit(async (values) => {
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { toTypedSchema } from "@vee-validate/zod";
+import { useForm } from "vee-validate";
+import * as z from "zod";
+
+definePageMeta({
+  layout: false,
+  ssr: false
+})
+
+useHead({
+  title: 'Восстановление пароля | AyEda',
+  meta: [
+    { name: 'description', content: 'Забыли пароль? Введите email и мы отправим инструкции для восстановления доступа к вашему аккаунту на AyEda.', key: 'description' },
+    { name: 'robots', content: 'noindex, nofollow', key: 'robots' },
+    { property: 'og:title', content: 'Восстановление пароля | AyEda', key: 'og:title' },
+    { property: 'og:description', content: 'Восстановите доступ к своему аккаунту на AyEda', key: 'og:description' },
+    { property: 'og:type', content: 'website', key: 'og:type' },
+    { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
+    { property: 'og:image:alt', content: 'Восстановление пароля AyEda', key: 'og:image:alt' },
+    { property: 'og:url', content: 'https://ayeda.ru/forgot-password', key: 'og:url' },
+    { property: 'og:site_name', content: 'AyEda', key: 'og:site_name' },
+  ],
+})
+
+const config = useRuntimeConfig()
+const { currentYear } = useDate();
+
+const pending = ref(false);
+const success = ref(false);
+const serverError = ref("");
+
+// Схема валидации с zod
+const validationSchema = toTypedSchema(z.object({
+  email: z.string()
+    .min(1, "Email обязателен")
+    .email("Введите корректный email")
+}));
+
+// useForm с vee-validate
+const { defineField, errors, handleSubmit, setFieldError } = useForm({
+  validationSchema,
+  initialValues: {
+    email: ""
+  }
+});
+
+// Поля формы
+const [email, emailAttrs] = defineField("email");
+
+// Отправка формы
+const onSubmit = handleSubmit(async (values) => {
+  pending.value = true;
+  serverError.value = "";
+
+  try {
+    // Здесь будет запрос на сброс пароля
+    // await $fetch('/api/auth/forgot-password', { method: 'POST', body: { email: values.email } })
+
+
+    // Имитация запроса
+    const response = await $fetch(`${config.public.apiUrl}/api/v1/auth/forgot-password`, {
+      method: 'POST',
+      headers: {
+        'accept': '*/*',
+        'Content-Type': 'application/json'
+      },
+      body: {
+        email: values.email
+      }
+    });
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    success.value = true;
+  } catch (err: any) {
+    serverError.value = err.message || "Не удалось отправить запрос. Попробуйте позже.";
+    if (err.message?.includes("email")) setFieldError("email", err.message);
+  } finally {
+    pending.value = false;
+  }
+});
+</script>
 
 <style scoped>
 .fade-enter-active,

@@ -2,7 +2,7 @@
   <Modal :open="open" @update:open="handleOpenUpdate">
     <div class="p-2">
       <!-- Заголовок -->
-      <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center justify-between mb-6 items-start">
         <div>
           <h2 class="text-2xl font-semibold text-gray-900 dark:text-darkMode-700">
             Заказать продукты у партнеров
@@ -13,7 +13,7 @@
         </div>
         <button
           @click="close"
-          class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-darkMode-300 transition-colors"
+          class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-darkMode-300 transition-colors cursor-pointer"
         >
           <UIcon name="i-lucide-x" class="w-5 h-5 text-gray-500 dark:text-darkMode-400" />
         </button>
@@ -86,12 +86,6 @@
           <UIcon name="i-lucide-shield-check" class="w-3.5 h-3.5 inline mr-1" />
           Переход на сайты партнеров безопасен
         </p>
-        <button
-          @click="close"
-          class="text-sm text-gray-400 dark:text-darkMode-400 hover:text-gray-600 dark:hover:text-darkMode-500 transition-colors"
-        >
-          Закрыть
-        </button>
       </div>
     </div>
   </Modal>

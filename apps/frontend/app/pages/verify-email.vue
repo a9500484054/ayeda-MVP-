@@ -77,7 +77,7 @@
 
       <!-- Дополнительная информация -->
       <div class="text-center mt-6 text-xs text-gray-400">
-        <p>© 2026 AyEda. Все права защищены.</p>
+        <p>© {{ currentYear }} АуЕда. Все права защищены.</p>
       </div>
     </div>
   </div>
@@ -113,6 +113,7 @@ const message = ref("");
 const countdown = ref(5);
 const token = ref("");
 const config = useRuntimeConfig()
+const { currentYear } = useDate();
 
 
 // Функция подтверждения email
