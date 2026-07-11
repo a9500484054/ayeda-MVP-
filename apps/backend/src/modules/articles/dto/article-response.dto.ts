@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ArticleStep } from '../entities/article.entity';
 
 class AuthorDto {
   @ApiProperty()
@@ -38,7 +37,7 @@ class SeoResponseDto {
   canonical_url?: string;
 }
 
-class StepResponseDto {
+export class StepResponseDto {
   @ApiProperty()
   id: string;
 
@@ -77,10 +76,10 @@ export class ArticleResponseDto {
   @ApiProperty({ type: [String], nullable: true })
   categories: string[] | null;
 
-  @ApiProperty()
+  @ApiProperty({ enum: ['article', 'tip', 'news'] })
   type: string;
 
-  @ApiProperty()
+  @ApiProperty({ enum: ['draft', 'published', 'archived'] })
   status: string;
 
   @ApiProperty()

@@ -11,6 +11,7 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../users/entities/user.entity';
 
+// Добавляем интерфейс для шагов
 export interface ArticleStep {
   id: string;
   text: string;
@@ -40,7 +41,12 @@ export class Article {
   @Column({ type: 'text', nullable: true })
   content: string | null;
 
-  @ApiProperty({ type: 'jsonb', nullable: true })
+  @ApiProperty({
+    type: 'object',
+    nullable: true,
+    additionalProperties: true,
+    description: 'Шаги статьи в формате JSON'
+  })
   @Column({ type: 'jsonb', nullable: true })
   steps: ArticleStep[] | null;
 
@@ -68,7 +74,12 @@ export class Article {
   @Column({ type: 'integer', default: 0 })
   views: number;
 
-  @ApiProperty({ nullable: true, type: 'object', additionalProperties: true })
+  @ApiProperty({
+    nullable: true,
+    type: 'object',
+    additionalProperties: true,
+    description: 'SEO метаданные'
+  })
   @Column({ type: 'jsonb', nullable: true })
   seo: any;
 
