@@ -223,7 +223,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useHead } from '#app'
 
-definePageMeta({ layout: 'default' })
+definePageMeta({ layout: 'cabinet' })
 
 const config = useRuntimeConfig()
 const route = useRoute()
