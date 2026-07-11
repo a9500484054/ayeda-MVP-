@@ -127,7 +127,7 @@
             :disabled="pending"
             class="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span v-if="!pending" class="flex items-center justify-center gap-2">
+            <span v-if="!pending" class="flex items-center justify-center gap-2 cursor-pointer">
               Отправить инструкции
               <UIcon name="i-lucide-arrow-right" class="w-4 h-4" />
             </span>
@@ -139,7 +139,7 @@
 
           <!-- Login link -->
           <div class="text-center pt-4">
-            <NuxtLink to="/login" class="text-sm text-emerald-600 hover:text-emerald-700 font-medium inline-flex items-center gap-1">
+            <NuxtLink to="/login" class="text-sm text-emerald-600 hover:text-emerald-700 font-medium inline-flex items-center gap-1 cursor-pointer">
               <UIcon name="i-lucide-arrow-left" class="w-3 h-3" />
               Вернуться ко входу
             </NuxtLink>
@@ -150,7 +150,7 @@
         <div class="mt-6 p-4 bg-gray-50 rounded-xl">
           <p class="text-xs text-gray-500 text-center">
             💡 Не приходит письмо? Проверьте папку "Спам" или
-            <NuxtLink to="/support" class="text-emerald-600 hover:underline">свяжитесь с поддержкой</NuxtLink>
+            <NuxtLink to="/support" class="text-emerald-600 hover:underline cursor-pointer">свяжитесь с поддержкой</NuxtLink>
           </p>
         </div>
       </div>
