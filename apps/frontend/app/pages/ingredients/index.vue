@@ -123,19 +123,19 @@ definePageMeta({ layout: 'cabinet' })
 const config = useRuntimeConfig()
 
 useHead({
-  title: 'Ингредиенты - Каталог продуктов | AyEda',
+  title: 'Ингредиенты - Каталог продуктов | АуЕда',
   meta: [
     { name: 'description', content: 'Полный каталог ингредиентов для кулинарии. Узнайте состав, калорийность и полезные свойства продуктов.', key: 'description' },
     { name: 'keywords', content: 'ингредиенты, продукты, каталог продуктов, состав, калорийность', key: 'keywords' },
-    { property: 'og:title', content: 'Ингредиенты - Каталог продуктов | AyEda', key: 'og:title' },
+    { property: 'og:title', content: 'Ингредиенты - Каталог продуктов | АуЕда', key: 'og:title' },
     { property: 'og:description', content: 'Полный каталог ингредиентов для кулинарии', key: 'og:description' },
     { property: 'og:type', content: 'website', key: 'og:type' },
     { property: 'og:image', content: 'https://ayeda.ru/images/ingredients-og.jpg', key: 'og:image' },
-    { property: 'og:image:alt', content: 'Ингредиенты - Каталог продуктов AyEda', key: 'og:image:alt' },
+    { property: 'og:image:alt', content: 'Ингредиенты - Каталог продуктов АуЕда', key: 'og:image:alt' },
     { property: 'og:url', content: 'https://ayeda.ru/ingredients', key: 'og:url' },
-    { property: 'og:site_name', content: 'AyEda', key: 'og:site_name' },
+    { property: 'og:site_name', content: 'АуЕда', key: 'og:site_name' },
     { name: 'twitter:card', content: 'summary_large_image', key: 'twitter:card' },
-    { name: 'twitter:title', content: 'Ингредиенты - Каталог продуктов | AyEda', key: 'twitter:title' },
+    { name: 'twitter:title', content: 'Ингредиенты - Каталог продуктов | АуЕда', key: 'twitter:title' },
     { name: 'twitter:description', content: 'Полный каталог ингредиентов для кулинарии', key: 'twitter:description' },
   ],
   link: [

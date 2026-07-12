@@ -12,7 +12,7 @@
             <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
               <UIcon name="i-lucide-utensils" class="w-5 h-5 text-emerald-600" />
             </div>
-            <span class="text-2xl font-bold text-white">AyEda</span>
+            <span class="text-2xl font-bold text-white">АуЕда</span>
           </div>
         </NuxtLink>
       </div>
@@ -50,12 +50,12 @@
           <p class="text-white/90 text-sm italic">
             "Сбросил пароль за 2 минуты. Очень удобно!"
           </p>
-          <p class="text-emerald-200 text-xs mt-2">— Михаил, пользователь AyEda</p>
+          <p class="text-emerald-200 text-xs mt-2">— Михаил, пользователь АуЕда</p>
         </div>
       </div>
 
       <div class="relative z-10 text-white/40 text-sm">
-        © {{ currentYear }} AyEda
+        © {{ currentYear }} АуЕда
       </div>
     </div>
 
@@ -67,7 +67,7 @@
             <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
               <UIcon name="i-lucide-utensils" class="w-5 h-5 text-white" />
             </div>
-            <span class="text-2xl font-bold text-gray-900">AyEda</span>
+            <span class="text-2xl font-bold text-gray-900">АуЕда</span>
           </div>
         </div>
 
@@ -169,17 +169,17 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Восстановление пароля | AyEda',
+  title: 'Восстановление пароля | АуЕда',
   meta: [
-    { name: 'description', content: 'Забыли пароль? Введите email и мы отправим инструкции для восстановления доступа к вашему аккаунту на AyEda.', key: 'description' },
+    { name: 'description', content: 'Забыли пароль? Введите email и мы отправим инструкции для восстановления доступа к вашему аккаунту на АуЕда.', key: 'description' },
     { name: 'robots', content: 'noindex, nofollow', key: 'robots' },
-    { property: 'og:title', content: 'Восстановление пароля | AyEda', key: 'og:title' },
-    { property: 'og:description', content: 'Восстановите доступ к своему аккаунту на AyEda', key: 'og:description' },
+    { property: 'og:title', content: 'Восстановление пароля | АуЕда', key: 'og:title' },
+    { property: 'og:description', content: 'Восстановите доступ к своему аккаунту на АуЕда', key: 'og:description' },
     { property: 'og:type', content: 'website', key: 'og:type' },
     { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
-    { property: 'og:image:alt', content: 'Восстановление пароля AyEda', key: 'og:image:alt' },
+    { property: 'og:image:alt', content: 'Восстановление пароля АуЕда', key: 'og:image:alt' },
     { property: 'og:url', content: 'https://ayeda.ru/forgot-password', key: 'og:url' },
-    { property: 'og:site_name', content: 'AyEda', key: 'og:site_name' },
+    { property: 'og:site_name', content: 'АуЕда', key: 'og:site_name' },
   ],
 })
 

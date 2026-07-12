@@ -74,13 +74,13 @@ useHead({
     { name: 'description', content: 'Управляйте списками покупок: создавайте, редактируйте, копируйте и делитесь списками. Планируйте покупки продуктов.', key: 'description' },
     { name: 'robots', content: 'noindex, follow', key: 'robots' },
     // OG теги для соцсетей
-    { property: 'og:title', content: 'Списки покупок | AyEda', key: 'og:title' },
+    { property: 'og:title', content: 'Списки покупок | АуЕда', key: 'og:title' },
     { property: 'og:description', content: 'Управляйте списками покупок: создавайте, редактируйте, копируйте и делитесь списками.', key: 'og:description' },
     { property: 'og:type', content: 'website', key: 'og:type' },
     { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
-    { property: 'og:image:alt', content: 'Списки покупок на AyEda', key: 'og:image:alt' },
+    { property: 'og:image:alt', content: 'Списки покупок на АуЕда', key: 'og:image:alt' },
     { property: 'og:url', content: 'https://ayeda.ru/cabinet/shopping-lists', key: 'og:url' },
-    { property: 'og:site_name', content: 'AyEda', key: 'og:site_name' },
+    { property: 'og:site_name', content: 'АуЕда', key: 'og:site_name' },
   ],
 })
 

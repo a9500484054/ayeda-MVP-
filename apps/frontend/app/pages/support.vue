@@ -227,18 +227,18 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Поддержка | AyEda',
+  title: 'Поддержка | АуЕда',
   meta: [
-    { name: 'description', content: 'Помощь и поддержка пользователей AyEda. Часто задаваемые вопросы, контакты службы поддержки. Ответим в течение 24 часов.', key: 'description' },
+    { name: 'description', content: 'Помощь и поддержка пользователей АуЕда. Часто задаваемые вопросы, контакты службы поддержки. Ответим в течение 24 часов.', key: 'description' },
     { name: 'keywords', content: 'поддержка, помощь, FAQ, контакты, служба поддержки', key: 'keywords' },
     { name: 'robots', content: 'noindex, follow', key: 'robots' },
-    { property: 'og:title', content: 'Поддержка | AyEda', key: 'og:title' },
-    { property: 'og:description', content: 'Помощь и поддержка пользователей AyEda', key: 'og:description' },
+    { property: 'og:title', content: 'Поддержка | АуЕда', key: 'og:title' },
+    { property: 'og:description', content: 'Помощь и поддержка пользователей АуЕда', key: 'og:description' },
     { property: 'og:type', content: 'website', key: 'og:type' },
     { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
-    { property: 'og:image:alt', content: 'Поддержка AyEda', key: 'og:image:alt' },
+    { property: 'og:image:alt', content: 'Поддержка АуЕда', key: 'og:image:alt' },
     { property: 'og:url', content: 'https://ayeda.ru/cabinet/support', key: 'og:url' },
-    { property: 'og:site_name', content: 'AyEda', key: 'og:site_name' },
+    { property: 'og:site_name', content: 'АуЕда', key: 'og:site_name' },
   ],
 })
 

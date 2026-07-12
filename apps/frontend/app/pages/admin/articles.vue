@@ -1,525 +1,3 @@
-<!-- pages/admin/articles.vue -->
-<script setup lang="ts">
-import { h, resolveComponent, ref, computed, watch, onMounted } from 'vue'
-import type { TableColumn } from '@nuxt/ui'
-import { useArticlesApi, type Article, type CreateArticleDto, type UpdateArticleDto } from '~/composables/useArticlesApi'
-
-definePageMeta({
-  layout: 'admin',
-  title: 'Статьи'
-})
-
-// Компоненты
-const UBadge = resolveComponent('UBadge')
-const UButton = resolveComponent('UButton')
-
-// Toast
-const toast = useToast()
-
-// API
-const articlesApi = useArticlesApi()
-const api = useApi()
-const config = useRuntimeConfig()
-
-// Состояние
-const searchQuery = ref('')
-const currentPage = ref(1)
-const pageSize = ref(10)
-const statusFilter = ref<string>('')
-const typeFilter = ref<string>('')
-const categoryFilter = ref<string>('')
-
-const isFormModalOpen = ref(false)
-const formModalMode = ref<'create' | 'edit'>('create')
-const isDeleteModalOpen = ref(false)
-
-const selectedArticle = ref<Article | null>(null)
-const isLoading = ref(false)
-const isUploading = ref(false)
-const categoriesList = ref<string[]>([])
-
-// Данные
-const articles = ref<Article[]>([])
-const totalArticlesCount = ref(0)
-
-// Форма
-const formData = ref({
-  title: '',
-  slug: '',
-  content: '',
-  steps: [] as Array<{ id?: string; text: string; image: string | null; sort: number }>,
-  excerpt: '',
-  featured_image: '',
-  categories: [] as string[],
-  type: 'article' as const,
-  status: 'draft' as const,
-  seo: {
-    title: '',
-    description: '',
-    keywords: [] as string[],
-    og_image: '',
-    canonical_url: ''
-  }
-})
-
-// Полный URL изображения (apiUrl + path)
-const getFullImageUrl = (path: string | null | undefined): string => {
-  if (!path) return ''
-  // Если путь уже полный URL — возвращаем как есть
-  if (path.startsWith('http://') || path.startsWith('https://')) {
-    return path
-  }
-  return `${config.public.apiUrl}${path.startsWith('/') ? '' : '/'}${path}`
-}
-
-// Загрузка статей
-const loadArticles = async () => {
-  isLoading.value = true
-  try {
-    const params: any = {
-      page: currentPage.value,
-      limit: pageSize.value
-    }
-
-    if (searchQuery.value) params.search = searchQuery.value
-    if (statusFilter.value) params.status = statusFilter.value
-    if (typeFilter.value) params.type = typeFilter.value
-    if (categoryFilter.value) params.category = categoryFilter.value
-
-    const response = await articlesApi.getArticles(params)
-    articles.value = response.items
-    totalArticlesCount.value = response.total
-  } catch (error: any) {
-    console.error('Error loading articles:', error)
-    toast.add({
-      title: 'Ошибка',
-      description: error.message || 'Не удалось загрузить статьи',
-      color: 'error'
-    })
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// Загрузка категорий
-const loadCategories = async () => {
-  try {
-    categoriesList.value = await articlesApi.getCategories()
-  } catch (error) {
-    console.error('Error loading categories:', error)
-  }
-}
-
-// Загрузка изображения
-const uploadImage = async (file: File): Promise<string | null> => {
-  isUploading.value = true
-  try {
-    const formDataUpload = new FormData()
-    formDataUpload.append('file', file)
-
-    const response = await api('/uploads', {
-      method: 'POST',
-      body: formDataUpload
-    })
-
-    return response.path
-  } catch (error: any) {
-    console.error('Error uploading image:', error)
-    toast.add({
-      title: 'Ошибка загрузки',
-      description: error.message || 'Не удалось загрузить изображение',
-      color: 'error'
-    })
-    return null
-  } finally {
-    isUploading.value = false
-  }
-}
-
-// Универсальная функция загрузки
-const handleImageUpload = async (callback: (path: string) => void) => {
-  const input = document.createElement('input')
-  input.type = 'file'
-  input.accept = 'image/*'
-  input.onchange = async (e: Event) => {
-    const file = (e.target as HTMLInputElement).files?.[0]
-    if (!file) return
-    const path = await uploadImage(file)
-    if (path) callback(path)
-  }
-  input.click()
-}
-
-// Обработчики загрузки
-const handleFeaturedImageUpload = () => {
-  handleImageUpload((path) => {
-    formData.value.featured_image = path
-    toast.add({
-      title: 'Успех',
-      description: 'Главное изображение загружено',
-      color: 'success',
-      timeout: 2000
-    })
-  })
-}
-
-const handleSeoImageUpload = () => {
-  handleImageUpload((path) => {
-    formData.value.seo.og_image = path
-    toast.add({
-      title: 'Успех',
-      description: 'SEO изображение загружено',
-      color: 'success',
-      timeout: 2000
-    })
-  })
-}
-
-const uploadStepImage = (stepIndex: number) => {
-  handleImageUpload((path) => {
-    formData.value.steps[stepIndex].image = path
-    toast.add({
-      title: 'Успех',
-      description: 'Изображение шага загружено',
-      color: 'success',
-      timeout: 2000
-    })
-  })
-}
-
-const insertImageIntoContent = () => {
-  handleImageUpload((path) => {
-    const imageMarkdown = `\n![image](${path})\n`
-    formData.value.content += imageMarkdown
-    toast.add({
-      title: 'Успех',
-      description: 'Изображение вставлено в контент',
-      color: 'success',
-      timeout: 2000
-    })
-  })
-}
-
-// Управление шагами
-const addStep = () => {
-  formData.value.steps.push({
-    text: '',
-    image: null,
-    sort: formData.value.steps.length
-  })
-}
-
-const removeStep = (index: number) => {
-  formData.value.steps.splice(index, 1)
-  formData.value.steps.forEach((step, i) => step.sort = i)
-}
-
-const moveStepUp = (index: number) => {
-  if (index === 0) return
-  const temp = formData.value.steps[index]
-  formData.value.steps[index] = formData.value.steps[index - 1]
-  formData.value.steps[index - 1] = temp
-  formData.value.steps.forEach((step, i) => step.sort = i)
-}
-
-const moveStepDown = (index: number) => {
-  if (index === formData.value.steps.length - 1) return
-  const temp = formData.value.steps[index]
-  formData.value.steps[index] = formData.value.steps[index + 1]
-  formData.value.steps[index + 1] = temp
-  formData.value.steps.forEach((step, i) => step.sort = i)
-}
-
-// Таблица
-const columns: TableColumn<any>[] = [
-  {
-    accessorKey: 'title',
-    header: 'Заголовок',
-    meta: { class: { td: 'font-medium' } }
-  },
-  {
-    accessorKey: 'type',
-    header: 'Тип',
-    cell: ({ row }) => {
-      const type = row.getValue('type') as string
-      const labelMap: Record<string, string> = {
-        article: 'Статья',
-        tip: 'Совет',
-        news: 'Новость'
-      }
-      return h(UBadge, { variant: 'subtle' }, () => labelMap[type] || type)
-    }
-  },
-  {
-    accessorKey: 'categories',
-    header: 'Категории',
-    cell: ({ row }) => {
-      const categories = row.getValue('categories') as string[]
-      if (!categories || categories.length === 0) return '—'
-      return categories.join(', ')
-    }
-  },
-  {
-    accessorKey: 'status',
-    header: 'Статус',
-    cell: ({ row }) => {
-      const status = row.getValue('status') as string
-      const colorMap: Record<string, string> = {
-        published: 'success',
-        draft: 'warning',
-        archived: 'neutral'
-      }
-      const labelMap: Record<string, string> = {
-        published: 'Опубликовано',
-        draft: 'Черновик',
-        archived: 'Архив'
-      }
-      return h(UBadge, {
-        color: colorMap[status] || 'neutral',
-        variant: 'subtle'
-      }, () => labelMap[status] || status)
-    }
-  },
-  {
-    accessorKey: 'views',
-    header: 'Просмотры',
-    meta: { class: { th: 'text-center w-24', td: 'text-center' } },
-    cell: ({ row }) => row.getValue('views') || 0
-  },
-  {
-    accessorKey: 'created_at',
-    header: 'Дата создания',
-    cell: ({ row }) => new Date(row.getValue('created_at') as string).toLocaleDateString('ru-RU')
-  },
-  {
-    id: 'actions',
-    header: 'Действия',
-    meta: { class: { th: 'text-right w-32', td: 'text-right' } },
-    cell: ({ row }) => {
-      const article = row.original
-      return h('div', { class: 'flex justify-end gap-2' }, [
-        h(UButton, {
-          icon: 'i-lucide-eye',
-          size: 'sm',
-          color: 'info',
-          variant: 'ghost',
-          onClick: () => viewArticle(article)
-        }),
-        h(UButton, {
-          icon: 'i-lucide-pencil',
-          size: 'sm',
-          color: 'primary',
-          variant: 'ghost',
-          onClick: () => openEditModal(article)
-        }),
-        h(UButton, {
-          icon: article.status === 'published' ? 'i-lucide-eye-off' : 'i-lucide-eye',
-          size: 'sm',
-          color: article.status === 'published' ? 'warning' : 'success',
-          variant: 'ghost',
-          onClick: () => togglePublish(article)
-        }),
-        h(UButton, {
-          icon: 'i-lucide-trash-2',
-          size: 'sm',
-          color: 'error',
-          variant: 'ghost',
-          onClick: () => openDeleteModal(article)
-        })
-      ])
-    }
-  }
-]
-
-const totalPages = computed(() => Math.ceil(totalArticlesCount.value / pageSize.value))
-
-const handleSearch = () => {
-  currentPage.value = 1
-  loadArticles()
-}
-
-const generateSlug = (title: string) => {
-  return title
-    .toLowerCase()
-    .replace(/[^a-zа-яё0-9\s]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/[ё]/g, 'e')
-}
-
-const resetForm = () => {
-  formData.value = {
-    title: '',
-    slug: '',
-    content: '',
-    steps: [],
-    excerpt: '',
-    featured_image: '',
-    categories: [],
-    type: 'article',
-    status: 'draft',
-    seo: {
-      title: '',
-      description: '',
-      keywords: [],
-      og_image: '',
-      canonical_url: ''
-    }
-  }
-}
-
-const openCreateModal = () => {
-  resetForm()
-  formModalMode.value = 'create'
-  selectedArticle.value = null
-  isFormModalOpen.value = true
-}
-
-const openEditModal = (article: Article) => {
-  selectedArticle.value = article
-  formModalMode.value = 'edit'
-  formData.value = {
-    title: article.title,
-    slug: article.slug,
-    content: article.content || '',
-    steps: article.steps ? [...article.steps] : [],
-    excerpt: article.excerpt || '',
-    featured_image: article.featured_image || '',
-    categories: article.categories || [],
-    type: article.type,
-    status: article.status,
-    seo: {
-      title: article.seo?.title || '',
-      description: article.seo?.description || '',
-      keywords: article.seo?.keywords || [],
-      og_image: article.seo?.og_image || '',
-      canonical_url: article.seo?.canonical_url || ''
-    }
-  }
-  isFormModalOpen.value = true
-}
-
-const viewArticle = (article: Article) => {
-  navigateTo(`/articles/${article.slug}`)
-}
-
-const openDeleteModal = (article: Article) => {
-  selectedArticle.value = article
-  isDeleteModalOpen.value = true
-}
-
-const togglePublish = async (article: Article) => {
-  isLoading.value = true
-  try {
-    if (article.status === 'published') {
-      await articlesApi.unpublishArticle(article.id)
-      toast.add({ title: 'Успех', description: 'Статья снята с публикации', color: 'success' })
-    } else {
-      await articlesApi.publishArticle(article.id)
-      toast.add({ title: 'Успех', description: 'Статья опубликована', color: 'success' })
-    }
-    await loadArticles()
-  } catch (error: any) {
-    toast.add({ title: 'Ошибка', description: error.message || 'Не удалось изменить статус', color: 'error' })
-  } finally {
-    isLoading.value = false
-  }
-}
-
-const createArticle = async () => {
-  isLoading.value = true
-  try {
-    const createData: CreateArticleDto = {
-      title: formData.value.title,
-      slug: formData.value.slug || generateSlug(formData.value.title),
-      content: formData.value.content || undefined,
-      steps: formData.value.steps.length > 0 ? formData.value.steps.map(s => ({
-        text: s.text,
-        image: s.image,
-        sort: s.sort
-      })) : undefined,
-      excerpt: formData.value.excerpt || undefined,
-      featured_image: formData.value.featured_image || undefined,
-      categories: formData.value.categories.length ? formData.value.categories : undefined,
-      type: formData.value.type,
-      status: formData.value.status,
-      seo: formData.value.seo
-    }
-
-    await articlesApi.createArticle(createData)
-    isFormModalOpen.value = false
-    await loadArticles()
-    toast.add({ title: 'Успех', description: 'Статья создана', color: 'success' })
-  } catch (error: any) {
-    toast.add({ title: 'Ошибка', description: error.message || 'Не удалось создать статью', color: 'error' })
-  } finally {
-    isLoading.value = false
-  }
-}
-
-const updateArticle = async () => {
-  if (!selectedArticle.value) return
-
-  isLoading.value = true
-  try {
-    const updateData: UpdateArticleDto = {
-      title: formData.value.title,
-      slug: formData.value.slug,
-      content: formData.value.content || undefined,
-      steps: formData.value.steps.length > 0 ? formData.value.steps.map(s => ({
-        id: s.id,
-        text: s.text,
-        image: s.image,
-        sort: s.sort
-      })) : undefined,
-      excerpt: formData.value.excerpt || undefined,
-      featured_image: formData.value.featured_image || undefined,
-      categories: formData.value.categories.length ? formData.value.categories : undefined,
-      type: formData.value.type,
-      status: formData.value.status,
-      seo: formData.value.seo
-    }
-
-    await articlesApi.updateArticle(selectedArticle.value.id, updateData)
-    isFormModalOpen.value = false
-    await loadArticles()
-    toast.add({ title: 'Успех', description: 'Статья обновлена', color: 'success' })
-  } catch (error: any) {
-    toast.add({ title: 'Ошибка', description: error.message || 'Не удалось обновить статью', color: 'error' })
-  } finally {
-    isLoading.value = false
-  }
-}
-
-const deleteArticle = async () => {
-  if (!selectedArticle.value) return
-
-  isLoading.value = true
-  try {
-    await articlesApi.deleteArticle(selectedArticle.value.id)
-    isDeleteModalOpen.value = false
-    await loadArticles()
-    toast.add({ title: 'Успех', description: 'Статья удалена', color: 'success' })
-  } catch (error: any) {
-    toast.add({ title: 'Ошибка', description: error.message || 'Не удалось удалить статью', color: 'error' })
-  } finally {
-    isLoading.value = false
-  }
-}
-
-const isFormValid = computed(() => {
-  return !!formData.value.title && (!!formData.value.content || formData.value.steps.length > 0)
-})
-
-// Наблюдатели
-watch([currentPage, pageSize, statusFilter, typeFilter, categoryFilter], () => {
-  loadArticles()
-}, { deep: true })
-
-onMounted(() => {
-  loadArticles()
-  loadCategories()
-})
-</script>
 
 <template>
   <div class="space-y-6">
@@ -856,22 +334,67 @@ onMounted(() => {
             <!-- SEO -->
             <div class="border-t pt-6">
               <h3 class="text-lg font-semibold mb-4">SEO настройки</h3>
+
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <UFormField label="SEO Заголовок">
-                  <UInput v-model="formData.seo.title" maxlength="70" />
-                </UFormField>
-                <UFormField label="SEO Описание">
-                  <UTextarea v-model="formData.seo.description" :rows="2" maxlength="160" />
+                <!-- SEO Заголовок -->
+                <div class="space-y-2 flex flex-col">
+                  <label class="text-sm font-medium">SEO заголовок</label>
+                  <UInput
+                    v-model="formData.seo.title"
+                    placeholder="SEO заголовок (до 60 символов)"
+                    maxlength="70"
+                  />
+                  <div class="text-xs text-muted-foreground">
+                    Осталось символов: {{ 70 - (formData.seo.title?.length || 0) }}
+                  </div>
+                </div>
+
+                <!-- Canonical URL -->
+                <UFormField label="Canonical URL">
+                  <UInput
+                    v-model="formData.seo.canonical_url"
+                    placeholder="https://example.com/canonical-url"
+                  />
                 </UFormField>
               </div>
 
-              <UFormField label="Ключевые слова" class="mt-6">
-                <UInput
-                  :model-value="formData.seo.keywords.join(', ')"
-                  placeholder="слово1, слово2, слово3"
-                  @update:model-value="(val) => formData.seo.keywords = val.split(',').map(k => k.trim()).filter(Boolean)"
+              <!-- SEO Описание -->
+              <div class="space-y-2 flex flex-col mt-4">
+                <label class="text-sm font-medium">SEO описание</label>
+                <UTextarea
+                  v-model="formData.seo.description"
+                  placeholder="SEO описание (до 160 символов)"
+                  :rows="3"
+                  maxlength="160"
                 />
-              </UFormField>
+                <div class="text-xs text-muted-foreground">
+                  Осталось символов: {{ 160 - (formData.seo.description?.length || 0) }}
+                </div>
+              </div>
+
+              <!-- Ключевые слова с CustomKeywords -->
+              <div class="mt-4">
+                <CustomKeywords
+                  :model-value="formData.seo.keywords"
+                  @update:model-value="(val) => formData.seo.keywords = val"
+                />
+              </div>
+
+              <!-- Предпросмотр SEO -->
+              <div class="mt-4 pt-4 border-t">
+                <label class="text-sm font-medium mb-2 block">Предпросмотр в поисковой выдаче</label>
+                <div class="p-3 border rounded-lg bg-muted/30 space-y-1">
+                  <div class="text-sm font-semibold text-primary hover:underline cursor-pointer">
+                    {{ previewTitle }}
+                  </div>
+                  <div class="text-xs text-muted-foreground">
+                    {{ previewUrl }}
+                  </div>
+                  <div class="text-xs text-muted-foreground line-clamp-2">
+                    {{ previewDescription }}
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- Кнопки -->
@@ -922,3 +445,552 @@ onMounted(() => {
     </UModal>
   </div>
 </template>
+<!-- pages/admin/articles.vue -->
+<script setup lang="ts">
+import { h, resolveComponent, ref, computed, watch, onMounted } from 'vue'
+import type { TableColumn } from '@nuxt/ui'
+import { useArticlesApi, type Article, type CreateArticleDto, type UpdateArticleDto } from '~/composables/useArticlesApi'
+import CustomKeywords from '~/components/admin/recipes/CustomKeywords.vue'
+
+definePageMeta({
+  layout: 'admin',
+  title: 'Статьи'
+})
+
+// Компоненты
+const UBadge = resolveComponent('UBadge')
+const UButton = resolveComponent('UButton')
+
+// Toast
+const toast = useToast()
+
+// API
+const articlesApi = useArticlesApi()
+const api = useApi()
+const config = useRuntimeConfig()
+
+// Состояние
+const searchQuery = ref('')
+const currentPage = ref(1)
+const pageSize = ref(10)
+const statusFilter = ref<string>('')
+const typeFilter = ref<string>('')
+const categoryFilter = ref<string>('')
+
+const isFormModalOpen = ref(false)
+const formModalMode = ref<'create' | 'edit'>('create')
+const isDeleteModalOpen = ref(false)
+
+const selectedArticle = ref<Article | null>(null)
+const isLoading = ref(false)
+const isUploading = ref(false)
+const categoriesList = ref<string[]>([])
+
+// Данные
+const articles = ref<Article[]>([])
+const totalArticlesCount = ref(0)
+
+// Форма
+const formData = ref({
+  title: '',
+  slug: '',
+  content: '',
+  steps: [] as Array<{ id?: string; text: string; image: string | null; sort: number }>,
+  excerpt: '',
+  featured_image: '',
+  categories: [] as string[],
+  type: 'article' as const,
+  status: 'draft' as const,
+  seo: {
+    title: '',
+    description: '',
+    keywords: [] as string[],
+    og_image: '',
+    canonical_url: ''
+  }
+})
+
+// Полный URL изображения (apiUrl + path)
+const getFullImageUrl = (path: string | null | undefined): string => {
+  if (!path) return ''
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path
+  }
+  return `${config.public.apiUrl}${path.startsWith('/') ? '' : '/'}${path}`
+}
+
+// Загрузка статей
+const loadArticles = async () => {
+  isLoading.value = true
+  try {
+    const params: any = {
+      page: currentPage.value,
+      limit: pageSize.value
+    }
+
+    if (searchQuery.value) params.search = searchQuery.value
+    if (statusFilter.value) params.status = statusFilter.value
+    if (typeFilter.value) params.type = typeFilter.value
+    if (categoryFilter.value) params.category = categoryFilter.value
+
+    const response = await articlesApi.getArticles(params)
+    articles.value = response.items
+    totalArticlesCount.value = response.total
+  } catch (error: any) {
+    console.error('Error loading articles:', error)
+    toast.add({
+      title: 'Ошибка',
+      description: error.message || 'Не удалось загрузить статьи',
+      color: 'error'
+    })
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Загрузка категорий
+const loadCategories = async () => {
+  try {
+    categoriesList.value = await articlesApi.getCategories()
+  } catch (error) {
+    console.error('Error loading categories:', error)
+  }
+}
+
+// Загрузка изображения
+const uploadImage = async (file: File): Promise<string | null> => {
+  isUploading.value = true
+  try {
+    const formDataUpload = new FormData()
+    formDataUpload.append('file', file)
+
+    const response = await api('/uploads', {
+      method: 'POST',
+      body: formDataUpload
+    })
+
+    return response.path
+  } catch (error: any) {
+    console.error('Error uploading image:', error)
+    toast.add({
+      title: 'Ошибка загрузки',
+      description: error.message || 'Не удалось загрузить изображение',
+      color: 'error'
+    })
+    return null
+  } finally {
+    isUploading.value = false
+  }
+}
+
+// Универсальная функция загрузки
+const handleImageUpload = async (callback: (path: string) => void) => {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = 'image/*'
+  input.onchange = async (e: Event) => {
+    const file = (e.target as HTMLInputElement).files?.[0]
+    if (!file) return
+    const path = await uploadImage(file)
+    if (path) callback(path)
+  }
+  input.click()
+}
+
+// Обработчики загрузки
+const handleFeaturedImageUpload = () => {
+  handleImageUpload((path) => {
+    formData.value.featured_image = path
+    toast.add({
+      title: 'Успех',
+      description: 'Главное изображение загружено',
+      color: 'success',
+      timeout: 2000
+    })
+  })
+}
+
+const handleSeoImageUpload = () => {
+  handleImageUpload((path) => {
+    formData.value.seo.og_image = path
+    toast.add({
+      title: 'Успех',
+      description: 'SEO изображение загружено',
+      color: 'success',
+      timeout: 2000
+    })
+  })
+}
+
+const uploadStepImage = (stepIndex: number) => {
+  handleImageUpload((path) => {
+    formData.value.steps[stepIndex].image = path
+    toast.add({
+      title: 'Успех',
+      description: 'Изображение шага загружено',
+      color: 'success',
+      timeout: 2000
+    })
+  })
+}
+
+const insertImageIntoContent = () => {
+  handleImageUpload((path) => {
+    const imageMarkdown = `\n![image](${path})\n`
+    formData.value.content += imageMarkdown
+    toast.add({
+      title: 'Успех',
+      description: 'Изображение вставлено в контент',
+      color: 'success',
+      timeout: 2000
+    })
+  })
+}
+
+// Управление шагами
+const addStep = () => {
+  formData.value.steps.push({
+    text: '',
+    image: null,
+    sort: formData.value.steps.length
+  })
+}
+
+const removeStep = (index: number) => {
+  formData.value.steps.splice(index, 1)
+  formData.value.steps.forEach((step, i) => step.sort = i)
+}
+
+const moveStepUp = (index: number) => {
+  if (index === 0) return
+  const temp = formData.value.steps[index]
+  formData.value.steps[index] = formData.value.steps[index - 1]
+  formData.value.steps[index - 1] = temp
+  formData.value.steps.forEach((step, i) => step.sort = i)
+}
+
+const moveStepDown = (index: number) => {
+  if (index === formData.value.steps.length - 1) return
+  const temp = formData.value.steps[index]
+  formData.value.steps[index] = formData.value.steps[index + 1]
+  formData.value.steps[index + 1] = temp
+  formData.value.steps.forEach((step, i) => step.sort = i)
+}
+
+// Таблица
+const columns: TableColumn<any>[] = [
+  {
+    accessorKey: 'title',
+    header: 'Заголовок',
+    meta: { class: { td: 'font-medium' } }
+  },
+  {
+    accessorKey: 'type',
+    header: 'Тип',
+    cell: ({ row }) => {
+      const type = row.getValue('type') as string
+      const labelMap: Record<string, string> = {
+        article: 'Статья',
+        tip: 'Совет',
+        news: 'Новость'
+      }
+      return h(UBadge, { variant: 'subtle' }, () => labelMap[type] || type)
+    }
+  },
+  {
+    accessorKey: 'categories',
+    header: 'Категории',
+    cell: ({ row }) => {
+      const categories = row.getValue('categories') as string[]
+      if (!categories || categories.length === 0) return '—'
+      return categories.join(', ')
+    }
+  },
+  {
+    accessorKey: 'status',
+    header: 'Статус',
+    cell: ({ row }) => {
+      const status = row.getValue('status') as string
+      const colorMap: Record<string, string> = {
+        published: 'success',
+        draft: 'warning',
+        archived: 'neutral'
+      }
+      const labelMap: Record<string, string> = {
+        published: 'Опубликовано',
+        draft: 'Черновик',
+        archived: 'Архив'
+      }
+      return h(UBadge, {
+        color: colorMap[status] || 'neutral',
+        variant: 'subtle'
+      }, () => labelMap[status] || status)
+    }
+  },
+  {
+    accessorKey: 'views',
+    header: 'Просмотры',
+    meta: { class: { th: 'text-center w-24', td: 'text-center' } },
+    cell: ({ row }) => row.getValue('views') || 0
+  },
+  {
+    accessorKey: 'created_at',
+    header: 'Дата создания',
+    cell: ({ row }) => new Date(row.getValue('created_at') as string).toLocaleDateString('ru-RU')
+  },
+  {
+    id: 'actions',
+    header: 'Действия',
+    meta: { class: { th: 'text-right w-32', td: 'text-right' } },
+    cell: ({ row }) => {
+      const article = row.original
+      return h('div', { class: 'flex justify-end gap-2' }, [
+        h(UButton, {
+          icon: 'i-lucide-eye',
+          size: 'sm',
+          color: 'info',
+          variant: 'ghost',
+          onClick: () => viewArticle(article)
+        }),
+        h(UButton, {
+          icon: 'i-lucide-pencil',
+          size: 'sm',
+          color: 'primary',
+          variant: 'ghost',
+          onClick: () => openEditModal(article)
+        }),
+        h(UButton, {
+          icon: article.status === 'published' ? 'i-lucide-eye-off' : 'i-lucide-eye',
+          size: 'sm',
+          color: article.status === 'published' ? 'warning' : 'success',
+          variant: 'ghost',
+          onClick: () => togglePublish(article)
+        }),
+        h(UButton, {
+          icon: 'i-lucide-trash-2',
+          size: 'sm',
+          color: 'error',
+          variant: 'ghost',
+          onClick: () => openDeleteModal(article)
+        })
+      ])
+    }
+  }
+]
+
+const totalPages = computed(() => Math.ceil(totalArticlesCount.value / pageSize.value))
+
+const handleSearch = () => {
+  currentPage.value = 1
+  loadArticles()
+}
+
+const generateSlug = (title: string) => {
+  return title
+    .toLowerCase()
+    .replace(/[^a-zа-яё0-9\s]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/[ё]/g, 'e')
+}
+
+const resetForm = () => {
+  formData.value = {
+    title: '',
+    slug: '',
+    content: '',
+    steps: [],
+    excerpt: '',
+    featured_image: '',
+    categories: [],
+    type: 'article',
+    status: 'draft',
+    seo: {
+      title: '',
+      description: '',
+      keywords: [],
+      og_image: '',
+      canonical_url: ''
+    }
+  }
+}
+
+const openCreateModal = () => {
+  resetForm()
+  formModalMode.value = 'create'
+  selectedArticle.value = null
+  isFormModalOpen.value = true
+}
+
+const openEditModal = (article: Article) => {
+  selectedArticle.value = article
+  formModalMode.value = 'edit'
+
+  // Убеждаемся, что keywords это массив
+  const keywords = article.seo?.keywords
+  const keywordsArray = Array.isArray(keywords) ? keywords : []
+
+  formData.value = {
+    title: article.title,
+    slug: article.slug,
+    content: article.content || '',
+    steps: article.steps ? [...article.steps] : [],
+    excerpt: article.excerpt || '',
+    featured_image: article.featured_image || '',
+    categories: article.categories || [],
+    type: article.type,
+    status: article.status,
+    seo: {
+      title: article.seo?.title || '',
+      description: article.seo?.description || '',
+      keywords: keywordsArray,
+      og_image: article.seo?.og_image || '',
+      canonical_url: article.seo?.canonical_url || ''
+    }
+  }
+  isFormModalOpen.value = true
+}
+
+const viewArticle = (article: Article) => {
+  navigateTo(`/blog/${article.slug}`)
+}
+
+const openDeleteModal = (article: Article) => {
+  selectedArticle.value = article
+  isDeleteModalOpen.value = true
+}
+
+const togglePublish = async (article: Article) => {
+  isLoading.value = true
+  try {
+    if (article.status === 'published') {
+      await articlesApi.unpublishArticle(article.id)
+      toast.add({ title: 'Успех', description: 'Статья снята с публикации', color: 'success' })
+    } else {
+      await articlesApi.publishArticle(article.id)
+      toast.add({ title: 'Успех', description: 'Статья опубликована', color: 'success' })
+    }
+    await loadArticles()
+  } catch (error: any) {
+    toast.add({ title: 'Ошибка', description: error.message || 'Не удалось изменить статус', color: 'error' })
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const createArticle = async () => {
+  isLoading.value = true
+  try {
+    const createData: CreateArticleDto = {
+      title: formData.value.title,
+      slug: formData.value.slug || generateSlug(formData.value.title),
+      content: formData.value.content || undefined,
+      steps: formData.value.steps.length > 0 ? formData.value.steps.map(s => ({
+        text: s.text,
+        image: s.image,
+        sort: s.sort
+      })) : undefined,
+      excerpt: formData.value.excerpt || undefined,
+      featured_image: formData.value.featured_image || undefined,
+      categories: formData.value.categories.length ? formData.value.categories : undefined,
+      type: formData.value.type,
+      status: formData.value.status,
+      seo: formData.value.seo
+    }
+
+    await articlesApi.createArticle(createData)
+    isFormModalOpen.value = false
+    await loadArticles()
+    toast.add({ title: 'Успех', description: 'Статья создана', color: 'success' })
+  } catch (error: any) {
+    toast.add({ title: 'Ошибка', description: error.message || 'Не удалось создать статью', color: 'error' })
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const updateArticle = async () => {
+  if (!selectedArticle.value) return
+
+  isLoading.value = true
+  try {
+    const updateData: UpdateArticleDto = {
+      title: formData.value.title,
+      slug: formData.value.slug,
+      content: formData.value.content || undefined,
+      steps: formData.value.steps.length > 0 ? formData.value.steps.map(s => ({
+        id: s.id,
+        text: s.text,
+        image: s.image,
+        sort: s.sort
+      })) : undefined,
+      excerpt: formData.value.excerpt || undefined,
+      featured_image: formData.value.featured_image || undefined,
+      categories: formData.value.categories.length ? formData.value.categories : undefined,
+      type: formData.value.type,
+      status: formData.value.status,
+      seo: formData.value.seo
+    }
+
+    await articlesApi.updateArticle(selectedArticle.value.id, updateData)
+    isFormModalOpen.value = false
+    await loadArticles()
+    toast.add({ title: 'Успех', description: 'Статья обновлена', color: 'success' })
+  } catch (error: any) {
+    toast.add({ title: 'Ошибка', description: error.message || 'Не удалось обновить статью', color: 'error' })
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const deleteArticle = async () => {
+  if (!selectedArticle.value) return
+
+  isLoading.value = true
+  try {
+    await articlesApi.deleteArticle(selectedArticle.value.id)
+    isDeleteModalOpen.value = false
+    await loadArticles()
+    toast.add({ title: 'Успех', description: 'Статья удалена', color: 'success' })
+  } catch (error: any) {
+    toast.add({ title: 'Ошибка', description: error.message || 'Не удалось удалить статью', color: 'error' })
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Предпросмотр SEO
+const previewTitle = computed(() =>
+  formData.value.seo.title || formData.value.title || 'Заголовок страницы'
+)
+
+const previewUrl = computed(() =>
+  `https://ayeda.ru/articles/${formData.value.slug || '...'}`
+)
+
+const previewDescription = computed(() =>
+  formData.value.seo.description || formData.value.excerpt || 'Описание страницы'
+)
+
+const isFormValid = computed(() => {
+  return !!formData.value.title && (!!formData.value.content || formData.value.steps.length > 0)
+})
+
+// Наблюдатели
+watch([currentPage, pageSize, statusFilter, typeFilter, categoryFilter], () => {
+  loadArticles()
+}, { deep: true })
+
+onMounted(() => {
+  loadArticles()
+  loadCategories()
+})
+</script>
+
+<style scoped>
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+</style>

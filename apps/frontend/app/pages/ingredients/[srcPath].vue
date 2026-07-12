@@ -321,19 +321,19 @@ if (ingredient.value) {
   ]
 
   useHead({
-    title: `${seoTitle} | AyEda - Ингредиенты`,
+    title: `${seoTitle} | АуЕда - Ингредиенты`,
     meta: [
       { name: 'description', content: seoDescription, key: 'description' },
       { name: 'keywords', content: seoKeywords.join(', '), key: 'keywords' },
-      { property: 'og:title', content: `${seoTitle} | AyEda`, key: 'og:title' },
+      { property: 'og:title', content: `${seoTitle} | АуЕда`, key: 'og:title' },
       { property: 'og:description', content: seoDescription, key: 'og:description' },
       { property: 'og:type', content: 'article', key: 'og:type' },
       { property: 'og:image', content: getImageUrl(ingredient.value.photo) || 'https://ayeda.ru/images/ingredient-placeholder.jpg', key: 'og:image' },
       { property: 'og:image:alt', content: ingredient.value.name, key: 'og:image:alt' },
       { property: 'og:url', content: `https://ayeda.ru/ingredients/${ingredient.value.srcPath}`, key: 'og:url' },
-      { property: 'og:site_name', content: 'AyEda', key: 'og:site_name' },
+      { property: 'og:site_name', content: 'АуЕда', key: 'og:site_name' },
       { name: 'twitter:card', content: 'summary_large_image', key: 'twitter:card' },
-      { name: 'twitter:title', content: `${seoTitle} | AyEda`, key: 'twitter:title' },
+      { name: 'twitter:title', content: `${seoTitle} | АуЕда`, key: 'twitter:title' },
       { name: 'twitter:description', content: seoDescription, key: 'twitter:description' },
       { name: 'twitter:image', content: getImageUrl(ingredient.value.photo) || 'https://ayeda.ru/images/ingredient-placeholder.jpg', key: 'twitter:image' },
     ],

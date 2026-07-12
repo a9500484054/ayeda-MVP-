@@ -12,7 +12,7 @@
             <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
               <UIcon name="i-lucide-utensils" class="w-5 h-5 text-emerald-600" />
             </div>
-            <span class="text-2xl font-bold text-white">AyEda</span>
+            <span class="text-2xl font-bold text-white">АуЕда</span>
           </div>
         </NuxtLink>
       </div>
@@ -50,7 +50,7 @@
           <p class="text-white/90 text-sm italic">
             "Регистрация заняла 30 секунд, а результат — экономия 5 часов в неделю!"
           </p>
-          <p class="text-emerald-200 text-xs mt-2">— Дмитрий, пользователь AyEda</p>
+          <p class="text-emerald-200 text-xs mt-2">— Дмитрий, пользователь АуЕда</p>
         </div>
       </div>
 
@@ -67,7 +67,7 @@
             <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
               <UIcon name="i-lucide-utensils" class="w-5 h-5 text-white" />
             </div>
-            <span class="text-2xl font-bold text-gray-900">AyEda</span>
+            <span class="text-2xl font-bold text-gray-900">АуЕда</span>
           </div>
         </div>
 
@@ -262,17 +262,17 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Регистрация | AyEda',
+  title: 'Регистрация | АуЕда',
   meta: [
-    { name: 'description', content: 'Создайте аккаунт на AyEda за 30 секунд. 14 дней бесплатно, 500+ рецептов и умные списки покупок.', key: 'description' },
+    { name: 'description', content: 'Создайте аккаунт на АуЕда за 30 секунд. 14 дней бесплатно, 500+ рецептов и умные списки покупок.', key: 'description' },
     { name: 'robots', content: 'noindex, nofollow', key: 'robots' },
-    { property: 'og:title', content: 'Регистрация | AyEda', key: 'og:title' },
+    { property: 'og:title', content: 'Регистрация | АуЕда', key: 'og:title' },
     { property: 'og:description', content: 'Создайте аккаунт и начните планировать питание', key: 'og:description' },
     { property: 'og:type', content: 'website', key: 'og:type' },
     { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
-    { property: 'og:image:alt', content: 'Регистрация на AyEda', key: 'og:image:alt' },
+    { property: 'og:image:alt', content: 'Регистрация на АуЕда', key: 'og:image:alt' },
     { property: 'og:url', content: 'https://ayeda.ru/register', key: 'og:url' },
-    { property: 'og:site_name', content: 'AyEda', key: 'og:site_name' },
+    { property: 'og:site_name', content: 'АуЕда', key: 'og:site_name' },
   ],
 })
 

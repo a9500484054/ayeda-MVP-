@@ -1,7 +1,7 @@
 // public/manifest.webmanifest
 {
-  "name": "Ayeda",
-  "short_name": "Ayeda",
+  "name": "АуЕда",
+  "short_name": "АуЕда",
   "description": "Кулинарные рецепты и списки покупок",
   "start_url": "/",
   "display": "standalone",

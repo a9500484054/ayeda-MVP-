@@ -53,17 +53,17 @@ export default defineNuxtConfig({
       viewport: 'width=device-width, initial-scale=1, maximum-scale=5.0, user-scalable=1, viewport-fit=cover',
       htmlAttrs: { lang: 'ru' },
       meta: [
-        { name: 'description', content: 'Ayeda — сервис рецептов и планирования меню' },
-        { name: 'og:site_name', content: 'Ayeda' },
+        { name: 'description', content: 'АуЕда — сервис рецептов и планирования меню' },
+        { name: 'og:site_name', content: 'АуЕда' },
         { name: 'og:type', content: 'website' },
-        { name: 'og:title', content: 'Ayeda — Кулинарные рецепты и планирование меню' },
-        { name: 'og:description', content: 'Ayeda — сервис рецептов и планирования меню' },
+        { name: 'og:title', content: 'АуЕда — Кулинарные рецепты и планирование меню' },
+        { name: 'og:description', content: 'АуЕда — сервис рецептов и планирования меню' },
         { name: 'og:image', content: '/og-image.jpg' },
         { name: 'og:image:width', content: '1200' },
         { name: 'og:image:height', content: '630' },
         { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: 'Ayeda — Кулинарные рецепты и планирование меню' },
-        { name: 'twitter:description', content: 'Ayeda — сервис рецептов и планирования меню' },
+        { name: 'twitter:title', content: 'АуЕда — Кулинарные рецепты и планирование меню' },
+        { name: 'twitter:description', content: 'АуЕда — сервис рецептов и планирования меню' },
         { name: 'twitter:image', content: '/og-image.jpg' },
         { name: 'yandex-verification', content: '7f3f124077fe2229' },
         // PWA meta
@@ -72,7 +72,7 @@ export default defineNuxtConfig({
         { name: 'msapplication-TileImage', content: '/pwa-icons/pwa-144x144.png' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
-        { name: 'apple-mobile-web-app-title', content: 'Ayeda' },
+        { name: 'apple-mobile-web-app-title', content: 'АуЕда' },
         { name: 'format-detection', content: 'telephone=no' }
       ],
       link: [

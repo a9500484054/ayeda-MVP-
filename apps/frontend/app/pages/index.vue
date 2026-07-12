@@ -1,95 +1,64 @@
 <template>
   <div class="overflow-hidden">
-    <!-- HERO - Эмоциональный удар первой секунды -->
+    <!-- ====== HERO - НОВЫЙ ====== -->
     <section class="relative pt-32 pb-20 lg:pt-40 lg:pb-32 overflow-hidden">
-      <!-- Декоративные элементы -->
       <div class="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-to-b from-emerald-50 via-teal-50 to-transparent rounded-full blur-3xl opacity-60"></div>
-      <div class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-amber-50 rounded-full blur-3xl opacity-40"></div>
+      <div class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-emerald-50 rounded-full blur-3xl opacity-40"></div>
 
       <div class="relative max-w-7xl mx-auto px-6 lg:px-8">
         <div class="grid lg:grid-cols-2 gap-16 items-center">
-          <!-- Левая часть - Продающий текст -->
+          <!-- Левая часть - Новый текст -->
           <div class="space-y-8">
-            <!-- Главный заголовок с подсветкой -->
             <div class="space-y-4 animate-fade-in-up animation-delay-100">
+              <span class="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 text-sm font-semibold px-4 py-2 rounded-full border border-emerald-200/50 mb-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Экономьте 5 часов в неделю
+              </span>
               <h1 class="text-5xl lg:text-7xl xl:text-8xl font-black leading-[1.1] tracking-tight">
-                <span class="bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">Перестаньте</span>
+                <span class="bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">Планируйте питание</span>
                 <br />
-            <span class="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-              гадать, что съесть
+                <span class="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                  за 10 минут
                 </span>
               </h1>
               <p class="text-xl text-gray-600 leading-relaxed max-w-lg">
-            AyEda - ваш шеф-повар, который планирует меню,
-            <span class="font-semibold text-gray-800">экономит 5 часов в неделю</span>
-            и убирает пищевой стресс навсегда.
+                АуЕда — это ваш умный помощник, который составляет меню,
+                создает список покупок и
+                <span class="font-semibold text-gray-800">экономит до 5 часов вашего времени</span>
+                каждую неделю.
               </p>
             </div>
 
-            <!-- Конверсионная форма (главный CTA) -->
+            <!-- CTA -->
             <div class="space-y-4 animate-fade-in-up animation-delay-200">
               <div class="flex flex-col sm:flex-row gap-3">
-                <!-- <div class="relative flex-1">
-                  <UIcon name="i-lucide-mail" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type="email"
-                    placeholder="Ваш email"
-                    class="w-full pl-12 pr-4 py-4 rounded-2xl border border-gray-200 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 transition-all outline-none"
-                  />
-                </div> -->
                 <ULink to="/register">
-                  <UButton class="!rounded-2xl !bg-gradient-to-r !from-emerald-600 !to-teal-600 !text-white !py-4 !px-8 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 !text-lg font-semibold group cursor-pointer">
-                    Начать планировать
+                  <UButton class="!rounded-2xl !bg-gradient-to-r !from-emerald-600 !to-teal-600 !text-white !py-5 !px-10 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 !text-lg font-semibold group cursor-pointer">
+                    Попробовать бесплатно
                     <UIcon name="i-lucide-arrow-right" class="ml-2 w-5 h-5 group-hover:translate-x-1 transition" />
                   </UButton>
                 </ULink>
               </div>
-
-            </div>
-
-            <!-- Дополнительные преимущества -->
-            <div class="flex gap-6 pt-4 animate-fade-in-up animation-delay-300">
-              <!-- <div class="flex items-center gap-2">
-                <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
-                  <span class="text-amber-600 font-bold">4.9</span>
-                </div>
-                <div>
-                  <div class="flex text-amber-400">
-                    <UIcon v-for="i in 5" :key="i" name="i-lucide-star" class="w-3 h-3 fill-current" />
-                  </div>
-                  <span class="text-xs text-gray-500">на основе 847 отзывов</span>
-                </div>
-              </div>
-              <div class="w-px bg-gray-200"></div> -->
-              <!-- <div class="flex items-center gap-2">
-                <UIcon name="i-lucide-clock" class="w-5 h-5 text-emerald-600" />
-                <div>
-                  <div class="font-bold text-gray-900">12 минут</div>
-                  <span class="text-xs text-gray-500">на планирование недели</span>
-                </div>
-              </div> -->
+              <p class="text-xs text-gray-400">🔥 Уже 500+ пользователей экономят время</p>
             </div>
           </div>
 
-          <!-- Правая часть - Визуальная демонстрация продукта -->
+          <!-- Правая часть - Скриншот -->
           <div class="relative animate-fade-in-right">
-            <!-- Основной виджет -->
-            <div class="relative z-10 bg-white/60 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-6 transform rotate-2 hover:rotate-0 transition-all duration-500">
-              <!-- AI Badge -->
-              <div class="absolute -top-3 -right-3 bg-gradient-to-r from-amber-400 to-orange-400 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-                <!-- 🤖 AI план -->
-                🤖 план
+            <div class="relative z-10 bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-6 transform rotate-2 hover:rotate-0 transition-all duration-500">
+              <div class="absolute -top-3 -right-3 bg-gradient-to-r from-emerald-400 to-teal-400 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                🤖 умный план
               </div>
 
-              <!-- Демо меню -->
+              <!-- Демо интерфейса -->
               <div class="space-y-4">
                 <div class="flex justify-between items-center">
-                  <h3 class="font-bold text-gray-900">Ваша неделя питания</h3>
+                  <h3 class="font-bold text-gray-900">План на неделю</h3>
                   <UBadge class="!bg-emerald-100 !text-emerald-700">Баланс 95%</UBadge>
                 </div>
 
-                <div v-for="day in demoWeek" :key="day.name" class="group cursor-pointer">
-                  <div class="flex items-center justify-between p-3 rounded-xl hover:bg-white/50 transition-all">
+                <div v-for="day in demoWeek" :key="day.name" class="group">
+                  <div class="flex items-center justify-between p-3 rounded-xl hover:bg-emerald-50/50 transition-all">
                     <div class="flex items-center gap-3">
                       <span class="font-mono text-sm font-bold text-emerald-600 w-12">{{ day.name }}</span>
                       <div>
@@ -97,7 +66,9 @@
                         <div class="text-xs text-gray-500">{{ day.dinner }}</div>
                       </div>
                     </div>
-                    <UIcon name="i-lucide-chevron-right" class="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition" />
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs text-emerald-600 font-medium">{{ day.calories }} ккал</span>
+                    </div>
                   </div>
                 </div>
 
@@ -113,131 +84,14 @@
               </div>
             </div>
 
-            <!-- Декоративные элементы -->
             <div class="absolute -bottom-8 -left-8 w-48 h-48 bg-emerald-200 rounded-full blur-2xl opacity-50"></div>
-            <div class="absolute -top-8 -right-8 w-32 h-32 bg-amber-200 rounded-full blur-2xl opacity-50"></div>
+            <div class="absolute -top-8 -right-8 w-32 h-32 bg-teal-200 rounded-full blur-2xl opacity-50"></div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ========== ПРОБЛЕМА → РЕШЕНИЕ ========== -->
-    <section class="py-20 md:py-28 bg-gradient-to-b from-white to-gray-50/80" id="features">
-      <div class="max-w-7xl mx-auto px-6 lg:px-8">
-      <div class="text-center max-w-2xl mx-auto mb-16">
-        <span class="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 text-sm font-semibold px-4 py-2 rounded-full border border-emerald-200/50 mb-4">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          Трансформация
-        </span>
-        <h2 class="text-4xl md:text-5xl font-black leading-tight">
-          Как Ay<span class="text-emerald-400">Eda</span>
-          меняет вашу жизнь
-        </h2>
-      </div>
-
-      <div class="grid lg:grid-cols-2 gap-8 items-stretch">
-        <!-- Блок "Без AyEda" -->
-        <div class="group relative bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 hover:border-red-200/50">
-          <!-- Декоративный элемент -->
-          <div class="absolute -top-3 -left-3 w-24 h-24 bg-red-100/30 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-
-          <div class="relative">
-            <div class="flex items-center gap-4 mb-6">
-              <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-50 to-rose-50 flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">
-                😫
-              </div>
-              <div>
-                <h3 class="text-2xl font-bold text-gray-800">Без AyEda</h3>
-                <p class="text-sm text-gray-500">Как вы живете сейчас</p>
-              </div>
-            </div>
-
-            <div class="space-y-3">
-              <div v-for="problem in problems" :key="problem"
-                  class="flex items-start gap-3 p-4 bg-gradient-to-r from-red-50/50 to-rose-50/30 rounded-xl border border-red-100/50 group-hover:border-red-200 transition-all">
-                <span class="text-red-400 text-lg leading-none mt-0.5">✕</span>
-                <span class="text-gray-700 text-sm">{{ problem.text }}</span>
-              </div>
-            </div>
-
-            <div class="mt-6 p-4 bg-gradient-to-r from-red-50 to-rose-50 rounded-xl border border-red-100">
-              <div class="flex justify-between items-center mb-2">
-                <span class="text-sm text-gray-600">⏱️ Потеря времени</span>
-                <span class="text-sm font-bold text-red-500">~10 часов/неделю</span>
-              </div>
-              <div class="w-full bg-red-200/50 rounded-full h-2.5 overflow-hidden">
-                <div class="bg-gradient-to-r from-red-400 to-rose-400 h-2.5 rounded-full w-[85%] animate-progress"></div>
-              </div>
-              <div class="flex justify-between text-xs text-gray-400 mt-1.5">
-                <span>0%</span>
-                <span>Вы теряете время</span>
-                <span>100%</span>
-              </div>
-            </div>
-
-            <div class="mt-6 flex items-center justify-center gap-2 text-sm text-gray-400">
-              <span class="w-2 h-2 rounded-full bg-gray-300"></span>
-              <span>Стресс и хаос в каждом дне</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Блок "С AyEda" -->
-        <div class="group relative bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 rounded-3xl p-8 shadow-2xl hover:shadow-3xl transition-all duration-500 overflow-hidden">
-
-          <div class="relative">
-            <div class="flex items-center gap-4 mb-6">
-              <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-3xl group-hover:scale-110 transition-transform shadow-lg">
-                ✨
-              </div>
-              <div>
-                <h3 class="text-2xl font-bold text-white">С AyEda</h3>
-                <p class="text-sm text-emerald-100/80">Новый уровень жизни</p>
-              </div>
-            </div>
-
-            <div class="space-y-3">
-              <div v-for="solution in solutions" :key="solution"
-                  class="flex items-start gap-3 p-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/10 hover:bg-white/20 transition-all group-hover:border-white/20">
-                <span class="text-emerald-300 text-lg leading-none mt-0.5">✓</span>
-                <span class="text-white text-sm font-medium">{{ solution.text }}</span>
-              </div>
-            </div>
-
-            <div class="mt-6 p-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/10">
-              <div class="flex justify-between items-center mb-2">
-                <span class="text-sm text-emerald-100">⏱️ Экономия времени</span>
-                <span class="text-sm font-bold text-white">~12 минут/неделю</span>
-              </div>
-              <div class="w-full bg-white/20 rounded-full h-2.5 overflow-hidden">
-                <div class="bg-white h-2.5 rounded-full w-[8%] animate-progress-reverse"></div>
-              </div>
-              <div class="flex justify-between text-xs text-emerald-200/60 mt-1.5">
-                <span>0%</span>
-                <span>Минимум времени</span>
-                <span>100%</span>
-              </div>
-            </div>
-
-            <ULink to="/register">
-              <UButton class="w-full mt-6 py-4 bg-white text-emerald-700 rounded-xl font-bold transition-all duration-300 hover:bg-emerald-50 hover:shadow-xl hover:scale-[1.02] group-hover:shadow-2xl cursor-pointer relative overflow-hidden">
-                <span class="absolute inset-0 bg-gradient-to-r from-emerald-400/0 via-emerald-400/10 to-emerald-400/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></span>
-                <span class="flex items-center justify-center gap-3 relative">
-                  <span class="text-xl group-hover:scale-110 transition-transform duration-300">🚀</span>
-                  <span class="font-semibold group-hover:tracking-wider transition-all duration-300">Начать экономить время</span>
-                  <UIcon name="i-lucide-arrow-right" class="w-5 h-5 transition-all duration-300 group-hover:translate-x-1 group-hover:scale-110" />
-                </span>
-              </UButton>
-            </ULink>
-
-          </div>
-        </div>
-      </div>
-
-      </div>
-    </section>
-
-    <!-- ========== КАК ЭТО РАБОТАЕТ ========== -->
+    <!-- ====== КАК ЭТО РАБОТАЕТ - ВИЗУАЛЬНАЯ ДЕМОНСТРАЦИЯ ====== -->
     <section class="py-20 md:py-28 bg-gradient-to-b from-white to-emerald-50/30" id="how-it-works">
       <div class="max-w-7xl mx-auto px-6 lg:px-8">
         <div class="text-center max-w-3xl mx-auto mb-16">
@@ -246,32 +100,26 @@
             Простой процесс
           </span>
           <h2 class="text-4xl md:text-5xl font-black leading-tight">
-            Планируйте питание <br class="hidden sm:block" />
-            <span class="bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">в три шага</span>
+            Всё начинается с<br />
+            <span class="bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">трёх простых шагов</span>
           </h2>
           <p class="text-gray-500 mt-4 text-lg">От выбора блюд до готового списка покупок за 10 минут</p>
         </div>
 
         <div class="grid md:grid-cols-3 gap-8 relative">
-          <!-- Декоративные соединительные линии -->
           <div class="hidden md:block absolute top-1/3 left-0 right-0 h-0.5 bg-gradient-to-r from-emerald-200 via-teal-200 to-emerald-200 transform -translate-y-1/2"></div>
           <div class="hidden md:block absolute top-1/3 left-0 right-0 h-0.5 bg-gradient-to-r from-emerald-400/30 via-teal-400/30 to-emerald-400/30 transform -translate-y-1/2 animate-pulse-line"></div>
 
-          <div v-for="(step, index) in workflowSteps" :key="index"
-              class="group relative">
-            <!-- Карточка -->
+          <div v-for="(step, index) in workflowSteps" :key="index" class="group relative">
             <div class="relative bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100/50 hover:border-emerald-200 h-full flex flex-col items-center text-center">
-              <!-- Номер с анимацией -->
               <div class="absolute -top-4 -right-4 w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-400 text-white font-bold text-lg flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
                 {{ index + 1 }}
               </div>
 
-              <!-- Иконка -->
               <div class="relative">
                 <div class="w-24 h-24 rounded-3xl bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center text-4xl mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-inner">
                   <span class="group-hover:scale-110 transition-transform duration-500">{{ step.icon }}</span>
                 </div>
-                <!-- Пульсирующий круг -->
                 <div class="absolute -inset-1 rounded-3xl bg-gradient-to-r from-emerald-400/20 to-teal-400/20 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500"></div>
               </div>
 
@@ -281,414 +129,477 @@
               <p class="text-gray-500 text-sm leading-relaxed flex-1">
                 {{ step.description }}
               </p>
-
-              <!-- Индикатор прогресса -->
-              <div class="w-full mt-6 pt-4 border-t border-gray-100">
-                <div class="flex justify-between text-xs text-gray-400 mb-1.5">
-                  <span>Шаг {{ index + 1 }} из 3</span>
-                  <span class="text-emerald-600 font-medium">{{ step.time }}</span>
-                </div>
-                <div class="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                  <div class="bg-gradient-to-r from-emerald-400 to-teal-400 h-1.5 rounded-full transition-all duration-1000 group-hover:w-full"
-                      :style="{ width: ((index + 1) / 3 * 100) + '%' }"></div>
-                </div>
-              </div>
-
-
             </div>
 
-            <!-- Стрелка между карточками -->
-            <div v-if="index < workflowSteps.length - 1"
-                class="hidden md:flex absolute -right-4 top-1/2 transform -translate-y-1/2 z-10">
+            <div v-if="index < workflowSteps.length - 1" class="hidden md:flex absolute -right-4 top-1/2 transform -translate-y-1/2 z-10">
               <div class="w-8 h-8 rounded-full bg-white shadow-md border border-gray-100 flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">
                 <UIcon name="i-lucide-arrow-right" class="w-4 h-4" />
               </div>
             </div>
           </div>
         </div>
+      </div>
+    </section>
 
-        <!-- Бонусная информация -->
-        <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
-          <div class="flex items-center justify-center gap-2.5 bg-white rounded-xl px-4 py-3 shadow-sm border border-gray-100">
-            <span class="text-xl">📚</span>
-            <span class="text-sm text-gray-600">Каталог <span class="font-bold text-emerald-600">рецептов</span> </span>
-          </div>
-          <div class="flex items-center justify-center gap-2.5 bg-white rounded-xl px-4 py-3 shadow-sm border border-gray-100">
-            <span class="text-xl">📋</span>
-            <span class="text-sm text-gray-600">Готовый <span class="font-bold text-emerald-600">план на неделю</span></span>
-          </div>
-          <div class="flex items-center justify-center gap-2.5 bg-white rounded-xl px-4 py-3 shadow-sm border border-gray-100">
-            <span class="text-xl">🛒</span>
-            <span class="text-sm text-gray-600">Умный <span class="font-bold text-emerald-600">список покупок</span></span>
-          </div>
+    <!-- ====== ПОЧЕМУ ЭТО РАБОТАЕТ - МЕТРИКИ ====== -->
+    <section class="py-20 md:py-28 bg-white" id="results">
+      <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-16">
+          <span class="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 text-sm font-semibold px-4 py-2 rounded-full border border-emerald-200/50 mb-4">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Результаты
+          </span>
+          <h2 class="text-4xl md:text-5xl font-black leading-tight">
+            Почему это <br />
+            <span class="bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">работает</span>
+          </h2>
         </div>
-        <!-- Статистика -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 mt-16 pt-8 border-t border-gray-200">
-          <div class="text-center">
-            <div class="text-3xl font-black text-emerald-600">94%</div>
-            <div class="text-sm text-gray-600">продолжают<br>использовать через месяц</div>
-          </div>
-          <div class="text-center">
-            <div class="text-3xl font-black text-emerald-600">3.2ч</div>
-            <div class="text-sm text-gray-600">экономии времени<br>в неделю</div>
-          </div>
-          <div class="text-center">
-            <div class="text-3xl font-black text-emerald-600">-35%</div>
-            <div class="text-sm text-gray-600">трат на доставку<br>и спонтанные покупки</div>
-          </div>
-          <div class="text-center">
-            <div class="text-3xl font-black text-emerald-600">12 мин</div>
-            <div class="text-sm text-gray-600">на планирование<br> всей недели</div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div class="group bg-gradient-to-br from-emerald-50 to-teal-50 rounded-3xl p-8 text-center hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+            <div class="w-20 h-20 rounded-2xl bg-white shadow-md flex items-center justify-center text-3xl mx-auto mb-5 group-hover:scale-110 transition-transform">
+              ⏱️
+            </div>
+            <div class="text-4xl font-black text-emerald-600 mb-2">5 часов</div>
+            <div class="text-sm text-gray-600">экономии времени в неделю</div>
           </div>
 
+          <div class="group bg-gradient-to-br from-emerald-50 to-teal-50 rounded-3xl p-8 text-center hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+            <div class="w-20 h-20 rounded-2xl bg-white shadow-md flex items-center justify-center text-3xl mx-auto mb-5 group-hover:scale-110 transition-transform">
+              💰
+            </div>
+            <div class="text-4xl font-black text-emerald-600 mb-2">-35%</div>
+            <div class="text-sm text-gray-600">трат на доставку и спонтанные покупки</div>
+          </div>
 
+          <div class="group bg-gradient-to-br from-emerald-50 to-teal-50 rounded-3xl p-8 text-center hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+            <div class="w-20 h-20 rounded-2xl bg-white shadow-md flex items-center justify-center text-3xl mx-auto mb-5 group-hover:scale-110 transition-transform">
+              🥗
+            </div>
+            <div class="text-4xl font-black text-emerald-600 mb-2">95%</div>
+            <div class="text-sm text-gray-600">сбалансированное меню</div>
+          </div>
 
-
+          <div class="group bg-gradient-to-br from-emerald-50 to-teal-50 rounded-3xl p-8 text-center hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+            <div class="w-20 h-20 rounded-2xl bg-white shadow-md flex items-center justify-center text-3xl mx-auto mb-5 group-hover:scale-110 transition-transform">
+              😌
+            </div>
+            <div class="text-4xl font-black text-emerald-600 mb-2">94%</div>
+            <div class="text-sm text-gray-600">пользователей продолжают использовать через месяц</div>
+          </div>
         </div>
       </div>
     </section>
 
+    <!-- ====== БЛОК С РЕЦЕПТАМИ (SSR) ====== -->
+    <section class="py-20 md:py-28 bg-gradient-to-b from-white to-emerald-50/30" id="recipes">
+      <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-12">
+          <span class="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 text-sm font-semibold px-4 py-2 rounded-full border border-emerald-200/50 mb-4">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Вдохновение
+          </span>
+          <h2 class="text-4xl md:text-5xl font-black leading-tight">
+            Популярные <br />
+            <span class="bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">рецепты</span>
+          </h2>
+          <p class="text-gray-500 mt-4 text-lg">Выберите блюда и добавьте в свой план на неделю</p>
+        </div>
 
-    <!-- ФИНАЛЬНЫЙ CTA (Ультимативный оффер) -->
-    <section class="relative py-24 overflow-hidden" id="faq">
+        <!-- Скелетон -->
+        <div v-if="recipesPending" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div v-for="i in 4" :key="i" class="bg-gray-100 rounded-2xl h-72 animate-pulse"></div>
+        </div>
+
+        <!-- Рецепты -->
+        <div v-else-if="recipesData?.data?.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div v-for="recipe in recipesData.data.slice(0, 4)" :key="recipe.id"
+               class="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-emerald-200">
+            <div class="relative aspect-[4/3] overflow-hidden bg-gray-100">
+              <img
+                v-if="recipe.image"
+                :src="recipe.image"
+                :alt="recipe.title"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                loading="lazy"
+              />
+              <div v-else class="w-full h-full flex items-center justify-center text-4xl bg-gradient-to-br from-emerald-50 to-teal-50">
+                🍳
+              </div>
+              <div class="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full flex items-center gap-1">
+                <UIcon name="i-lucide-clock" class="w-3 h-3" />
+                {{ recipe.cooking_time || recipe.cookingTime || '30' }} мин
+              </div>
+            </div>
+
+            <div class="p-4">
+              <h3 class="font-bold text-gray-900 text-base line-clamp-1 group-hover:text-emerald-600 transition-colors">
+                {{ recipe.title }}
+              </h3>
+              <div class="flex items-center justify-between mt-2">
+                <div class="flex items-center gap-1 text-sm text-gray-500">
+                  <UIcon name="i-lucide-users" class="w-4 h-4" />
+                  <span>{{ recipe.servings || 2 }} порц.</span>
+                </div>
+                <div class="flex items-center gap-1 text-emerald-400">
+                  <UIcon v-for="i in 5" :key="i" name="i-lucide-star" class="w-3.5 h-3.5 fill-current"
+                         :class="{ 'text-gray-200': i > (recipe.rating || 4) }" />
+                </div>
+              </div>
+              <ULink :to="`/recipes/${recipe.id}`" class="block mt-3">
+                <UButton size="xs" variant="outline" class="w-full !rounded-xl text-sm border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300 transition-colors">
+                  Смотреть рецепт
+                </UButton>
+              </ULink>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="text-center py-12">
+          <p class="text-gray-400">Рецепты скоро появятся</p>
+        </div>
+
+        <div class="text-center mt-8">
+          <ULink to="/recipes">
+            <UButton variant="outline" class="!rounded-xl border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300">
+              Смотреть все рецепты
+              <UIcon name="i-lucide-arrow-right" class="ml-2 w-4 h-4" />
+            </UButton>
+          </ULink>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== БЛОК СО СТАТЬЯМИ (SSR) ====== -->
+    <section class="py-20 md:py-28 bg-white" id="blog">
+      <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-12">
+          <span class="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 text-sm font-semibold px-4 py-2 rounded-full border border-emerald-200/50 mb-4">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Блог
+          </span>
+          <h2 class="text-4xl md:text-5xl font-black leading-tight">
+            Полезные <br />
+            <span class="bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">статьи о питании</span>
+          </h2>
+          <p class="text-gray-500 mt-4 text-lg">Советы и лайфхаки для здорового образа жизни</p>
+        </div>
+
+        <!-- Скелетон -->
+        <div v-if="articlesPending" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div v-for="i in 3" :key="i" class="bg-gray-100 rounded-2xl h-64 animate-pulse"></div>
+        </div>
+
+        <!-- Статьи -->
+        <div v-else-if="articlesData?.data?.length > 0" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div v-for="article in articlesData.data.slice(0, 3)" :key="article.id"
+               class="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-emerald-200">
+            <div class="relative aspect-[16/9] overflow-hidden bg-gray-100">
+              <img
+                v-if="article.image"
+                :src="article.image"
+                :alt="article.title"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                loading="lazy"
+              />
+              <div v-else class="w-full h-full flex items-center justify-center text-4xl bg-gradient-to-br from-emerald-50 to-teal-50">
+                📝
+              </div>
+              <div class="absolute top-2 left-2 bg-white/90 backdrop-blur-sm text-xs font-semibold px-3 py-1 rounded-full text-emerald-600">
+                {{ article.category || 'Советы' }}
+              </div>
+            </div>
+
+            <div class="p-5">
+              <div class="flex items-center gap-2 text-xs text-gray-400 mb-2">
+                <UIcon name="i-lucide-calendar" class="w-3.5 h-3.5" />
+                <span>{{ formatDate(article.created_at || article.createdAt) }}</span>
+              </div>
+              <h3 class="font-bold text-gray-900 text-lg line-clamp-2 group-hover:text-emerald-600 transition-colors">
+                {{ article.title }}
+              </h3>
+              <p class="text-gray-500 text-sm mt-2 line-clamp-2">
+                {{ article.description || article.excerpt || 'Читайте полезные советы' }}
+              </p>
+              <ULink :to="`/blog/${article.slug || article.id}`" class="block mt-4">
+                <UButton size="xs" variant="outline" class="w-full !rounded-xl text-sm border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300 transition-colors">
+                  Читать статью
+                </UButton>
+              </ULink>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="text-center py-12">
+          <p class="text-gray-400">Статьи скоро появятся</p>
+        </div>
+
+        <div class="text-center mt-8">
+          <ULink to="/blog">
+            <UButton variant="outline" class="!rounded-xl border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300">
+              Смотреть все статьи
+              <UIcon name="i-lucide-arrow-right" class="ml-2 w-4 h-4" />
+            </UButton>
+          </ULink>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== БЛОК: ДОСТАВКА ОТ ПАРТНЁРА ====== -->
+    <section class="py-20 md:py-28 bg-gradient-to-b from-emerald-50/30 to-white">
+      <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-12">
+          <span class="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 text-sm font-semibold px-4 py-2 rounded-full border border-emerald-200/50 mb-4">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Полный цикл
+          </span>
+          <h2 class="text-4xl md:text-5xl font-black leading-tight">
+            От меню до <br />
+            <span class="bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">готовых продуктов</span>
+          </h2>
+          <p class="text-gray-500 mt-4 text-lg max-w-2xl mx-auto">
+            Составьте план питания, получите список покупок и закажите продукты у наших партнёров — всё в несколько кликов
+          </p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8">
+          <div class="bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-emerald-200 text-center group">
+            <div class="w-20 h-20 rounded-2xl bg-emerald-50 flex items-center justify-center text-3xl mx-auto mb-5 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+              📋
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-3">1. Составьте меню</h3>
+            <p class="text-gray-500 text-sm leading-relaxed">
+              Выберите рецепты из каталога и соберите свой идеальный план на неделю
+            </p>
+          </div>
+
+          <div class="bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-emerald-200 text-center group">
+            <div class="w-20 h-20 rounded-2xl bg-emerald-50 flex items-center justify-center text-3xl mx-auto mb-5 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+              🛒
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-3">2. Получите список покупок</h3>
+            <p class="text-gray-500 text-sm leading-relaxed">
+              Все ингредиенты автоматически собираются в умный список по отделам магазина
+            </p>
+          </div>
+
+          <div class="bg-gradient-to-br from-emerald-500 to-teal-500 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 text-center group relative overflow-hidden">
+            <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div class="relative">
+              <div class="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-3xl mx-auto mb-5 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                🚚
+              </div>
+              <h3 class="text-xl font-bold text-white mb-3">3. Закажите у партнёра</h3>
+              <p class="text-emerald-100 text-sm leading-relaxed">
+                Перейдите к нашему партнёру и закажите продукты с доставкой на дом
+              </p>
+              <div class="mt-6 inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white text-xs font-semibold px-4 py-2 rounded-full">
+                <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                Доступно в Москве и СПб
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-12 text-center">
+          <div class="inline-flex items-center gap-6 bg-white/80 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-lg border border-gray-100">
+            <span class="text-sm text-gray-500">Партнёры:</span>
+            <div class="flex items-center gap-4">
+              <span class="text-sm font-medium text-gray-700">🍽️ Доставка-Еда</span>
+              <span class="w-px h-6 bg-gray-200"></span>
+              <span class="text-sm font-medium text-gray-700">🛍️ Продукт-Маркет</span>
+              <span class="w-px h-6 bg-gray-200"></span>
+              <span class="text-sm font-medium text-gray-700">🥬 Зелёный Дом</span>
+            </div>
+          </div>
+          <p class="text-xs text-gray-400 mt-4">
+            * Доставка осуществляется партнёрами сервиса. Условия и стоимость уточняйте на сайтах партнёров.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== ФИНАЛЬНЫЙ CTA ====== -->
+    <section class="relative py-24 overflow-hidden">
       <div class="absolute inset-0 bg-gradient-to-r from-emerald-900 to-teal-900"></div>
-      <!-- <div class="absolute inset-0 bg-[url('/noise.png')] opacity-10"></div> -->
-
-      <!-- Анимированные круги -->
       <div class="absolute top-0 left-0 w-96 h-96 bg-emerald-500 rounded-full blur-3xl opacity-20 animate-pulse"></div>
       <div class="absolute bottom-0 right-0 w-96 h-96 bg-teal-500 rounded-full blur-3xl opacity-20 animate-pulse animation-delay-1000"></div>
 
       <div class="relative max-w-4xl mx-auto text-center px-6 lg:px-8">
-        <!-- <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 mb-8">
-          <span class="text-2xl">🎁</span>
-          <span class="text-white font-medium">Ограниченное предложение</span>
-        </div> -->
-
         <h2 class="text-4xl lg:text-6xl font-black text-white mb-6">
-          Начните экономить <br>5 часов уже сегодня
+          Готовы попробовать?
         </h2>
         <p class="text-xl text-emerald-100 mb-12 max-w-2xl mx-auto">
-          Присоединяйтесь к пользователей, которые уже забыли про пищевой стресс и спонтанные траты.
+          Перестаньте тратить время на рутину. Создайте свой первый план питания за 10 минут.
         </p>
 
-        <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-          <!-- <UButton class="!rounded-2xl !bg-white !text-emerald-900 !px-8 !py-6 text-lg font-bold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 group">
-            🚀 Узнать больше
-            <UIcon name="i-lucide-arrow-right" class="ml-2 w-5 h-5 group-hover:translate-x-1 transition" />
-          </UButton> -->
-          <ULink to="/register">
-            <UButton class="!rounded-2xl !bg-white !text-emerald-900 !px-8 !py-6 text-lg font-bold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 group cursor-pointer">
-              Узнать больше
-              <UIcon name="i-lucide-arrow-right" class="ml-2 w-5 h-5 group-hover:translate-x-1 transition" />
-            </UButton>
-          </ULink>
-          <!-- <UButton variant="outline" class="!rounded-2xl !border-white/30 !text-white hover:!bg-white/10 !px-8 !py-6 text-lg">
-            📞 Узнать больше
-          </UButton> -->
-        </div>
-
-        <!-- <div class="flex items-center justify-center gap-6 text-sm text-emerald-200">
-          <span>✅ Без карты</span>
-          <span>💳 Отмена в 1 клик</span>
-          <span>⚡ Доступ сразу</span>
-        </div> -->
+        <ULink to="/register">
+          <UButton class="!rounded-2xl !bg-white !text-emerald-900 !px-10 !py-6 text-lg font-bold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 group cursor-pointer">
+            Начать сейчас →
+          </UButton>
+        </ULink>
       </div>
     </section>
 
-
-
+    <CookieConsent />
   </div>
-  <!-- Уведомление о cookie -->
-  <CookieConsent />
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
 import CookieConsent from '~/components/CookieConsent.vue'
 
+// ====== SSR: РЕЦЕПТЫ ======
+const { data: recipesData, pending: recipesPending } = await useAsyncData(
+  'home-recipes',
+  async () => {
+    const api = useRecipesApi()
+    const response = await api.getRecipes({
+      status: 'public',
+      page: 1,
+      limit: 4,
+    })
+    return response
+  },
+  {
+    server: true,
+    lazy: false,
+  }
+)
+
+// ====== SSR: СТАТЬИ ======
+const { data: articlesData, pending: articlesPending } = await useAsyncData(
+  'home-articles',
+  async () => {
+    const { articlesApi } = useArticlesApi()
+    const response = await articlesApi.getArticles({
+      status: 'published',
+      page: 1,
+      limit: 3
+    })
+    return response
+  },
+  {
+    server: true,
+    lazy: false
+  }
+)
+
+// ====== ФУНКЦИИ ======
+const formatDate = (date: string | Date) => {
+  if (!date) return ''
+  const d = new Date(date)
+  return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
+
+// ====== ДАННЫЕ ======
+const demoWeek = [
+  { name: 'ПН', lunch: 'Киноа с овощами', dinner: 'Лосось на гриле', calories: 450 },
+  { name: 'ВТ', lunch: 'Суп-пюре из тыквы', dinner: 'Паста с морепродуктами', calories: 520 },
+  { name: 'СР', lunch: 'Боул с нутом', dinner: 'Курица с розмарином', calories: 480 },
+  { name: 'ЧТ', lunch: 'Том ям', dinner: 'Рис с овощами', calories: 390 },
+  { name: 'ПТ', lunch: 'Греческий салат', dinner: 'Стейк из индейки', calories: 430 }
+]
+
+const workflowSteps = [
+  {
+    icon: '📚',
+    title: 'Выбираете',
+    description: 'Изучаете рецепты и добавляете любимые блюда в план на неделю'
+  },
+  {
+    icon: '📋',
+    title: 'Планируете',
+    description: 'Собираете сбалансированное меню на всю неделю за пару минут'
+  },
+  {
+    icon: '🛒',
+    title: 'Покупаете',
+    description: 'Получаете умный список покупок и идёте в магазин'
+  }
+]
+
+// ====== SEO ======
 useHead({
-  title: 'AyEda - Планировщик питания, который экономит ваше время',
+  title: 'АуЕда - Планируйте питание за 10 минут',
   meta: [
-    { name: 'description', content: 'AyEda - умный планировщик питания. Составляйте меню на неделю за 12 минут, экономьте до 5 часов в неделю и 35% бюджета. Забудьте о пищевом стрессе.' },
-    { name: 'keywords', content: 'планирование питания, меню на неделю, список покупок, экономия времени, здоровое питание, meal planner', key: 'keywords' },
-    { property: 'og:title', content: 'AyEda - Планировщик питания, который экономит ваше время' },
-    { property: 'og:description', content: 'Составляйте меню на неделю за 12 минут. Экономьте до 5 часов в неделю и 35% бюджета.' },
+    { name: 'description', content: 'АуЕда - умный планировщик питания. Составляйте меню на неделю за 10 минут, экономьте 5 часов в неделю. Забудьте о пищевом стрессе.' },
+    { property: 'og:title', content: 'АуЕда - Планируйте питание за 10 минут' },
+    { property: 'og:description', content: 'Составляйте меню на неделю за 10 минут. Экономьте 5 часов в неделю.' },
     { property: 'og:type', content: 'website' },
     { property: 'og:image', content: 'https://ayeda.ru/og-home.jpg' },
-    { property: 'og:image:alt', content: 'AyEda - умный планировщик питания' },
     { property: 'og:url', content: 'https://ayeda.ru' },
-    { property: 'og:site_name', content: 'AyEda' },
     { name: 'twitter:card', content: 'summary_large_image' },
-    { name: 'twitter:title', content: 'AyEda - Планировщик питания' },
-    { name: 'twitter:description', content: 'Экономьте 5 часов в неделю на планировании питания' },
   ],
   link: [
     { rel: 'canonical', href: 'https://ayeda.ru' },
   ],
 })
+</script>
 
-  const scrolled = ref(false)
-  const progressHeight = ref(0)
-  const howSection = ref(null)
-  const stepRefs = ref<unknown[]>([])
-
-  const navItems = [
-    { label: 'Возможности', href: '#features' },
-    { label: 'Как это работает', href: '#how-it-works' },
-    { label: 'Истории', href: '#stories' },
-    { label: 'FAQ', href: '#faq' }
-  ]
-
-  const demoWeek = [
-    { name: 'ПН', lunch: 'Киноа с овощами', dinner: 'Лосось на гриле' },
-    { name: 'ВТ', lunch: 'Суп-пюре из тыквы', dinner: 'Паста с морепродуктами' },
-    { name: 'СР', lunch: 'Боул с нутом', dinner: 'Курица с розмарином' },
-    { name: 'ЧТ', lunch: 'Том ям', dinner: 'Рис с овощами' },
-    { name: 'ПТ', lunch: 'Греческий салат', dinner: 'Стейк из индейки' }
-  ]
-
-  const pains = [
-    { icon: '😫', title: 'Каждый день один и тот же вопрос', text: '"Что приготовить?" отнимает больше времени, чем сама готовка' },
-    { icon: '💸', title: 'Спонтанные траты на доставку', text: 'Отсутствие плана = фастфуд + лишние 5000₽ в месяц' },
-    { icon: '🍕', title: 'Вредные привычки в питании', text: 'Когда нет плана, еда становится хаотичной и нездоровой' }
-  ]
-
-  const workflow = [
-    {
-      icon: 'i-lucide-book-open',
-      badge: 'Шаг 1 — 2 минуты',
-      title: 'Добавьте любимые рецепты',
-      description: 'Импортируйте или добавьте свои.',
-      image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=300&fit=crop',
-      alt: 'Кулинарная книга с рецептами'
-    },
-    {
-      icon: 'i-lucide-brain',
-      badge: 'Шаг 2 — 30 секунд',
-      title: 'Составите идеальное меню',
-      description: 'Учитывайте ваши предпочтения, бюджет и время на готовку. Баланс БЖУ под контролем.',
-      image: 'https://images.unsplash.com/photo-1490818387583-1baba5e638af?w=400&h=300&fit=crop',
-      alt: 'Планирование меню'
-    },
-    {
-      icon: 'i-lucide-shopping-cart',
-      badge: 'Шаг 3 — Готово!',
-      title: 'Получите умный список покупок',
-      description: 'Экономия 30% времени в магазине.',
-      image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=300&fit=crop',
-      alt: 'Список покупок'
-    }
-  ]
-
-  const testimonials = [
-    {
-      name: 'Анна Смирнова',
-      role: 'Мама двоих детей',
-      text: 'Раньше я сходила с ума, пытаясь накормить всех. Теперь муж сам ходит в магазин по списку из AyEda!',
-      savings: '8 500₽'
-    },
-    {
-      name: 'Дмитрий Волков',
-      role: 'IT-предприниматель',
-      text: 'Даже не представлял, что можно так эффективно планировать питание. Трейд-офф времени и качества просто невероятный.',
-      savings: '12 000₽'
-    },
-    {
-      name: 'Елена Морозова',
-      role: 'Фитнес-тренер',
-      text: 'Рекомендую всем клиентам. AyEda автоматизирует 80% работы по составлению рациона.',
-      savings: '5 000₽'
-    }
-  ]
-
-
-  const blogList = [
-    { title: '5 ошибок при планировании питания', description: 'И как их избежать', category: 'Советы', date: '15.03.2026', link: '/blog/5-mistakes' },
-    { title: 'Как заморозить продукты на неделю', description: 'Экономьте время на готовке', category: 'Лайфхак', date: '12.03.2026', link: '/blog/freezing-tips' },
-    { title: 'Быстрый завтрак за 5 минут', description: 'Идеи для занятого утра', category: 'Рецепты', date: '10.03.2026', link: '/blog/quick-breakfast' },
-    { title: 'Что такое умный список покупок', description: 'И почему он экономит время', category: 'О сервисе', date: '8.03.2026', link: '/blog/smart-shopping-list' }
-  ]
-
-  const workflowSteps = [
-    {
-      icon: '📚',
-      title: 'Выберите блюда из каталога',
-      description: 'Изучите коллекцию рецептов, отфильтруйте по предпочтениям и добавьте понравившиеся блюда в свой план на неделю.',
-      time: '3 минуты'
-    },
-    {
-      icon: '📋',
-      title: 'Сформируйте план питания',
-      description: 'Соберите меню на неделю из выбранных рецептов. Система автоматически сбалансирует рацион по дням.',
-      time: '2 минуты'
-    },
-    {
-      icon: '🛒',
-      title: 'Получите список покупок',
-      description: 'Все ингредиенты автоматически собираются в удобный список с группировкой по отделам магазина. Готово к походу в супермаркет или заказать у партнеров доставку!',
-      time: 'Готово!'
-    }
-  ]
-  onMounted(() => {
-    // Scroll эффект для хедера
-    window.addEventListener('scroll', () => {
-      scrolled.value = window.scrollY > 50
-    })
-
-    // Анимация прогресса при скролле
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const rect = entry.target.getBoundingClientRect()
-          const scrollPercent = (rect.top * -1) / rect.height
-          progressHeight.value = Math.min(100, Math.max(0, scrollPercent * 100))
-        }
-      })
-    }, { threshold: 0.1 })
-
-    if (howSection.value) {
-      observer.observe(howSection.value)
-    }
-  })
-  const problems = [
-    { text: 'Каждый день думаете "Что приготовить?"' },
-    { text: 'Тратите кучу времени в магазине' },
-    { text: 'Заказываете доставку из-за лени' },
-    { text: 'Продукты портятся в холодильнике' }
-  ]
-
-  const solutions = [
-    { text: 'Готовое меню на неделю за 10 минут' },
-    { text: 'Умный список по отделам магазина' },
-    { text: 'Экономия до 35% бюджета' },
-    { text: 'Никакого стресса и хаоса' }
-  ]
-
-  const timeLostTotal = 8
-  </script>
-
-
-  <style scoped>
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes fadeInRight {
-    from {
-      opacity: 0;
-      transform: translateX(50px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
-  .animate-fade-in-up {
-    animation: fadeInUp 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards;
+<style scoped>
+/* ====== АНИМАЦИИ ====== */
+@keyframes fadeInUp {
+  from {
     opacity: 0;
+    transform: translateY(30px);
   }
-
-  .animate-fade-in-right {
-    animation: fadeInRight 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1) 0.3s forwards;
-    opacity: 0;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-
-  .animation-delay-100 {
-    animation-delay: 0.1s;
-  }
-
-  .animation-delay-200 {
-    animation-delay: 0.2s;
-  }
-
-  .animation-delay-300 {
-    animation-delay: 0.3s;
-  }
-
-  .animation-delay-1000 {
-    animation-delay: 1s;
-  }
-
-  /* Smooth scrolling */
-  html {
-    scroll-behavior: smooth;
-  }
-
-  /* Custom scrollbar */
-  ::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: #f1f1f1;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #10b981, #14b8a6);
-    border-radius: 4px;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #059669, #0d9488);
-  }
-  @keyframes pulse-line {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.8; }
 }
 
-@keyframes float-icon {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-6px); }
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-right {
+  animation: fadeInRight 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1) 0.3s forwards;
+  opacity: 0;
+}
+
+.animation-delay-100 { animation-delay: 0.1s; }
+.animation-delay-200 { animation-delay: 0.2s; }
+.animation-delay-300 { animation-delay: 0.3s; }
+.animation-delay-1000 { animation-delay: 1s; }
 
 .animate-pulse-line {
   animation: pulse-line 2s ease-in-out infinite;
 }
 
-.group:hover .group-hover\:scale-110 {
-  transform: scale(1.1);
+@keyframes pulse-line {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
 }
 
-.group:hover .group-hover\:rotate-12 {
-  transform: rotate(12deg);
+/* ====== LINE CLAMP ====== */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.group:hover .group-hover\:rotate-6 {
-  transform: rotate(6deg);
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.group:hover .group-hover\:text-emerald-600 {
-  color: #059669;
+html {
+  scroll-behavior: smooth;
 }
-
-.group:hover .group-hover\:w-full {
-  width: 100%;
-}
-
-.group:hover .group-hover\:opacity-100 {
-  opacity: 1;
-}
-
-.group:hover .group-hover\:-translate-y-2 {
-  transform: translateX(-50%) translateY(-8px);
-}
-
-/* Анимация для иконок */
-.group:hover .group-hover\:scale-110 {
-  transform: scale(1.1);
-}
-
-.group .group-hover\:transition-all {
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 500ms;
-}
-  </style>
+</style>

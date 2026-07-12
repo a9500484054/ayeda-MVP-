@@ -267,13 +267,13 @@ useHead({
     { name: 'description', content: 'Управляйте своим профилем: редактируйте личную информацию, меняйте аватар, обновляйте пароль и настройки аккаунта.', key: 'description' },
     { name: 'robots', content: 'noindex, follow', key: 'robots' },
     // OG теги для соцсетей
-    { property: 'og:title', content: 'Настройки профиля | AyEda', key: 'og:title' },
-    { property: 'og:description', content: 'Управляйте своим профилем на AyEda: информация, аватар, безопасность', key: 'og:description' },
+    { property: 'og:title', content: 'Настройки профиля | АуЕда', key: 'og:title' },
+    { property: 'og:description', content: 'Управляйте своим профилем на АуЕда: информация, аватар, безопасность', key: 'og:description' },
     { property: 'og:type', content: 'website', key: 'og:type' },
     { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
-    { property: 'og:image:alt', content: 'Настройки профиля на AyEda', key: 'og:image:alt' },
+    { property: 'og:image:alt', content: 'Настройки профиля на АуЕда', key: 'og:image:alt' },
     { property: 'og:url', content: 'https://ayeda.ru/cabinet/profile', key: 'og:url' },
-    { property: 'og:site_name', content: 'AyEda', key: 'og:site_name' },
+    { property: 'og:site_name', content: 'АуЕда', key: 'og:site_name' },
   ],
 })
 

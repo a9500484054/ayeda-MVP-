@@ -1,6 +1,6 @@
 # Ayeda Frontend
 
-Nuxt 4 frontend for Ayeda: public recipe pages with SSR, cabinet SPA routes, admin routes, menu planner and shopping lists.
+Nuxt 4 frontend for АуЕда: public recipe pages with SSR, cabinet SPA routes, admin routes, menu planner and shopping lists.
 
 ## Stack
 

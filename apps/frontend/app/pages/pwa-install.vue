@@ -16,7 +16,7 @@
           <span class="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Установка приложения</span>
         </div>
         <h1 class="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
-          Добавьте <span class="text-emerald-400">AyEda</span> на главный экран
+          Добавьте <span class="text-emerald-400">АуЕда</span> на главный экран
         </h1>
         <p class="text-gray-400 mt-2 text-sm max-w-xl mx-auto">
           Откройте приложение в один клик, как обычное приложение из App Store или Google Play
@@ -91,13 +91,13 @@
 
 <script setup lang="ts">
 useHead({
-  title: 'Установка PWA | AyEda',
+  title: 'Установка PWA | АуЕда',
   meta: [
-    { name: 'description', content: 'Добавьте AyEda на главный экран вашего телефона (iPhone или Android) и пользуйтесь как нативным приложением.' },
-    { property: 'og:title', content: 'Установка PWA | AyEda' },
-    { property: 'og:description', content: 'Инструкция по установке приложения AyEda на главный экран.' },
+    { name: 'description', content: 'Добавьте АуЕда на главный экран вашего телефона (iPhone или Android) и пользуйтесь как нативным приложением.' },
+    { property: 'og:title', content: 'Установка PWA | АуЕда' },
+    { property: 'og:description', content: 'Инструкция по установке приложения АуЕда на главный экран.' },
     { property: 'og:image', content: 'https://ayeda.ru/og-image.jpg' },
-    { property: 'og:image:alt', content: 'Установка AyEda на телефон' },
+    { property: 'og:image:alt', content: 'Установка АуЕда на телефон' },
     { property: 'og:url', content: 'https://ayeda.ru/pwa-install' },
     { name: 'robots', content: 'index, follow' },
   ],
@@ -113,7 +113,7 @@ const tabs = [
 const iosSteps = [
   {
     title: 'Откройте сайт в Safari',
-    description: 'Перейдите на сайт AyEda в браузере Safari на вашем iPhone',
+    description: 'Перейдите на сайт АуЕда в браузере Safari на вашем iPhone',
     icon: 'i-lucide-globe',
   },
   {
@@ -136,7 +136,7 @@ const iosSteps = [
 const androidSteps = [
   {
     title: 'Откройте сайт в Chrome',
-    description: 'Перейдите на сайт AyEda в браузере Google Chrome на вашем Android-устройстве',
+    description: 'Перейдите на сайт АуЕда в браузере Google Chrome на вашем Android-устройстве',
     icon: 'i-lucide-globe',
   },
   {

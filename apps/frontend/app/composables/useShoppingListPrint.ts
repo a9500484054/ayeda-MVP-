@@ -81,7 +81,7 @@ export function useShoppingListPrint() {
         </table>
 
         <div class="footer">
-          Сгенерировано в Ayeda — Кулинарное пространство
+          Сгенерировано в АуЕда — Кулинарное пространство
         </div>
       </body>
       </html>

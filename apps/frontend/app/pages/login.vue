@@ -17,7 +17,7 @@
             <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
               <UIcon name="i-lucide-utensils" class="w-5 h-5 text-emerald-600" />
             </div>
-            <span class="text-2xl font-bold text-white">AyEda</span>
+            <span class="text-2xl font-bold text-white">АуЕда</span>
           </div>
         </NuxtLink>
       </div>
@@ -32,7 +32,7 @@
 
         <div class="mt-8 p-5 bg-white/10 backdrop-blur rounded-2xl border border-white/20">
           <p class="text-white/90 text-sm italic">
-            "AyEda изменил мой подход к питанию. Теперь я трачу 10 минут на планирование вместо 3 часов!"
+            "АуЕда изменил мой подход к питанию. Теперь я трачу 10 минут на планирование вместо 3 часов!"
           </p>
           <p class="text-emerald-200 text-xs mt-2">— Анна, мама двоих детей</p>
         </div>
@@ -51,7 +51,7 @@
             <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
               <UIcon name="i-lucide-utensils" class="w-5 h-5 text-white" />
             </div>
-            <span class="text-2xl font-bold text-gray-900">AyEda</span>
+            <span class="text-2xl font-bold text-gray-900">АуЕда</span>
           </div>
         </div>
 
@@ -166,17 +166,17 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Вход | AyEda',
+  title: 'Вход | АуЕда',
   meta: [
-    { name: 'description', content: 'Войдите в свой аккаунт AyEda, чтобы управлять рецептами, планировать меню и создавать списки покупок.', key: 'description' },
+    { name: 'description', content: 'Войдите в свой аккаунт АуЕда, чтобы управлять рецептами, планировать меню и создавать списки покупок.', key: 'description' },
     { name: 'robots', content: 'noindex, nofollow', key: 'robots' },
-    { property: 'og:title', content: 'Вход | AyEda', key: 'og:title' },
-    { property: 'og:description', content: 'Войдите в свой аккаунт AyEda', key: 'og:description' },
+    { property: 'og:title', content: 'Вход | АуЕда', key: 'og:title' },
+    { property: 'og:description', content: 'Войдите в свой аккаунт АуЕда', key: 'og:description' },
     { property: 'og:type', content: 'website', key: 'og:type' },
     { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
-    { property: 'og:image:alt', content: 'Вход в аккаунт AyEda', key: 'og:image:alt' },
+    { property: 'og:image:alt', content: 'Вход в аккаунт АуЕда', key: 'og:image:alt' },
     { property: 'og:url', content: 'https://ayeda.ru/login', key: 'og:url' },
-    { property: 'og:site_name', content: 'AyEda', key: 'og:site_name' },
+    { property: 'og:site_name', content: 'АуЕда', key: 'og:site_name' },
   ],
 })
 
