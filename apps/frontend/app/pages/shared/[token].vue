@@ -83,21 +83,6 @@ import type { ShoppingList } from '~/shared/types/shopping.types';
 import Button from '~/shared/ui/button/Button.vue';
 import CategoryIcon from '~/components/shopping/list/shared/CategoryIcon.vue';
 
-useHead({
-  title: 'Список покупок', // или просто строку, например 'Общий список покупок'
-  meta: [
-    { name: 'description', content: 'Просмотр общего списка покупок. Скопируйте список в свой аккаунт для дальнейшего использования.', key: 'description' },
-    { name: 'robots', content: 'noindex, follow', key: 'robots' },
-    { property: 'og:title', content: 'Список покупок | АуЕда', key: 'og:title' },
-    { property: 'og:description', content: 'Общий список покупок на АуЕда', key: 'og:description' },
-    { property: 'og:type', content: 'website', key: 'og:type' },
-    { property: 'og:image', content: 'https://ayeda.ru/logo.png', key: 'og:image' },
-    { property: 'og:image:alt', content: 'Общий список покупок', key: 'og:image:alt' },
-    { property: 'og:url', content: () => `https://ayeda.ru/share/${token.value}`, key: 'og:url' },
-    { property: 'og:site_name', content: 'АуЕда', key: 'og:site_name' },
-  ],
-})
-
 const route = useRoute();
 const router = useRouter();
 const store = useShoppingListsStore();
@@ -111,6 +96,66 @@ const error = ref<string | null>(null);
 const sharedList = ref<ShoppingList | null>(null);
 const isCopying = ref(false);
 const isCopied = ref(false);
+
+// 🔥 FIX: Move useHead to a separate function or use with careful computed
+const pageTitle = computed(() => sharedList.value?.title || 'Список покупок');
+const pageDescription = computed(() =>
+  sharedList.value
+    ? `Просмотр списка "${sharedList.value.title}" с ${sharedList.value.items?.length || 0} позициями`
+    : 'Просмотр общего списка покупок'
+);
+
+// Use useHead with computed values
+useHead({
+  title: pageTitle,
+  meta: [
+    {
+      name: 'description',
+      content: pageDescription,
+      key: 'description'
+    },
+    {
+      name: 'robots',
+      content: 'noindex, follow',
+      key: 'robots'
+    },
+    {
+      property: 'og:title',
+      content: () => `${pageTitle.value} | АуЕда`,
+      key: 'og:title'
+    },
+    {
+      property: 'og:description',
+      content: pageDescription,
+      key: 'og:description'
+    },
+    {
+      property: 'og:type',
+      content: 'website',
+      key: 'og:type'
+    },
+    {
+      property: 'og:image',
+      content: 'https://ayeda.ru/logo.png',
+      key: 'og:image'
+    },
+    {
+      property: 'og:image:alt',
+      content: 'Общий список покупок',
+      key: 'og:image:alt'
+    },
+    {
+      property: 'og:url',
+      content: `https://ayeda.ru/share/${token.value}`,
+      key: 'og:url'
+    },
+    {
+      property: 'og:site_name',
+      content: 'АуЕда',
+      key: 'og:site_name'
+    },
+  ],
+});
 
 async function loadSharedList() {
   isLoading.value = true;
@@ -167,7 +212,12 @@ async function copyToList() {
   }
 }
 
+// Load data only on client side to avoid hydration issues
 onMounted(() => {
   loadSharedList();
 });
 </script>
+
+<style scoped>
+/* Добавьте любые стили, если необходимо */
+</style>
