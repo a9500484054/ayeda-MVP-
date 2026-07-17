@@ -84,9 +84,8 @@
     <input
       ref="fileInput"
       type="file"
-      name="photo"
-      accept="image/jpeg, image/png, image/gif, image/heic, image/webp"
-      class="absolute opacity-0 w-px h-px pointer-events-none"
+      accept="image/*"
+      class="hidden"
       @change="handleFileUpload"
     />
 
@@ -152,33 +151,19 @@ const isDragOver = ref(false)
 
 const config = useRuntimeConfig()
 
+
 const API_BASE_URL = config.public.apiUrl || 'http://localhost:3001'
-
-// ДЛЯ ОТЛАДКИ: проверка на iOS
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
-
 const imageUrl = computed(() => {
-  try {
-    if (!props.modelValue) return ''
+  if (!props.modelValue) return ''
 
-    alert(`[DEBUG] imageUrl computed called. modelValue: ${typeof props.modelValue === 'string' ? props.modelValue : JSON.stringify(props.modelValue)}`)
-
-    if (typeof props.modelValue === 'string') {
-      const url = props.modelValue.startsWith('http')
-        ? props.modelValue
-        : `${API_BASE_URL}${props.modelValue}`
-      alert(`[DEBUG] String image URL: ${url}`)
-      return url
-    }
-
-    const src = props.modelValue.src
-    const url = src.startsWith('http') ? src : `${API_BASE_URL}${src}`
-    alert(`[DEBUG] Object image URL: ${url}`)
-    return url
-  } catch (error) {
-    alert(`[ERROR] imageUrl computed error: ${error}`)
-    return ''
+  if (typeof props.modelValue === 'string') {
+    return props.modelValue.startsWith('http')
+      ? props.modelValue
+      : `${API_BASE_URL}${props.modelValue}`
   }
+
+  const src = props.modelValue.src
+  return src.startsWith('http') ? src : `${API_BASE_URL}${src}`
 })
 
 const labelClass = computed(() => {
@@ -213,79 +198,35 @@ const uploadClassComputed = computed(() => {
 })
 
 const triggerFileInput = () => {
-  alert(`[DEBUG] triggerFileInput called. disabled: ${props.disabled}, loading: ${props.loading}`)
   if (!props.disabled && !props.loading) {
-    alert('[DEBUG] Clicking file input')
     fileInput.value?.click()
   }
 }
 
 const validateFile = (file: File): boolean => {
-  try {
-    alert(`[DEBUG] validateFile started. File name: ${file.name}, type: ${file.type}, size: ${file.size}`)
-
-    // Получаем расширение файла на случай, если iOS не передала MIME-тип
-    const fileExtension = file.name.split('.').pop()?.toLowerCase();
-    const isHeic = file.type === 'image/heic' || fileExtension === 'heic';
-
-    alert(`[DEBUG] File extension: ${fileExtension}, isHeic: ${isHeic}, isIOS: ${isIOS}`)
-
-    // Разрешаем базовые изображения или HEIC
-    if (!file.type.startsWith('image/') && !isHeic && file.type !== '') {
-      alert(`[ERROR] Invalid file type: ${file.type}`)
-      console.warn('Invalid file type:', file.type)
-      return false
-    }
-
-    // Ограничение в 5MB
-    const maxSize = 5 * 1024 * 1024
-    if (file.size > maxSize) {
-      alert(`[ERROR] File too large: ${file.size} bytes (max: ${maxSize} bytes)`)
-      console.warn('File too large:', file.size)
-      return false
-    }
-
-    alert('[DEBUG] File validation passed!')
-    return true
-  } catch (error) {
-    alert(`[ERROR] validateFile error: ${error}`)
+  if (!file.type.startsWith('image/')) {
+    console.warn('Invalid file type:', file.type)
     return false
   }
+  if (file.size > 5 * 1024 * 1024) {
+    console.warn('File too large:', file.size)
+    return false
+  }
+  return true
 }
 
 const handleFileUpload = (event: Event) => {
-  try {
-    alert('[DEBUG] handleFileUpload started')
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
 
-    const target = event.target as HTMLInputElement
-    alert(`[DEBUG] target.files: ${target.files?.length || 0} files`)
-
-    const file = target.files?.[0]
-
-    if (!file) {
-      alert('[DEBUG] No file selected')
-      target.value = ''
-      return
-    }
-
-    alert(`[DEBUG] File selected: ${file.name}, type: ${file.type}, size: ${file.size}`)
-
-    if (validateFile(file)) {
-      alert('[DEBUG] Validation passed, emitting upload event')
-      emit('upload', file)
-    } else {
-      alert('[DEBUG] Validation failed')
-    }
-
-    target.value = ''
-  } catch (error) {
-    alert(`[ERROR] handleFileUpload error: ${error}`)
+  if (file && validateFile(file)) {
+    emit('upload', file)
   }
+  target.value = ''
 }
 
 const onDragOver = (event: DragEvent) => {
   event.preventDefault()
-  alert(`[DEBUG] onDragOver triggered. disabled: ${props.disabled}, loading: ${props.loading}, modelValue: ${!!props.modelValue}`)
   if (!props.disabled && !props.loading && !props.modelValue) {
     isDragOver.value = true
   }
@@ -302,43 +243,27 @@ const onDragLeave = (event: DragEvent) => {
 
 const onDrop = (event: DragEvent) => {
   event.preventDefault()
-  alert('[DEBUG] onDrop triggered')
   isDragOver.value = false
 
-  if (props.disabled || props.loading || props.modelValue) {
-    alert(`[DEBUG] Drop blocked. disabled: ${props.disabled}, loading: ${props.loading}, modelValue: ${!!props.modelValue}`)
-    return
-  }
+  if (props.disabled || props.loading || props.modelValue) return
 
   const files = event.dataTransfer?.files
-  alert(`[DEBUG] Drop files: ${files?.length || 0} files`)
-
   if (files?.length) {
     const file = files[0]
-    alert(`[DEBUG] Dropped file: ${file.name}, type: ${file.type}, size: ${file.size}`)
     if (validateFile(file)) {
-      alert('[DEBUG] Drop validation passed, emitting upload event')
       emit('upload', file)
-    } else {
-      alert('[DEBUG] Drop validation failed')
     }
   }
 }
 
 const removeImage = () => {
-  alert('[DEBUG] removeImage called')
   if (!props.disabled) {
-    alert('[DEBUG] Emitting null modelValue')
     emit('update:modelValue', null)
   }
 }
 
 const handleImageError = (event: Event) => {
-  alert('[DEBUG] handleImageError - image failed to load')
   const img = event.target as HTMLImageElement
   img.src = 'https://placehold.co/400x300?text=No+Image'
 }
-
-// Дополнительная отладка при монтировании
-alert(`[DEBUG] Component mounted. isIOS: ${isIOS}, API_BASE_URL: ${API_BASE_URL}`)
 </script>
