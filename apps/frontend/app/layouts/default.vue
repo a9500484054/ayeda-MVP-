@@ -5,11 +5,11 @@
 
     <!-- НОВЫЙ ХЕДЕР с эффектом стекла и поддержкой safe-area -->
     <header
-      class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 transition-all duration-300 app-header"
+      class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 transition-all duration-300"
       :class="{ 'shadow-sm': scrolled, 'pwa-header': isPwa }"
     >
       <div class="max-w-7xl mx-auto px-6 lg:px-8">
-        <div class="flex items-center justify-between h-20 app-header-inner">
+        <div class="flex items-center justify-between h-20">
           <!-- Логотип с анимацией -->
           <div class="flex items-center gap-3 group cursor-pointer" @click="navigateTo('/')">
             <div class="relative">
@@ -63,13 +63,14 @@
       </div>
     </header>
 
-    <main class="pt-20 app-main" :class="{ 'pwa-main': isPwa }">
+    <main class="pt-20" :class="{ 'pwa-main': isPwa }">
       <slot />
+      <!-- Добавить СЮДА -->
       <PwaInstallPrompt />
     </main>
 
     <!-- Футер -->
-    <footer class="bg-gray-900 text-white app-footer" :class="{ 'pwa-footer': isPwa }">
+    <footer class="bg-gray-900 text-white">
       <div class="container-page py-12">
         <!-- Основная сетка -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
@@ -169,7 +170,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import GlobalLoader from '~/components/GlobalLoader.vue';
 import PwaInstallPrompt from '~/components/PwaInstallPrompt.vue';
 import { publicNavigation } from "~/shared/constants/navigation";
 
@@ -184,16 +184,9 @@ const handleScroll = () => {
 
 const checkPwa = () => {
   if (process.client) {
-    // Проверяем, запущено ли как PWA
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
     const isIOSPWA = window.navigator.standalone === true;
     isPwa.value = isStandalone || isIOSPWA;
-
-    // Добавляем класс к body для дополнительной стилизации
-    if (isPwa.value) {
-      document.body.classList.add('is-pwa');
-      document.documentElement.classList.add('is-pwa');
-    }
   }
 };
 
@@ -201,17 +194,9 @@ onMounted(() => {
   window.addEventListener('scroll', handleScroll);
   checkPwa();
 
-  // Слушаем изменения display-mode
   const mediaQuery = window.matchMedia('(display-mode: standalone)');
   const handleChange = (e: MediaQueryListEvent) => {
     isPwa.value = e.matches;
-    if (e.matches) {
-      document.body.classList.add('is-pwa');
-      document.documentElement.classList.add('is-pwa');
-    } else {
-      document.body.classList.remove('is-pwa');
-      document.documentElement.classList.remove('is-pwa');
-    }
   };
 
   mediaQuery.addEventListener('change', handleChange);
@@ -246,69 +231,41 @@ onMounted(() => {
 /* PWA и Safe Area поддержка для iOS */
 /* ============================================ */
 
-/* Safe Area CSS переменные */
-.app-header {
-  --safe-area-inset-top: env(safe-area-inset-top, 0px);
-  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-area-inset-left: env(safe-area-inset-left, 0px);
-  --safe-area-inset-right: env(safe-area-inset-right, 0px);
-}
-
-/* Стили для PWA режима */
-.pwa-mode .app-header {
-  padding-top: max(0px, var(--safe-area-inset-top));
-  min-height: calc(80px + var(--safe-area-inset-top));
+.pwa-mode .pwa-header {
+  /* Добавляем отступ сверху для "челки" */
+  padding-top: env(safe-area-inset-top, 0px);
+  /* Сохраняем прозрачность фона */
   background: rgba(255, 255, 255, 0.98);
 }
 
-.pwa-mode .app-header-inner {
-  min-height: 80px;
-  padding-top: max(0px, var(--safe-area-inset-top));
+.pwa-mode .pwa-main {
+  /* Компенсируем отступ хедера */
+  padding-top: calc(5rem + env(safe-area-inset-top, 0px));
 }
 
-.pwa-mode .app-main {
-  padding-top: calc(80px + var(--safe-area-inset-top));
-}
-
-.pwa-mode .app-footer {
-  padding-bottom: calc(12px + var(--safe-area-inset-bottom));
-}
-
-/* Дополнительно: темная тема для статус-бара */
-.pwa-mode .app-header {
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-}
-
-/* Для темной темы (если нужно) */
-@media (prefers-color-scheme: dark) {
-  .pwa-mode .app-header {
-    background: rgba(17, 24, 39, 0.98);
-    border-bottom-color: rgba(75, 85, 99, 0.3);
+/* Для старых iPhone без челки */
+@supports not (padding-top: env(safe-area-inset-top)) {
+  .pwa-mode .pwa-header {
+    padding-top: 0;
   }
 
-  .pwa-mode .app-header .text-gray-600 {
-    color: #d1d5db;
-  }
-
-  .pwa-mode .app-header .text-gray-600:hover {
-    color: #ffffff;
-  }
-}
-
-/* Компенсация для мобильных браузеров */
-@supports (padding: max(0px)) {
-  .app-header {
-    padding-left: max(16px, env(safe-area-inset-left));
-    padding-right: max(16px, env(safe-area-inset-right));
+  .pwa-mode .pwa-main {
+    padding-top: 5rem;
   }
 }
 
 /* iOS Safari специфичные фиксы */
 @supports (-webkit-touch-callout: none) {
-  .pwa-mode .app-header {
-    padding-top: max(0px, env(safe-area-inset-top));
+  .pwa-mode .pwa-header {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}
+
+/* Темная тема для PWA */
+@media (prefers-color-scheme: dark) {
+  .pwa-mode .pwa-header {
+    background: rgba(17, 24, 39, 0.98);
+    border-bottom-color: rgba(75, 85, 99, 0.3);
   }
 }
 </style>
