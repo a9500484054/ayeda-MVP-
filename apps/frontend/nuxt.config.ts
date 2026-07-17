@@ -50,7 +50,7 @@ export default defineNuxtConfig({
     baseURL: '/',
     head: {
       charset: 'utf-8',
-      viewport: 'width=device-width, initial-scale=1, maximum-scale=5.0, user-scalable=1, viewport-fit=cover',
+      viewport: 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover',
       htmlAttrs: { lang: 'ru' },
       meta: [
         { name: 'description', content: 'АуЕда — сервис рецептов и планирования меню' },
@@ -73,7 +73,15 @@ export default defineNuxtConfig({
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
         { name: 'apple-mobile-web-app-title', content: 'АуЕда' },
-        { name: 'format-detection', content: 'telephone=no' }
+        { name: 'format-detection', content: 'telephone=no' },
+        {
+          name: 'apple-mobile-web-app-capable',
+          content: 'yes'
+        },
+        {
+          name: 'apple-mobile-web-app-status-bar-style',
+          content: 'black-translucent'
+        }
       ],
       link: [
         // Favicon
