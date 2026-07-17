@@ -74,14 +74,6 @@ export default defineNuxtConfig({
         { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
         { name: 'apple-mobile-web-app-title', content: 'АуЕда' },
         { name: 'format-detection', content: 'telephone=no' },
-        {
-          name: 'apple-mobile-web-app-capable',
-          content: 'yes'
-        },
-        {
-          name: 'apple-mobile-web-app-status-bar-style',
-          content: 'black-translucent'
-        }
       ],
       link: [
         // Favicon
