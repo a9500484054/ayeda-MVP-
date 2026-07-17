@@ -1,8 +1,9 @@
 <template>
-  <div class="flex flex-1">
+  <div class="flex flex-1" :class="{ 'pwa-mode': isPwa }">
     <!-- Хедер для мобильных устройств -->
     <header
-      class="fixed top-0 left-0 right-0 z-30 bg-gradient-to-br from-emerald-700 to-teal-800 shadow-md lg:hidden"
+      class="fixed top-0 left-0 right-0 z-30 bg-gradient-to-br from-emerald-700 to-teal-800 shadow-md lg:hidden pwa-mobile-header"
+      :class="{ 'pwa-mobile-header': isPwa }"
     >
       <div class="flex items-center justify-between px-4 py-3">
         <!-- Логотип -->
@@ -43,7 +44,8 @@
       :class="[
         'fixed top-0 left-0 z-50 h-screen transition-transform duration-300 overflow-hidden',
         'lg:sticky lg:translate-x-0 w-64',
-        isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full',
+        { 'pwa-sidebar': isPwa }
       ]"
       style="min-width: 256px;"
     >
@@ -56,7 +58,7 @@
       <div class="relative z-10 flex flex-col h-full text-white">
         <div class="flex flex-col h-full p-5">
           <!-- Логотип -->
-          <div class="mb-8">
+          <div class="mb-8 sidebar-logo" :class="{ 'pwa-sidebar-logo': isPwa }">
             <NuxtLink to="/" class="block">
               <div class="flex items-center gap-2.5">
                 <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-lg">
@@ -71,7 +73,7 @@
           </div>
 
           <!-- Навигация -->
-          <nav class="flex-1 -mx-2 overflow-y-auto">
+          <nav class="flex-1 -mx-2 overflow-y-auto sidebar-nav" :class="{ 'pwa-sidebar-nav': isPwa }">
             <!-- Основные ссылки (для авторизованных) -->
             <div v-if="isAuth" class="space-y-1">
               <NuxtLink
@@ -225,7 +227,7 @@
           </nav>
 
           <!-- Блок пользователя -->
-          <div class="pt-4 mt-4 border-t border-white/20">
+          <div class="pt-4 mt-4 border-t border-white/20 sidebar-user" :class="{ 'pwa-sidebar-user': isPwa }">
             <div v-if="isAuth">
               <UDropdownMenu
                 :items="dropdownItems"
@@ -274,11 +276,10 @@
     </aside>
 
     <!-- Основной контент -->
-    <main class="flex-1 flex flex-col min-h-screen">
-      <div class="lg:mt-0 mt-16">
+    <main class="flex-1 flex flex-col min-h-screen cabinet-main" :class="{ 'pwa-cabinet-main': isPwa }">
+      <div class="lg:mt-0 mt-16 cabinet-content" :class="{ 'pwa-cabinet-content': isPwa }">
         <slot />
       </div>
-      <!-- Добавить СЮДА -->
       <PwaInstallPrompt />
     </main>
 
@@ -329,6 +330,16 @@ const isMobileMenuOpen = ref(false)
 const showLogoutModal = ref(false)
 const isDemoOpen = ref(false)
 const config = useRuntimeConfig()
+const isPwa = ref(false)
+
+// Проверка PWA
+const checkPwa = () => {
+  if (process.client) {
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+    const isIOSPWA = window.navigator.standalone === true;
+    isPwa.value = isStandalone || isIOSPWA;
+  }
+};
 
 // Проверка на режим разработки
 const isDevMode = computed(() => {
@@ -482,6 +493,21 @@ const avatarPreview = computed(() => {
   const API_BASE_URL = config.public.apiUrl
   return `${API_BASE_URL}${avatar}`
 })
+
+onMounted(() => {
+  checkPwa()
+
+  const mediaQuery = window.matchMedia('(display-mode: standalone)')
+  const handleChange = (e: MediaQueryListEvent) => {
+    isPwa.value = e.matches
+  }
+
+  mediaQuery.addEventListener('change', handleChange)
+
+  onUnmounted(() => {
+    mediaQuery.removeEventListener('change', handleChange)
+  })
+})
 </script>
 
 <style scoped>
@@ -535,5 +561,80 @@ aside ::-webkit-scrollbar-thumb:hover {
 .slide-down-leave-from {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* ============================================ */
+/* PWA и Safe Area поддержка для iOS */
+/* ============================================ */
+
+/* Мобильный хедер в PWA */
+.pwa-mode .pwa-mobile-header {
+  padding-top: env(safe-area-inset-top, 0px);
+  min-height: calc(60px + env(safe-area-inset-top, 0px));
+}
+
+/* Сайдбар в PWA */
+.pwa-mode .pwa-sidebar {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.pwa-mode .pwa-sidebar-logo {
+  margin-top: calc(env(safe-area-inset-top, 0px) / 2);
+}
+
+.pwa-mode .pwa-sidebar-nav {
+  max-height: calc(100vh - 180px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+}
+
+.pwa-mode .pwa-sidebar-user {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Основной контент в PWA */
+.pwa-mode .pwa-cabinet-main {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.pwa-mode .pwa-cabinet-content {
+  margin-top: calc(4rem + env(safe-area-inset-top, 0px));
+}
+
+/* Для десктопной версии в PWA */
+@media (min-width: 1024px) {
+  .pwa-mode .pwa-cabinet-content {
+    margin-top: 0;
+  }
+
+  .pwa-mode .pwa-sidebar {
+    padding-top: env(safe-area-inset-top, 0px);
+    height: 100vh;
+    min-height: 100vh;
+  }
+}
+
+/* iOS Safari специфичные фиксы */
+@supports (-webkit-touch-callout: none) {
+  .pwa-mode .pwa-mobile-header {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .pwa-mode .pwa-sidebar {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}
+
+/* Для старых iPhone без челки */
+@supports not (padding-top: env(safe-area-inset-top)) {
+  .pwa-mode .pwa-mobile-header {
+    padding-top: 0;
+  }
+
+  .pwa-mode .pwa-sidebar {
+    padding-top: 0;
+  }
+
+  .pwa-mode .pwa-cabinet-content {
+    margin-top: 4rem;
+  }
 }
 </style>
