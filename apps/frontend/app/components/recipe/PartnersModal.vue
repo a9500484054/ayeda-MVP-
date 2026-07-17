@@ -150,7 +150,7 @@ const partners: Partner[] = [
     badgeClass: 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400',
     deliveryTime: '1-2 часа',
     rating: '4.8',
-    url: 'https://kupers.ru'
+    url: 'https://pxl.leads.su/click/4ded2db87a248be57cc2a9a706190a19?erid=2W5zFJ7XyZr'
   }
 ]
 
