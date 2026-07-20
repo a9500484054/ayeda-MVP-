@@ -4,6 +4,7 @@ import { h, resolveComponent } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
 import { useModerationApi, type ModerationRecipe } from '~/composables/useModerationApi'
 import { useDebounceFn } from '@vueuse/core'
+import CustomKeywords from '~/components/admin/recipes/CustomKeywords.vue'
 
 definePageMeta({
   layout: 'admin',
@@ -628,10 +629,10 @@ watch([currentPage, pageSize, statusFilter], () => {
                   </div>
                 </UFormField>
 
-                <UFormField label="Ключевые слова">
-                  <UInput
-                    v-model="seoForm.seoKeywords"
-                    placeholder="Введите ключевые слова через запятую"
+                <UFormField>
+                  <CustomKeywords
+                    :model-value="seoForm.seoKeywords"
+                    @update:model-value="(val) => seoForm.seoKeywords = val"
                   />
                   <div class="text-xs text-muted-foreground mt-1">
                     Введите слова через запятую
