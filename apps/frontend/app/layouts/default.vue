@@ -41,7 +41,7 @@
           <!-- Кнопки и бургер -->
           <div class="flex items-center gap-2">
             <!-- Кнопки (скрываются на мобильных) -->
-            <div class="hidden sm:flex items-center gap-2">
+            <div class="hidden sm:flex items-center gap-2 ">
               <ULink to="/login">
                 <UButton
                   variant="ghost"
@@ -64,7 +64,7 @@
             <button
               v-if="!isPwa"
               type="button"
-              class="md:hidden relative z-50 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              class="md:hidden relative z-50 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
               aria-label="Toggle menu"
               @click="toggleMobileMenu"
             >
