@@ -71,7 +71,7 @@
         </div>
 
         <!-- Команда -->
-        <div class="mb-12">
+        <!-- <div class="mb-12">
           <h2 class="text-2xl font-bold mb-6">Наша команда</h2>
           <div class="grid md:grid-cols-3 gap-6">
             <div v-for="member in team" :key="member.name" class="text-center">
@@ -82,7 +82,7 @@
               <p class="text-sm text-gray-500">{{ member.role }}</p>
             </div>
           </div>
-        </div>
+        </div> -->
 
         <!-- Цифры -->
         <div class="mb-12">
@@ -101,7 +101,7 @@
                 <div class="text-sm text-gray-400">остаются с нами</div>
               </div>
               <div>
-                <div class="text-3xl font-black text-emerald-400">5★</div>
+                <div class="text-3xl font-black text-emerald-400">4.9★</div>
                 <div class="text-sm text-gray-400">средняя оценка</div>
               </div>
             </div>
@@ -113,7 +113,7 @@
           <h3 class="text-2xl font-bold text-white mb-3">Присоединяйтесь к нам</h3>
           <p class="text-emerald-100 mb-6">Начните планировать питание с удовольствием уже сегодня</p>
           <ULink to="/register">
-            <UButton class="!rounded-full !bg-white !text-emerald-600 hover:!bg-gray-100 !px-6">
+            <UButton class="cursor-pointer !rounded-full !bg-white !text-emerald-600 hover:!bg-gray-100 !px-6">
               Начать бесплатно
               <UIcon name="i-lucide-arrow-right" class="ml-2 w-4 h-4" />
             </UButton>

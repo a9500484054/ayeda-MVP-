@@ -13,7 +13,7 @@
             Политика
             <span class="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">конфиденциальности</span>
           </h1>
-          <p class="text-gray-500">Последнее обновление: 15 марта 2026 года</p>
+          <p class="text-gray-500">Последнее обновление: 20 июля 2026 года</p>
         </div>
 
         <!-- Содержание -->
@@ -91,7 +91,7 @@
               <li>Потребовать прекратить обработку данных для маркетинга</li>
             </ul>
             <p class="text-gray-600 mt-3">
-              Для реализации прав обратитесь по адресу: <a href="mailto:privacy@ayeda.ru" class="text-emerald-600 hover:underline">privacy@ayeda.ru</a>
+              Для реализации прав обратитесь по адресу: <a href="mailto:ayedaru@yandex.ru" class="text-emerald-600 hover:underline">ayedaru@yandex.ru</a>
             </p>
           </div>
 
@@ -126,15 +126,11 @@
             <div class="space-y-2 text-gray-600">
               <p class="flex items-center gap-2">
                 <UIcon name="i-lucide-mail" class="w-4 h-4 text-emerald-600" />
-                <a href="mailto:privacy@ayeda.ru" class="hover:text-emerald-600">privacy@ayeda.ru</a>
+                <a href="mailto:ayedaru@yandex.ru" class="hover:text-emerald-600">ayedaru@yandex.ru</a>
               </p>
               <p class="flex items-center gap-2">
                 <UIcon name="i-lucide-phone" class="w-4 h-4 text-emerald-600" />
-                <a href="tel:+78001234567" class="hover:text-emerald-600">8 800 123-45-67</a>
-              </p>
-              <p class="flex items-center gap-2">
-                <UIcon name="i-lucide-map-pin" class="w-4 h-4 text-emerald-600" />
-                <span>г. Москва, ул. Тверская, д. 10</span>
+                <a href="tel:+795000484054" class="hover:text-emerald-600">+7 950 048-40-54</a>
               </p>
             </div>
           </div>

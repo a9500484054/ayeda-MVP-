@@ -133,6 +133,7 @@ export default defineNuxtConfig({
     '/offer': { prerender: true },
     '/policy': { prerender: true },
     '/support': { prerender: true },
+    '/pricing': { prerender: true },
     '/in-development': { prerender: true },
     '/sitemap.xml': { prerender: true },
     '/robots.txt': { prerender: true },

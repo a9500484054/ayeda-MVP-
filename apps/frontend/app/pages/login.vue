@@ -101,7 +101,7 @@
                 @click="showPassword = !showPassword"
                 class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
               >
-                <UIcon :name="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'" class="w-4 h-4" />
+                <UIcon :name="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'" class="w-4 h-4 cursor-pointer" />
               </button>
             </div>
             <p v-if="errors.password" class="text-xs text-red-500 mt-1">{{ errors.password }}</p>

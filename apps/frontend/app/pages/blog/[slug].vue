@@ -42,10 +42,6 @@
             <UIcon name="i-lucide-eye" class="h-4 w-4" />
             <span>{{ formatNumber(articleData.views) }} просмотров</span>
           </div>
-          <div v-if="articleData.steps?.length" class="flex items-center gap-2">
-            <UIcon name="i-lucide-list" class="h-4 w-4" />
-            <span>{{ articleData.steps.length }} шагов</span>
-          </div>
         </div>
 
         <!-- Главное изображение -->
@@ -83,9 +79,6 @@
               :key="step.id || index"
               class="flex gap-4"
             >
-              <span class="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-bold text-sm flex items-center justify-center mt-1">
-                {{ index + 1 }}
-              </span>
               <div class="flex-1">
                 <!-- Изображение шага (если есть) -->
                 <div v-if="step.image" class="mb-3 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 max-w-md">

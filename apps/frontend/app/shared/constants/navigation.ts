@@ -2,9 +2,10 @@ import type { NavigationMenuItem } from '@nuxt/ui';
 
 
 export const publicNavigation = [
-  { label: "Рецепты", to: "/recipes" },
-  { label: "Блог", to: "/blog" },
   { label: "О проекте", to: "/about" },
+  { label: "Рецепты", to: "/recipes" },
+  { label: "Тарифы", to: "/pricing" },
+  { label: "Блог", to: "/blog" },
 ] as const;
 
 export const cabinetNavigation = [

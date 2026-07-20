@@ -21,7 +21,7 @@
               </div>
             </div>
             <span class="text-2xl font-black bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                Ay<span class="text-emerald-400">Eda</span>
+                Ау<span class="text-emerald-400">Еда</span>
             </span>
           </div>
 
@@ -76,7 +76,7 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <!-- Колонка 1: Бренд и описание -->
           <div class="space-y-4">
-            <NuxtLink to="/" class="text-2xl font-black text-white">Ay<span class="text-emerald-400">Eda</span></NuxtLink>
+            <NuxtLink to="/" class="text-2xl font-black text-white">Ау<span class="text-emerald-400">Еда</span></NuxtLink>
             <p class="text-gray-400 text-sm leading-relaxed">
               Планируйте питание с умом. Экономьте время и деньги с нашим сервисом.
             </p>
@@ -120,10 +120,12 @@
           <div>
             <h3 class="font-semibold mb-3 text-white">Полезное</h3>
             <ul class="space-y-2">
-              <li><NuxtLink to="/in-development" class="text-gray-400 hover:text-emerald-400 transition text-sm">Блог</NuxtLink></li>
+              <li><NuxtLink to="/blog" class="text-gray-400 hover:text-emerald-400 transition text-sm">Блог</NuxtLink></li>
               <li><NuxtLink to="/recipes" class="text-gray-400 hover:text-emerald-400 transition text-sm">Рецепты</NuxtLink></li>
-              <li><NuxtLink to="/in-development" class="text-gray-400 hover:text-emerald-400 transition text-sm">Вопросы и ответы</NuxtLink></li>
-              <li><NuxtLink to="/support" class="text-gray-400 hover:text-emerald-400 transition text-sm">Поддержка</NuxtLink></li>
+              <li><NuxtLink to="/ingredients" class="text-gray-400 hover:text-emerald-400 transition text-sm">Ингредиенты</NuxtLink></li>
+              <!-- <li><NuxtLink to="/pricing" class="text-gray-400 hover:text-emerald-400 transition text-sm">Тарифы</NuxtLink></li> -->
+              <li><NuxtLink to="/support" class="text-gray-400 hover:text-emerald-400 transition text-sm">Вопросы и ответы</NuxtLink></li>
+              <li><NuxtLink to="/support?tab=contact" class="text-gray-400 hover:text-emerald-400 transition text-sm">Поддержка</NuxtLink></li>
             </ul>
           </div>
 

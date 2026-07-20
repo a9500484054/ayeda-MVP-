@@ -39,7 +39,7 @@
                   </UButton>
                 </ULink>
               </div>
-              <p class="text-xs text-gray-400">🔥 Уже 500+ пользователей экономят время</p>
+              <!-- <p class="text-xs text-gray-400">🔥 Уже 500+ пользователей экономят время</p> -->
             </div>
           </div>
 
@@ -47,7 +47,7 @@
           <div class="relative animate-fade-in-right">
             <div class="relative z-10 bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-6 transform rotate-2 hover:rotate-0 transition-all duration-500">
               <div class="absolute -top-3 -right-3 bg-gradient-to-r from-emerald-400 to-teal-400 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-                🤖 умный план
+                🤖 Ваш план
               </div>
 
               <!-- Демо интерфейса -->
@@ -217,8 +217,8 @@
                class="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-emerald-200">
             <div class="relative aspect-[4/3] overflow-hidden bg-gray-100">
               <img
-                v-if="recipe.image"
-                :src="recipe.image"
+                v-if="recipe.photo?.src"
+                :src="recipe.photo?.src"
                 :alt="recipe.title"
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 loading="lazy"
@@ -246,8 +246,8 @@
                          :class="{ 'text-gray-200': i > (recipe.rating || 4) }" />
                 </div>
               </div>
-              <ULink :to="`/recipes/${recipe.id}`" class="block mt-3">
-                <UButton size="xs" variant="outline" class="w-full !rounded-xl text-sm border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300 transition-colors">
+              <ULink :to="`/recipes/${recipe.id}`" class="block mt-3 text-end">
+                <UButton size="xs" variant="outline" class="cursor-pointer !rounded-xl text-sm border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300 transition-colors">
                   Смотреть рецепт
                 </UButton>
               </ULink>
@@ -261,7 +261,7 @@
 
         <div class="text-center mt-8">
           <ULink to="/recipes">
-            <UButton variant="outline" class="!rounded-xl border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300">
+            <UButton variant="outline" class="cursor-pointer  !rounded-xl border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300">
               Смотреть все рецепты
               <UIcon name="i-lucide-arrow-right" class="ml-2 w-4 h-4" />
             </UButton>
@@ -270,80 +270,6 @@
       </div>
     </section>
 
-    <!-- ====== БЛОК СО СТАТЬЯМИ (SSR) ====== -->
-    <section class="py-20 md:py-28 bg-white" id="blog">
-      <div class="max-w-7xl mx-auto px-6 lg:px-8">
-        <div class="text-center max-w-2xl mx-auto mb-12">
-          <span class="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 text-sm font-semibold px-4 py-2 rounded-full border border-emerald-200/50 mb-4">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            Блог
-          </span>
-          <h2 class="text-4xl md:text-5xl font-black leading-tight">
-            Полезные <br />
-            <span class="bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">статьи о питании</span>
-          </h2>
-          <p class="text-gray-500 mt-4 text-lg">Советы и лайфхаки для здорового образа жизни</p>
-        </div>
-
-        <!-- Скелетон -->
-        <div v-if="articlesPending" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div v-for="i in 3" :key="i" class="bg-gray-100 rounded-2xl h-64 animate-pulse"></div>
-        </div>
-
-        <!-- Статьи -->
-        <div v-else-if="articlesData?.data?.length > 0" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div v-for="article in articlesData.data.slice(0, 3)" :key="article.id"
-               class="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-emerald-200">
-            <div class="relative aspect-[16/9] overflow-hidden bg-gray-100">
-              <img
-                v-if="article.image"
-                :src="article.image"
-                :alt="article.title"
-                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                loading="lazy"
-              />
-              <div v-else class="w-full h-full flex items-center justify-center text-4xl bg-gradient-to-br from-emerald-50 to-teal-50">
-                📝
-              </div>
-              <div class="absolute top-2 left-2 bg-white/90 backdrop-blur-sm text-xs font-semibold px-3 py-1 rounded-full text-emerald-600">
-                {{ article.category || 'Советы' }}
-              </div>
-            </div>
-
-            <div class="p-5">
-              <div class="flex items-center gap-2 text-xs text-gray-400 mb-2">
-                <UIcon name="i-lucide-calendar" class="w-3.5 h-3.5" />
-                <span>{{ formatDate(article.created_at || article.createdAt) }}</span>
-              </div>
-              <h3 class="font-bold text-gray-900 text-lg line-clamp-2 group-hover:text-emerald-600 transition-colors">
-                {{ article.title }}
-              </h3>
-              <p class="text-gray-500 text-sm mt-2 line-clamp-2">
-                {{ article.description || article.excerpt || 'Читайте полезные советы' }}
-              </p>
-              <ULink :to="`/blog/${article.slug || article.id}`" class="block mt-4">
-                <UButton size="xs" variant="outline" class="w-full !rounded-xl text-sm border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300 transition-colors">
-                  Читать статью
-                </UButton>
-              </ULink>
-            </div>
-          </div>
-        </div>
-
-        <div v-else class="text-center py-12">
-          <p class="text-gray-400">Статьи скоро появятся</p>
-        </div>
-
-        <div class="text-center mt-8">
-          <ULink to="/blog">
-            <UButton variant="outline" class="!rounded-xl border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300">
-              Смотреть все статьи
-              <UIcon name="i-lucide-arrow-right" class="ml-2 w-4 h-4" />
-            </UButton>
-          </ULink>
-        </div>
-      </div>
-    </section>
 
     <!-- ====== БЛОК: ДОСТАВКА ОТ ПАРТНЁРА ====== -->
     <section class="py-20 md:py-28 bg-gradient-to-b from-emerald-50/30 to-white">
@@ -402,7 +328,7 @@
         </div>
 
         <div class="mt-12 text-center">
-          <div class="inline-flex items-center gap-6 bg-white/80 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-lg border border-gray-100">
+          <!-- <div class="inline-flex items-center gap-6 bg-white/80 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-lg border border-gray-100">
             <span class="text-sm text-gray-500">Партнёры:</span>
             <div class="flex items-center gap-4">
               <span class="text-sm font-medium text-gray-700">🍽️ Доставка-Еда</span>
@@ -411,7 +337,7 @@
               <span class="w-px h-6 bg-gray-200"></span>
               <span class="text-sm font-medium text-gray-700">🥬 Зелёный Дом</span>
             </div>
-          </div>
+          </div> -->
           <p class="text-xs text-gray-400 mt-4">
             * Доставка осуществляется партнёрами сервиса. Условия и стоимость уточняйте на сайтах партнёров.
           </p>
@@ -441,6 +367,81 @@
       </div>
     </section>
 
+        <!-- ====== БЛОК СО СТАТЬЯМИ (SSR) ====== -->
+    <section class="py-20 md:py-28 bg-white" id="blog">
+      <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-12">
+          <span class="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 text-sm font-semibold px-4 py-2 rounded-full border border-emerald-200/50 mb-4">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Блог
+          </span>
+          <h2 class="text-4xl md:text-5xl font-black leading-tight">
+            Полезные <br />
+            <span class="bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">статьи о питании</span>
+          </h2>
+          <p class="text-gray-500 mt-4 text-lg">Советы и лайфхаки для здорового образа жизни</p>
+        </div>
+        <!-- Скелетон -->
+        <div v-if="articlesPending" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div v-for="i in 3" :key="i" class="bg-gray-100 rounded-2xl h-64 animate-pulse"></div>
+        </div>
+
+        <!-- Статьи -->
+
+        <div v-else-if="articlesData?.items?.length > 0" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div v-for="article in articlesData.items.slice(0, 3)" :key="article.id"
+               class="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-emerald-200">
+            <div class="relative aspect-[16/9] overflow-hidden bg-gray-100">
+              <img
+                v-if="article.photo?.src"
+                :src="article.photo?.src"
+                :alt="article.title"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                loading="lazy"
+              />
+              <div v-else class="w-full h-full flex items-center justify-center text-4xl bg-gradient-to-br from-emerald-50 to-teal-50">
+                📝
+              </div>
+              <div class="absolute top-2 left-2 bg-white/90 backdrop-blur-sm text-xs font-semibold px-3 py-1 rounded-full text-emerald-600">
+                {{ article.category || 'Советы' }}
+              </div>
+            </div>
+
+            <div class="p-5">
+              <div class="flex items-center gap-2 text-xs text-gray-400 mb-2">
+                <UIcon name="i-lucide-calendar" class="w-3.5 h-3.5" />
+                <span>{{ formatDate(article.created_at || article.createdAt) }}</span>
+              </div>
+              <h3 class="font-bold text-gray-900 text-lg line-clamp-2 group-hover:text-emerald-600 transition-colors">
+                {{ article.title }}
+              </h3>
+              <p class="text-gray-500 text-sm mt-2 line-clamp-2">
+                {{ article.description || article.excerpt || 'Читайте полезные советы' }}
+              </p>
+              <ULink :to="`/blog/${article.slug || article.id}`" class="block mt-4 text-end">
+                <UButton size="xs" variant="outline" class="cursor-pointer  !rounded-xl text-sm border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300 transition-colors">
+                  Читать статью
+                </UButton>
+              </ULink>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="text-center py-12">
+          <p class="text-gray-400">Статьи скоро появятся</p>
+        </div>
+
+        <div class="text-center mt-8">
+          <ULink to="/blog">
+            <UButton variant="outline" class=" cursor-pointer !rounded-xl border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300">
+              Смотреть все статьи
+              <UIcon name="i-lucide-arrow-right" class="ml-2 w-4 h-4" />
+            </UButton>
+          </ULink>
+        </div>
+      </div>
+    </section>
+
     <CookieConsent />
   </div>
 </template>
@@ -465,12 +466,12 @@ const { data: recipesData, pending: recipesPending } = await useAsyncData(
     lazy: false,
   }
 )
+const articlesApi = useArticlesApi()
 
 // ====== SSR: СТАТЬИ ======
 const { data: articlesData, pending: articlesPending } = await useAsyncData(
   'home-articles',
   async () => {
-    const { articlesApi } = useArticlesApi()
     const response = await articlesApi.getArticles({
       status: 'published',
       page: 1,
@@ -514,7 +515,7 @@ const workflowSteps = [
   {
     icon: '🛒',
     title: 'Покупаете',
-    description: 'Получаете умный список покупок и идёте в магазин'
+    description: 'Получаете список покупок и идёте в магазин или заказываете у партнеров'
   }
 ]
 

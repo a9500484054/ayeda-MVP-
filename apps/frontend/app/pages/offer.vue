@@ -13,7 +13,7 @@
             Публичная
             <span class="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">оферта</span>
           </h1>
-          <p class="text-gray-500">Последнее обновление: 15 марта 2026 года</p>
+          <p class="text-gray-500">Последнее обновление: 20 июля 2026 года</p>
         </div>
 
         <!-- Содержание -->
@@ -161,7 +161,7 @@
             </ul>
             <p class="text-gray-600">
               Для возврата средств необходимо обратиться в службу поддержки по адресу:
-              <a href="mailto:support@ayeda.ru" class="text-emerald-600 hover:underline">support@ayeda.ru</a>
+              <a href="mailto:ayedaru@yandex.ru" class="text-emerald-600 hover:underline">ayedaru@yandex.ru</a>
             </p>
           </div>
 
@@ -193,13 +193,11 @@
               Реквизиты Исполнителя
             </h3>
             <div class="space-y-2 text-sm text-gray-600">
-              <p><span class="font-semibold">ООО «АуЕда»</span></p>
-              <p>ИНН: 7701234567</p>
-              <p>КПП: 770101001</p>
-              <p>ОГРН: 1237700123456</p>
-              <p>Юридический адрес: 125009, г. Москва, ул. Тверская, д. 10, офис 501</p>
-              <p>E-mail: <a href="mailto:legal@ayeda.ru" class="text-emerald-600 hover:underline">legal@ayeda.ru</a></p>
-              <p>Телефон: <a href="tel:+78001234567" class="text-emerald-600 hover:underline">8 800 123-45-67</a></p>
+              <p><span class="font-semibold">ИП Савинов Алексей Олегович</span></p>
+              <p>ИНН: 780529553535</p>
+              <p>ОГРН: 325784700233363</p>
+              <p>E-mail: <a href="mailto:ayedaru@yandex.ru" class="text-emerald-600 hover:underline">ayedaru@yandex.ru</a></p>
+              <p>Телефон: <a href="tel:+795000484054" class="text-emerald-600 hover:underline">+7 950 048-40-54</a></p>
             </div>
           </div>
         </div>
