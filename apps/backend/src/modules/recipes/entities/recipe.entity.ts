@@ -130,10 +130,11 @@ export class Recipe {
   @JoinColumn({ name: 'author_id' })
   author: User;
 
-  @OneToMany(() => RecipeIngredient, (ri) => ri.recipe, { cascade: true })
+  // Убираем cascade: true
+  @OneToMany(() => RecipeIngredient, (ri) => ri.recipe)
   ingredients: RecipeIngredient[];
 
-  @OneToMany(() => RecipeCategory, (rc) => rc.recipe, { cascade: true })
+  @OneToMany(() => RecipeCategory, (rc) => rc.recipe)
   categories: RecipeCategory[];
 
   @ApiProperty()

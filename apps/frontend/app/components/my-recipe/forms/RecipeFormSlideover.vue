@@ -13,7 +13,7 @@
 
             <ImageUploader
               v-model="formData.photo"
-              label="Обложка"
+              label="Фото"
               image-class="h-40 w-full rounded-lg object-cover"
               :loading="isFileUploading"
               :disabled="isSubmitting"
