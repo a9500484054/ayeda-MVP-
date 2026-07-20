@@ -63,12 +63,14 @@
     <div class="flex items-center justify-center p-8 bg-white">
       <div class="w-full max-w-md">
         <div class="flex justify-center mb-8 lg:hidden">
-          <div class="flex items-center gap-2">
-            <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
-              <UIcon name="i-lucide-utensils" class="w-5 h-5 text-white" />
+          <NuxtLink to="/">
+            <div class="flex items-center gap-2">
+              <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
+                <UIcon name="i-lucide-utensils" class="w-5 h-5 text-white" />
+              </div>
+              <span class="text-2xl font-bold text-gray-900">АуЕда</span>
             </div>
-            <span class="text-2xl font-bold text-gray-900">АуЕда</span>
-          </div>
+          </NuxtLink>
         </div>
 
         <div class="mb-8">
