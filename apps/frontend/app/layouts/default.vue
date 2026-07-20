@@ -8,24 +8,24 @@
       class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 transition-all duration-300"
       :class="{ 'shadow-sm': scrolled, 'pwa-header': isPwa }"
     >
-      <div class="max-w-7xl mx-auto px-6 lg:px-8">
-        <div class="flex items-center justify-between h-20">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16 sm:h-20">
           <!-- Логотип с анимацией -->
-          <div class="flex items-center gap-3 group cursor-pointer" @click="navigateTo('/')">
+          <div class="flex items-center gap-2 sm:gap-3 group cursor-pointer" @click="navigateTo('/')">
             <div class="relative">
               <div class="absolute inset-0 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-xl blur-md opacity-50 group-hover:opacity-100 transition"></div>
-              <div class="relative bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl p-2 shadow-lg">
+              <div class="relative bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl p-1.5 sm:p-2 shadow-lg">
                 <div class="flex items-center gap-0.5">
-                  <UIcon name="i-lucide-utensils" class="w-4 h-4 text-white" />
+                  <UIcon name="i-lucide-utensils" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
                 </div>
               </div>
             </div>
-            <span class="text-2xl font-black bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+            <span class="text-xl sm:text-2xl font-black bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
                 Ау<span class="text-emerald-400">Еда</span>
             </span>
           </div>
 
-          <!-- Навигация -->
+          <!-- Десктопная навигация -->
           <div class="hidden md:flex items-center gap-8">
             <a
               v-for="item in publicNavigation"
@@ -38,34 +38,129 @@
             </a>
           </div>
 
-          <!-- Кнопки -->
+          <!-- Кнопки и бургер -->
           <div class="flex items-center gap-2">
-            <!-- Кнопка Войти -->
-            <ULink to="/login">
+            <!-- Кнопки (скрываются на мобильных) -->
+            <div class="hidden sm:flex items-center gap-2">
+              <ULink to="/login">
+                <UButton
+                  variant="ghost"
+                  class="!rounded-full cursor-pointer hover:!bg-gray-100 transition-all duration-300 !px-4"
+                >
+                  Войти
+                </UButton>
+              </ULink>
+
+              <ULink to="/register">
+                <UButton
+                  class="!rounded-full !bg-gradient-to-r !from-emerald-600 !to-teal-600 !text-white shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300 !px-5 cursor-pointer"
+                >
+                  Начать →
+                </UButton>
+              </ULink>
+            </div>
+
+            <!-- Кнопка бургер-меню (только на мобильных) -->
+            <button
+              v-if="!isPwa"
+              type="button"
+              class="md:hidden relative z-50 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              aria-label="Toggle menu"
+              @click="toggleMobileMenu"
+            >
+              <div class="relative w-6 h-5 flex flex-col justify-between">
+                <span
+                  class="block h-0.5 bg-gray-700 dark:bg-gray-300 rounded transition-all duration-300"
+                  :class="{
+                    'rotate-45 translate-y-2': isMobileMenuOpen,
+                    'w-6': !isMobileMenuOpen
+                  }"
+                />
+                <span
+                  class="block h-0.5 bg-gray-700 dark:bg-gray-300 rounded transition-all duration-300"
+                  :class="{
+                    'opacity-0': isMobileMenuOpen,
+                    'w-6': !isMobileMenuOpen
+                  }"
+                />
+                <span
+                  class="block h-0.5 bg-gray-700 dark:bg-gray-300 rounded transition-all duration-300"
+                  :class="{
+                    '-rotate-45 -translate-y-2': isMobileMenuOpen,
+                    'w-6': !isMobileMenuOpen
+                  }"
+                />
+              </div>
+            </button>
+
+            <!-- Кнопка входа для мобильных (если нет бургера) -->
+            <ULink v-if="isPwa" to="/login" class="md:hidden">
               <UButton
                 variant="ghost"
-                class="!rounded-full cursor-pointer hover:!bg-gray-100 transition-all duration-300 !px-4"
+                size="sm"
+                class="!rounded-full"
               >
                 Войти
-              </UButton>
-            </ULink>
-
-            <!-- Кнопка Регистрации -->
-            <ULink to="/register">
-              <UButton
-                class="!rounded-full !bg-gradient-to-r !from-emerald-600 !to-teal-600 !text-white shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300 !px-5 cursor-pointer"
-              >
-                Начать →
               </UButton>
             </ULink>
           </div>
         </div>
       </div>
+
+      <!-- Мобильное меню (overlay) -->
+      <Transition
+        enter-active-class="transition-all duration-300 ease-out"
+        enter-from-class="opacity-0 -translate-y-4"
+        enter-to-class="opacity-100 translate-y-0"
+        leave-active-class="transition-all duration-200 ease-in"
+        leave-from-class="opacity-100 translate-y-0"
+        leave-to-class="opacity-0 -translate-y-4"
+      >
+        <div
+          v-if="isMobileMenuOpen && !isPwa"
+          class="md:hidden fixed inset-x-0 top-16 sm:top-20 bg-white/98 backdrop-blur-xl border-b border-gray-100 shadow-lg dark:bg-gray-900/98 dark:border-gray-800"
+        >
+          <nav class="max-w-7xl mx-auto px-4 py-6 space-y-1">
+            <!-- Навигационные ссылки -->
+            <a
+              v-for="item in publicNavigation"
+              :key="item.to"
+              :href="item.to"
+              class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium"
+              @click="closeMobileMenu"
+            >
+              <UIcon :name="getIconForRoute(item.to)" class="w-5 h-5 text-emerald-500" />
+              {{ item.label }}
+            </a>
+
+            <div class="border-t border-gray-200 dark:border-gray-700 my-3"></div>
+
+            <!-- Кнопки входа/регистрации в мобильном меню -->
+            <div class="flex flex-col gap-2 px-4 pt-2">
+              <ULink to="/login" @click="closeMobileMenu">
+                <UButton
+                  variant="ghost"
+                  class="w-full !rounded-xl justify-center"
+                >
+                  Войти
+                </UButton>
+              </ULink>
+
+              <ULink to="/register" @click="closeMobileMenu">
+                <UButton
+                  class="w-full !rounded-xl !bg-gradient-to-r !from-emerald-600 !to-teal-600 !text-white shadow-md hover:shadow-xl transition-all duration-300 justify-center"
+                >
+                  Начать →
+                </UButton>
+              </ULink>
+            </div>
+          </nav>
+        </div>
+      </Transition>
     </header>
 
-    <main class="pt-20" :class="{ 'pwa-main': isPwa }">
+    <main class="pt-16 sm:pt-20" :class="{ 'pwa-main': isPwa }">
       <slot />
-      <!-- Добавить СЮДА -->
       <PwaInstallPrompt />
     </main>
 
@@ -123,7 +218,6 @@
               <li><NuxtLink to="/blog" class="text-gray-400 hover:text-emerald-400 transition text-sm">Блог</NuxtLink></li>
               <li><NuxtLink to="/recipes" class="text-gray-400 hover:text-emerald-400 transition text-sm">Рецепты</NuxtLink></li>
               <li><NuxtLink to="/ingredients" class="text-gray-400 hover:text-emerald-400 transition text-sm">Ингредиенты</NuxtLink></li>
-              <!-- <li><NuxtLink to="/pricing" class="text-gray-400 hover:text-emerald-400 transition text-sm">Тарифы</NuxtLink></li> -->
               <li><NuxtLink to="/support" class="text-gray-400 hover:text-emerald-400 transition text-sm">Вопросы и ответы</NuxtLink></li>
               <li><NuxtLink to="/support?tab=contact" class="text-gray-400 hover:text-emerald-400 transition text-sm">Поддержка</NuxtLink></li>
             </ul>
@@ -160,7 +254,7 @@
         <!-- Нижняя часть -->
         <div class="pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
           <span>© {{ currentYear }} АуЕда. Все права защищены.</span>
-          <div class="flex gap-6">
+          <div class="flex gap-6 flex-wrap justify-center">
             <NuxtLink to="/policy" class="hover:text-emerald-400 transition">Политика конфиденциальности</NuxtLink>
             <NuxtLink to="/offer" class="hover:text-emerald-400 transition">Пользовательское соглашение</NuxtLink>
           </div>
@@ -179,6 +273,7 @@ const { currentYear } = useDate();
 
 const scrolled = ref(false);
 const isPwa = ref(false);
+const isMobileMenuOpen = ref(false);
 
 const handleScroll = () => {
   scrolled.value = window.scrollY > 50;
@@ -190,6 +285,34 @@ const checkPwa = () => {
     const isIOSPWA = window.navigator.standalone === true;
     isPwa.value = isStandalone || isIOSPWA;
   }
+};
+
+const toggleMobileMenu = () => {
+  isMobileMenuOpen.value = !isMobileMenuOpen.value;
+  // Блокируем скролл при открытом меню
+  if (isMobileMenuOpen.value) {
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = '';
+  }
+};
+
+const closeMobileMenu = () => {
+  isMobileMenuOpen.value = false;
+  document.body.style.overflow = '';
+};
+
+// Иконки для пунктов меню
+const getIconForRoute = (route: string) => {
+  const icons: Record<string, string> = {
+    '/recipes': 'i-lucide-utensils',
+    '/ingredients': 'i-lucide-package',
+    '/support': 'i-lucide-help-circle',
+    '/blog': 'i-lucide-newspaper',
+    '/pricing': 'i-lucide-credit-card',
+    '/offer': 'i-lucide-file-text'
+  };
+  return icons[route] || 'i-lucide-circle';
 };
 
 onMounted(() => {
@@ -234,18 +357,14 @@ onMounted(() => {
 /* ============================================ */
 
 .pwa-mode .pwa-header {
-  /* Добавляем отступ сверху для "челки" */
   padding-top: env(safe-area-inset-top, 0px);
-  /* Сохраняем прозрачность фона */
   background: rgba(255, 255, 255, 0.98);
 }
 
 .pwa-mode .pwa-main {
-  /* Компенсируем отступ хедера */
   padding-top: calc(5rem + env(safe-area-inset-top, 0px));
 }
 
-/* Для старых iPhone без челки */
 @supports not (padding-top: env(safe-area-inset-top)) {
   .pwa-mode .pwa-header {
     padding-top: 0;
@@ -256,18 +375,21 @@ onMounted(() => {
   }
 }
 
-/* iOS Safari специфичные фиксы */
 @supports (-webkit-touch-callout: none) {
   .pwa-mode .pwa-header {
     padding-top: env(safe-area-inset-top, 0px);
   }
 }
 
-/* Темная тема для PWA */
 @media (prefers-color-scheme: dark) {
   .pwa-mode .pwa-header {
     background: rgba(17, 24, 39, 0.98);
     border-bottom-color: rgba(75, 85, 99, 0.3);
   }
+}
+
+/* Анимация бургера */
+button .w-6 {
+  transition: all 0.3s ease;
 }
 </style>
