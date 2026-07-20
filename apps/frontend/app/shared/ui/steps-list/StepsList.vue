@@ -1,33 +1,93 @@
 <template>
   <div class="space-y-3">
-    <div class="flex items-center justify-between">
+    <!-- Заголовок -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
       <label class="text-sm font-medium" :class="labelClass">
         {{ label }}
         <span v-if="required" class="text-red-500">*</span>
       </label>
-      <Button
-        v-if="!disabled"
-        size="sm"
-        variant="ghost"
-        @click="addStep"
-      >
-        + Добавить шаг
-      </Button>
+
     </div>
 
+    <!-- Список шагов -->
     <div class="space-y-4">
       <div
         v-for="(step, index) in localSteps"
         :key="step.id || index"
         class="border-b border-gray-200 pb-4 last:border-0 dark:border-darkMode-300"
-        :class="{ 'opacity-50': draggingIndex === index || disabled }"
+        :class="{
+          'opacity-50': draggingIndex === index || disabled,
+          'bg-gray-50 dark:bg-darkMode-100/50 rounded-lg p-3 sm:p-4': index === draggingIndex
+        }"
         :draggable="!disabled"
         @dragstart="onDragStart($event, index)"
         @dragend="onDragEnd"
         @dragover.prevent
         @drop="onDrop($event, index)"
       >
-        <div class="flex gap-4">
+        <!-- Мобильная версия - вертикальная -->
+        <div class="flex flex-col sm:hidden gap-3">
+          <!-- Drag handle + номер + удалить -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <!-- Drag handle -->
+              <div
+                v-if="!disabled"
+                class="cursor-grab text-gray-300 transition-colors hover:text-gray-400 active:cursor-grabbing dark:text-darkMode-400 touch-manipulation"
+                :class="{ 'cursor-grabbing': draggingIndex === index }"
+              >
+                <UIcon name="i-lucide-grip-vertical" class="h-5 w-5" />
+              </div>
+              <div v-else class="w-5" />
+
+              <!-- Step number -->
+              <span class="text-sm font-medium text-gray-400 dark:text-darkMode-500">
+                Шаг {{ index + 1 }}
+              </span>
+            </div>
+
+            <!-- Удалить на мобильных - иконка -->
+            <Button
+              v-if="!disabled"
+              color="danger"
+              variant="ghost"
+              icon="i-lucide-trash-2"
+              icon-only
+              size="sm"
+              class="touch-manipulation"
+              @click="removeStep(index)"
+            />
+          </div>
+
+          <!-- Текст шага -->
+          <Textarea
+            v-model="step.text"
+            :placeholder="`Введите описание шага ${index + 1}`"
+            :rows="3"
+            class="w-full"
+            :disabled="disabled"
+            @update:model-value="emitUpdate"
+          />
+
+          <!-- Изображение (мобильная версия - растянуто на всю ширину) -->
+          <div class="w-full">
+            <ImageUploader
+              v-model="step.image"
+              :compact="true"
+              compact-size="md"
+              compact-text="Фото"
+              image-class="w-full h-32 sm:h-40 rounded-lg object-cover"
+              :disabled="disabled"
+              :loading="imageUploading && activeUploadIndex === index"
+              @upload="(file) => handleImageUpload(file, index)"
+              @update:model-value="() => emitUpdate()"
+              @focus="activeUploadIndex = index"
+            />
+          </div>
+        </div>
+
+        <!-- Десктопная версия - горизонтальная -->
+        <div class="hidden sm:flex sm:gap-4">
           <!-- Left side -->
           <div class="flex-1 flex gap-3 items-start">
             <!-- Drag handle -->
@@ -70,14 +130,27 @@
               @focus="activeUploadIndex = index"
             />
           </div>
+
+          <!-- Remove button (десктоп) -->
+          <div v-if="!disabled" class="flex-shrink-0 pt-1">
+            <Button
+              color="danger"
+              variant="ghost"
+              icon="i-lucide-x"
+              icon-only
+              size="sm"
+              @click="removeStep(index)"
+            />
+          </div>
         </div>
 
-        <!-- Remove button -->
-        <div v-if="!disabled" class="mt-2 flex justify-end">
+        <!-- Кнопка удалить (только на мобильных, уже есть выше) -->
+        <div v-if="!disabled" class="mt-2 flex justify-end sm:hidden">
           <Button
             color="danger"
             variant="ghost"
             size="xs"
+            class="w-full"
             @click="removeStep(index)"
           >
             Удалить шаг
@@ -92,11 +165,23 @@
       >
         <UIcon name="i-lucide-clipboard-list" class="h-10 w-10 text-gray-300 dark:text-darkMode-400" />
         <p class="mt-2 text-sm text-gray-400">Добавьте шаги приготовления</p>
+        <p class="text-xs text-gray-300 dark:text-darkMode-400">Нажмите "Добавить шаг"</p>
       </div>
     </div>
 
     <p v-if="hint" class="mt-1 text-xs text-gray-400">{{ hint }}</p>
     <p v-if="error" class="mt-1 text-xs text-red-500">{{ error }}</p>
+
+    <Button
+      v-if="!disabled"
+      size="sm"
+      variant="ghost"
+      class="w-full sm:w-auto justify-center"
+      @click="addStep"
+    >
+      + Добавить шаг
+    </Button>
+
   </div>
 </template>
 
@@ -245,5 +330,57 @@ defineExpose({
 <style scoped>
 [draggable="true"] {
   user-select: none;
+}
+
+/* Мобильные улучшения */
+@media (max-width: 640px) {
+  /* Увеличиваем область касания для мобильных */
+  button {
+    min-height: 44px;
+  }
+
+  /* Улучшаем скролл на мобильных */
+  .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Улучшаем drag на мобильных */
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+
+  /* Тень для перетаскиваемого элемента */
+  .bg-gray-50.dark\:bg-darkMode-100\/50 {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Для iOS - улучшаем инпуты */
+input[type="number"] {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Убираем стрелки у number input на мобильных */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Анимация для drag */
+.bg-gray-50 {
+  transition: background-color 0.2s ease;
+}
+
+/* Улучшаем видимость на мобильных */
+@media (max-width: 640px) {
+  textarea {
+    font-size: 16px !important; /* Предотвращает автоматический зум на iOS */
+  }
 }
 </style>

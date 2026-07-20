@@ -23,15 +23,18 @@
           @error="handleImageError"
           @click="compact ? triggerFileInput() : undefined"
         />
-        <button
+        <Button
           v-if="removable && !disabled"
           type="button"
-          class="absolute -top-2 -right-2 rounded-full bg-white p-1 shadow-md transition hover:bg-gray-100 dark:bg-darkMode-100"
+          size="xs"
+          color="neutral"
+          variant="ghost"
+          icon="i-lucide-x"
+          icon-only
+          class="absolute -top-2 -right-2 rounded-full bg-white shadow-md hover:bg-gray-100 dark:bg-darkMode-100"
           :class="{ 'scale-75': compact }"
           @click="removeImage"
-        >
-          <UIcon name="i-lucide-x" class="h-4 w-4 text-gray-500" />
-        </button>
+        />
       </div>
 
       <!-- Upload button (compact mode) -->
@@ -96,6 +99,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import Loader from '../loader/Loader.vue'
+import Button from '../button/Button.vue';
 
 interface Props {
   modelValue: { id: string; src: string } | string | null
