@@ -3,7 +3,6 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
-  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, In } from 'typeorm';
@@ -232,7 +231,6 @@ export class ShoppingListsService {
     });
   }
 
-  // Добавьте вспомогательный метод для получения статистики
   private async getListStats(
     manager: any,
     listId: string,
@@ -439,7 +437,7 @@ export class ShoppingListsService {
     listId: string,
     dto: CreateShoppingItemDto,
   ): Promise<ShoppingItemResponseDto> {
-    const list = await this.findOneList(userId, listId, false);
+    await this.findOneList(userId, listId, false); // проверка прав на список
 
     // Валидация категории если указана
     if (dto.categoryId) {

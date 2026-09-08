@@ -5,7 +5,6 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  DeleteDateColumn,
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
@@ -42,8 +41,6 @@ export class MenuSlotItem {
   @ApiProperty()
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
-
-  // ❌ УДАЛЕНА строка: @DeleteDateColumn({ name: 'deleted_at' })
 
   @ManyToOne(() => MenuSlot, (slot) => slot.items, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'slot_id' })

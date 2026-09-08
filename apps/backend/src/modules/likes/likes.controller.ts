@@ -2,11 +2,9 @@ import {
   Controller,
   Post,
   Get,
-  Delete,
   Param,
   UseGuards,
   Req,
-  HttpCode,
   HttpStatus,
 } from '@nestjs/common';
 import {

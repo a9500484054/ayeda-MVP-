@@ -102,7 +102,6 @@ export class EmailService {
     buttonColor,
     message,
     additionalInfo,
-    features,
     quote,
   }: {
     title: string;

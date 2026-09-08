@@ -27,7 +27,6 @@
     "migration:run:prod": "typeorm migration:run -d dist/data-source.js"
   },
   "dependencies": {
-    "@nestjs/cache-manager": "^3.1.2",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.0.1",
@@ -40,13 +39,10 @@
     "@nestjs/typeorm": "^11.0.0",
     "@types/cookie-parser": "^1.4.10",
     "argon2": "^0.44.0",
-    "cache-manager": "^7.2.8",
-    "cache-manager-redis-yet": "^5.1.5",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.3.1",
-    "emailjs": "^5.0.0",
     "helmet": "^8.3.0",
     "multer": "^2.1.1",
     "nodemailer": "6.9.14",

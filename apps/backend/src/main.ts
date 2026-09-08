@@ -1,6 +1,6 @@
 // main.ts
 import { NestFactory, Reflector } from '@nestjs/core';
-import { NestExpressApplication } from '@nestjs/platform-express'; // 👈 ДОБАВИТЬ
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import {
   ClassSerializerInterceptor,
@@ -16,7 +16,7 @@ import redisClient from './config/redis';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule); // 👈 ИЗМЕНИТЬ (добавить <NestExpressApplication>)
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   // За обратным прокси (nginx) — доверяем первому hop'у, чтобы rate-limit
   // видел реальный IP клиента из X-Forwarded-For

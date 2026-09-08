@@ -1,5 +1,3 @@
-import { ApiProperty } from '@nestjs/swagger';
-
 export enum DisplayType {
   DAYS = 'days',
   CALENDAR = 'calendar',

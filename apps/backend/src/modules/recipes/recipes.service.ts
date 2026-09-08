@@ -48,7 +48,7 @@ export class RecipesService {
     createRecipeDto: CreateRecipeDto,
   ): Promise<Recipe> {
     // Проверяем существование автора
-    const author = await this.usersService.findOne(userId);
+    await this.usersService.findOne(userId); // валидирует, что автор существует
 
     // Статус из тела запроса уважаем только для admin/moderator.
     // Обычный автор не может опубликоваться в обход модерации.
@@ -117,36 +117,6 @@ export class RecipesService {
     // После транзакции загружаем все связи
     return this.findOneWithRelationsInternal(savedRecipe.id);
   }
-
-  // async findOneWithRelations(id: string, userId?: string, userRole?: string): Promise<Recipe> {
-  //   const queryBuilder = this.recipesRepository
-  //     .createQueryBuilder('recipe')
-  //     .leftJoinAndSelect('recipe.author', 'author')
-  //     .leftJoinAndSelect('recipe.ingredients', 'ingredients')
-  //     .leftJoinAndSelect('ingredients.ingredient', 'ingredient')
-  //     .leftJoinAndSelect('ingredients.unit', 'unit')
-  //     .leftJoinAndSelect('recipe.categories', 'rc')
-  //     .leftJoinAndSelect('rc.category', 'category')
-  //     .where('recipe.id = :id', { id })
-  //     .andWhere('recipe.deletedAt IS NULL');
-
-  //   const recipe = await queryBuilder.getOne();
-
-  //   if (!recipe) {
-  //     throw new NotFoundException('Рецепт не найден');
-  //   }
-
-  //   // Проверка прав доступа
-  //   const isOwner = userId && recipe.authorId === userId;
-  //   const isAdminOrModerator = userRole === UserRole.ADMIN || userRole === UserRole.MODERATOR;
-  //   const isPublic = recipe.status === RecipeStatus.PUBLIC;
-
-  //   if (!isPublic && !isOwner && !isAdminOrModerator) {
-  //     throw new ForbiddenException('У вас нет доступа к этому рецепту');
-  //   }
-
-  //   return recipe;
-  // }
 
   async findAll(query: RecipeQueryDto): Promise<[Recipe[], number]> {
     const {
@@ -295,7 +265,11 @@ export class RecipesService {
         throw new NotFoundException('Рецепт не найден');
       }
 
-      const { ingredients, categoryIds, ...recipeFields } = updateRecipeDto;
+      const {
+        ingredients: _ingredients,
+        categoryIds: _categoryIds,
+        ...recipeFields
+      } = updateRecipeDto;
 
       Object.entries(recipeFields).forEach(([key, value]) => {
         if (value !== undefined) {
@@ -410,30 +384,6 @@ export class RecipesService {
     recipe.status = RecipeStatus.REJECTED;
     return this.recipesRepository.save(recipe);
   }
-
-  // async search(query: string, paginationDto: any): Promise<[Recipe[], number]> {
-  //   const { page, limit } = paginationDto;
-  //   const skip = (page - 1) * limit;
-
-  //   const queryBuilder = this.recipesRepository
-  //     .createQueryBuilder('recipe')
-  //     .leftJoinAndSelect('recipe.author', 'author')
-  //     .leftJoinAndSelect('recipe.ingredients', 'ingredients')
-  //     .leftJoinAndSelect('ingredients.ingredient', 'ingredient')
-  //     .leftJoinAndSelect('recipe.categories', 'rc')
-  //     .leftJoinAndSelect('rc.category', 'category')
-  //     .where('recipe.deletedAt IS NULL')
-  //     .andWhere('recipe.status = :status', { status: RecipeStatus.PUBLIC })
-  //     .andWhere(
-  //       `recipe.search_vector @@ plainto_tsquery('russian', :query)`,
-  //       { query },
-  //     )
-  //     .orderBy('recipe.createdAt', 'DESC')
-  //     .skip(skip)
-  //     .take(limit);
-
-  //   return queryBuilder.getManyAndCount();
-  // }
 
   // Ночная сверка денормализованных счётчиков рецепта с таблицами-источниками.
   // Self-healing на случай, если increment/decrement где-то разъехался.
@@ -581,8 +531,6 @@ export class RecipesService {
 
     return this.recipesRepository.save(recipe);
   }
-
-  // Добавьте эти методы в существующий RecipesService
 
   // ==================== ПОИСК ====================
 

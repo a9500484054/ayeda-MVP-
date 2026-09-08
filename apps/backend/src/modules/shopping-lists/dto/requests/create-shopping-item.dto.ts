@@ -6,7 +6,6 @@ import {
   IsNumber,
   Min,
   MaxLength,
-  IsDecimal,
   IsArray,
   ValidateNested,
 } from 'class-validator';

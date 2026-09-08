@@ -2,7 +2,6 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
-  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
@@ -154,7 +153,7 @@ export class CommentsService {
     );
   }
 
-  async hide(id: string, moderatorId: string): Promise<Comment> {
+  async hide(id: string, _moderatorId?: string): Promise<Comment> {
     const comment = await this.findOne(id);
 
     comment.isHidden = true;
@@ -170,7 +169,7 @@ export class CommentsService {
     return savedComment;
   }
 
-  async unhide(id: string, moderatorId: string): Promise<Comment> {
+  async unhide(id: string, _moderatorId?: string): Promise<Comment> {
     const comment = await this.commentsRepository.findOne({
       where: { id, deletedAt: IsNull() },
     });

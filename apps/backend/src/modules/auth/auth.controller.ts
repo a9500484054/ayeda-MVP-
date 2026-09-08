@@ -60,7 +60,7 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 10, ttl: minutes(1) } })
-  @UseGuards(RateLimitGuard) // Добавьте guard для защиты от брутфорса
+  @UseGuards(RateLimitGuard)
   @ApiOperation({ summary: 'Вход в систему' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -146,7 +146,6 @@ export class AuthController {
     @Body() changePasswordDto: ChangePasswordDto,
   ) {
     // Получаем токен из заголовка Authorization
-    const authHeader = req.headers.authorization;
     const refreshToken = req.body.refreshToken; // или из тела запроса
 
     return this.authService.changePassword(

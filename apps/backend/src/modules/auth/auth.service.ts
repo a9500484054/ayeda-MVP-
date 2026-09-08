@@ -219,7 +219,7 @@ export class AuthService {
       await this.usersService.update(user.id, { isEmailVerified: true });
 
       return { message: 'Email успешно подтвержден' };
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException('Недействительный или истекший токен');
     }
   }
@@ -283,7 +283,7 @@ export class AuthService {
       await this.logoutAll(user.id);
 
       return { message: 'Пароль успешно изменен' };
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException('Недействительный или истекший токен');
     }
   }

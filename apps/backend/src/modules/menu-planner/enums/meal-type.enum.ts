@@ -1,5 +1,3 @@
-import { ApiProperty } from '@nestjs/swagger';
-
 export enum MealType {
   BREAKFAST = 'breakfast',
   LUNCH = 'lunch',

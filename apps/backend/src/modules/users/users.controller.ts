@@ -37,9 +37,9 @@ import {
   PaginationDto,
 } from 'src/common/dto/pagination.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards/roles.guard'; // Добавьте импорт RolesGuard
+import { RolesGuard } from '../../common/guards/roles.guard';
 import { UsersCacheService } from './users.cache.service';
-import { Roles } from '../../common/decorators/roles.decorator'; // Исправьте путь
+import { Roles } from '../../common/decorators/roles.decorator';
 import redisClient from 'src/config/redis';
 
 interface AuthedRequest {
@@ -54,7 +54,7 @@ const STAFF_ROLES: UserRole[] = [UserRole.ADMIN, UserRole.MODERATOR];
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
-    private readonly usersCacheService: UsersCacheService, // Исправьте синтаксис конструктора
+    private readonly usersCacheService: UsersCacheService,
   ) {}
 
   @Post()

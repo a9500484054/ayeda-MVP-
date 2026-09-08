@@ -10,14 +10,14 @@ import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as argon2 from 'argon2';
 import { cacheGetOrSet } from '../../utils/redis.utils';
-import { UsersCacheService } from './users.cache.service'; // Добавьте импорт
+import { UsersCacheService } from './users.cache.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-    private usersCacheService: UsersCacheService, // Добавьте в конструктор
+    private usersCacheService: UsersCacheService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {

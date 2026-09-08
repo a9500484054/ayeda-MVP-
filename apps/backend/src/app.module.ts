@@ -23,7 +23,7 @@ import { ShoppingListsModule } from './modules/shopping-lists/shopping-lists.mod
 import { ArticlesModule } from './modules/articles/articles.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { HealthModule } from './modules/health/health.module';
-import { DashboardModule } from './modules/dashboard/dashboard.module'; // 👈 ДОБАВИТЬ
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -80,7 +80,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module'; // 👈 
     ArticlesModule,
     RedisModule,
     HealthModule,
-    DashboardModule, // 👈 ДОБАВИТЬ
+    DashboardModule,
   ],
   controllers: [],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

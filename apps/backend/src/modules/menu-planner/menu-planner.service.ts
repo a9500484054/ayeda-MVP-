@@ -27,7 +27,6 @@ import { MenuSlotItemResponseDto } from './dto/menu-slot-item-response.dto';
 import { MenuDayResponseDto } from './dto/menu-day-response.dto';
 import { DisplayType } from './enums/display-type.enum';
 import { SlotType } from './enums/slot-type.enum';
-import { MealType } from './enums/meal-type.enum';
 import { UsersService } from '../users/users.service';
 
 @Injectable()
@@ -383,18 +382,14 @@ export class MenuPlannerService {
     slotId: string,
     dto: AddRecipeToSlotDto,
   ): Promise<MenuSlotItemResponseDto> {
-    const slot = await this.findOneSlot(userId, slotId);
+    await this.findOneSlot(userId, slotId);
 
     // 🔥 ПЕРЕДАЕМ userId И userRole В findOne
     // Сначала получаем пользователя и его роль
     const user = await this.usersService.findOne(userId);
 
     // Проверяем доступ к рецепту (передаем userId и userRole)
-    const recipe = await this.recipesService.findOne(
-      dto.recipeId,
-      userId,
-      user.role,
-    );
+    await this.recipesService.findOne(dto.recipeId, userId, user.role);
 
     // Проверяем существование активной записи
     const existingItem = await this.menuSlotItemRepository.findOne({
