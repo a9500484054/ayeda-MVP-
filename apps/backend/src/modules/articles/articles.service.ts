@@ -6,7 +6,12 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, In, FindOptionsWhere } from 'typeorm';
-import { Article, ArticleStep } from './entities/article.entity';
+import {
+  Article,
+  ArticleStep,
+  ArticleStatus,
+  ArticleType,
+} from './entities/article.entity';
 import { CreateArticleDto, ArticleStepDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import {
@@ -161,9 +166,9 @@ export class ArticlesService {
       excerpt: dto.excerpt,
       featuredImage: dto.featured_image,
       categories: dto.categories,
-      type: dto.type || 'article',
-      status: dto.status || 'draft',
-      publishedAt: dto.status === 'published' ? new Date() : null,
+      type: dto.type || ArticleType.ARTICLE,
+      status: dto.status || ArticleStatus.DRAFT,
+      publishedAt: dto.status === ArticleStatus.PUBLISHED ? new Date() : null,
     });
 
     article.seo = this.generateSeoMetadata(article, dto);
@@ -225,7 +230,7 @@ export class ArticlesService {
     const article = await this.articlesRepository.findOne({
       where: {
         slug: slug,
-        status: 'published',
+        status: ArticleStatus.PUBLISHED,
       },
       relations: ['author'],
     });
@@ -314,7 +319,7 @@ export class ArticlesService {
 
     if (dto.status !== undefined && dto.status !== article.status) {
       article.status = dto.status;
-      if (dto.status === 'published' && !article.publishedAt) {
+      if (dto.status === ArticleStatus.PUBLISHED && !article.publishedAt) {
         article.publishedAt = new Date();
       }
     }
@@ -328,11 +333,11 @@ export class ArticlesService {
   }
 
   async publish(userId: string, id: string): Promise<ArticleResponseDto> {
-    return this.update(userId, id, { status: 'published' });
+    return this.update(userId, id, { status: ArticleStatus.PUBLISHED });
   }
 
   async unpublish(userId: string, id: string): Promise<ArticleResponseDto> {
-    return this.update(userId, id, { status: 'draft' });
+    return this.update(userId, id, { status: ArticleStatus.DRAFT });
   }
 
   async remove(userId: string, id: string): Promise<void> {
@@ -356,7 +361,7 @@ export class ArticlesService {
       .createQueryBuilder('article')
       .select('DISTINCT UNNEST(article.categories)', 'category')
       .where('article.categories IS NOT NULL')
-      .andWhere('article.status = :status', { status: 'published' })
+      .andWhere('article.status = :status', { status: ArticleStatus.PUBLISHED })
       .getRawMany();
 
     return result.map((resultItem) => resultItem.category).filter(Boolean);

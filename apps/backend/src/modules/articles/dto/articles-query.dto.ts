@@ -1,6 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, IsInt, Min, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
+import { ArticleStatus, ArticleType } from '../entities/article.entity';
 
 export class ArticlesQueryDto {
   @ApiPropertyOptional({ description: 'Номер страницы', default: 1 })
@@ -17,15 +18,15 @@ export class ArticlesQueryDto {
   @Min(1)
   limit?: number = 10;
 
-  @ApiPropertyOptional({ enum: ['article', 'tip', 'news'] })
+  @ApiPropertyOptional({ enum: ArticleType })
   @IsOptional()
-  @IsEnum(['article', 'tip', 'news'])
-  type?: string;
+  @IsEnum(ArticleType)
+  type?: ArticleType;
 
-  @ApiPropertyOptional({ enum: ['draft', 'published'] })
+  @ApiPropertyOptional({ enum: ArticleStatus })
   @IsOptional()
-  @IsEnum(['draft', 'published'])
-  status?: string;
+  @IsEnum(ArticleStatus)
+  status?: ArticleStatus;
 
   @ApiPropertyOptional({ description: 'Категория (одна)' })
   @IsOptional()

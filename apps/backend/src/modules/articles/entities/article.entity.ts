@@ -19,6 +19,17 @@ export interface ArticleStep {
   sort: number;
 }
 
+export enum ArticleType {
+  ARTICLE = 'article',
+  TIP = 'tip',
+  NEWS = 'news',
+}
+
+export enum ArticleStatus {
+  DRAFT = 'draft',
+  PUBLISHED = 'published',
+}
+
 @Entity('articles')
 export class Article {
   @ApiProperty()
@@ -67,13 +78,13 @@ export class Article {
   @Column({ type: 'text', array: true, nullable: true })
   categories: string[] | null;
 
-  @ApiProperty({ default: 'article' })
-  @Column({ type: 'varchar', length: 20, default: 'article' })
-  type: string;
+  @ApiProperty({ enum: ArticleType, default: ArticleType.ARTICLE })
+  @Column({ type: 'enum', enum: ArticleType, default: ArticleType.ARTICLE })
+  type: ArticleType;
 
-  @ApiProperty({ default: 'draft' })
-  @Column({ type: 'varchar', length: 20, default: 'draft' })
-  status: string;
+  @ApiProperty({ enum: ArticleStatus, default: ArticleStatus.DRAFT })
+  @Column({ type: 'enum', enum: ArticleStatus, default: ArticleStatus.DRAFT })
+  status: ArticleStatus;
 
   @ApiProperty({ default: 0 })
   @Column({ type: 'integer', default: 0 })

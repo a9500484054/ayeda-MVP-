@@ -12,6 +12,7 @@ import {
   IsUUID,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { ArticleStatus, ArticleType } from '../entities/article.entity';
 
 class SeoDto {
   @ApiProperty({ required: false })
@@ -123,15 +124,15 @@ export class CreateArticleDto {
   @IsString({ each: true })
   categories?: string[];
 
-  @ApiProperty({ enum: ['article', 'tip', 'news'], default: 'article' })
+  @ApiProperty({ enum: ArticleType, default: ArticleType.ARTICLE })
   @IsOptional()
-  @IsEnum(['article', 'tip', 'news'])
-  type?: string;
+  @IsEnum(ArticleType)
+  type?: ArticleType;
 
-  @ApiProperty({ enum: ['draft', 'published'], default: 'draft' })
+  @ApiProperty({ enum: ArticleStatus, default: ArticleStatus.DRAFT })
   @IsOptional()
-  @IsEnum(['draft', 'published'])
-  status?: string;
+  @IsEnum(ArticleStatus)
+  status?: ArticleStatus;
 
   @ApiProperty({ required: false, type: SeoDto })
   @IsOptional()
