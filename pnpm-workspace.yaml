@@ -1,3 +1,12 @@
 packages:
   - 'apps/*'
   - 'packages/*'
+
+# Пакеты, которым разрешено выполнять install-скрипты (pnpm 10 блокирует по умолчанию)
+onlyBuiltDependencies:
+  - argon2
+  - '@nestjs/core'
+  - '@scarf/scarf'
+  - unrs-resolver
+  - esbuild
+  - sharp

@@ -1,1 +1,7 @@
-pnpm lint-staged
+if command -v pnpm >/dev/null 2>&1; then
+  pnpm exec lint-staged
+elif command -v npx >/dev/null 2>&1; then
+  npx --no-install lint-staged
+else
+  echo "pre-commit: ни pnpm, ни npx не найдены — пропускаю lint-staged" >&2
+fi

@@ -44,7 +44,8 @@ services:
 
   backend:
     build:
-      context: ./apps/backend
+      context: .
+      dockerfile: apps/backend/Dockerfile
       target: production
     container_name: ayeda_backend
     restart: always

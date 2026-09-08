@@ -1,51 +1,49 @@
-FROM node:20-alpine AS builder
+# Контекст сборки — КОРЕНЬ монорепы (pnpm workspace).
+# docker compose: build.context = ".", dockerfile = "apps/backend/Dockerfile".
 
-WORKDIR /app
+FROM node:20-alpine AS base
+RUN corepack enable
+WORKDIR /repo
 
-COPY package*.json ./
-RUN npm ci
+# ---------- build: ставим зависимости и собираем ----------
+FROM base AS build
+# сперва только манифесты — чтобы слой с install кэшировался
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY apps/backend/package.json apps/backend/
+COPY apps/frontend/package.json apps/frontend/
+COPY apps/storybook/package.json apps/storybook/
+COPY packages/ packages/
+RUN pnpm install --frozen-lockfile --filter backend
 
-COPY . .
-RUN npm run build
+COPY apps/backend apps/backend
+RUN pnpm --filter backend run build
+# самодостаточное прод-дерево (hoisted node_modules только с prod-зависимостями).
+# --legacy: бэкенд не тянет workspace-пакеты, инъекция не нужна
+RUN pnpm --filter backend deploy --prod --legacy /out
 
-# ================= DEVELOPMENT =================
-FROM node:20-alpine AS development
-
-WORKDIR /app
-
+# ---------- development (hot-reload, исходники монтируются) ----------
+FROM base AS development
 RUN apk add --no-cache netcat-openbsd
-
-# Копируем package.json и устанавливаем ВСЕ зависимости (включая devDependencies)
-COPY package*.json ./
-RUN npm ci
-
-# Копируем исходный код
-COPY . .
-
-# Устанавливаем переменные окружения для development
 ENV NODE_ENV=development
-
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY apps/backend/package.json apps/backend/
+COPY apps/frontend/package.json apps/frontend/
+COPY apps/storybook/package.json apps/storybook/
+COPY packages/ packages/
+RUN pnpm install --frozen-lockfile --filter backend
+COPY apps/backend apps/backend
+WORKDIR /repo/apps/backend
 EXPOSE 4000
+CMD ["pnpm", "run", "start:dev"]
 
-# В режиме development используем start:dev с hot-reload
-# Команда будет переопределена в docker-compose.override.yml
-CMD ["npm", "run", "start:dev"]
-
-# ================= PRODUCTION =================
+# ---------- production ----------
 FROM node:20-alpine AS production
-
-WORKDIR /app
-
 RUN apk add --no-cache netcat-openbsd
-
-COPY package*.json ./
-RUN npm ci --omit=dev
-
-COPY --from=builder /app/dist ./dist
-
-COPY docker/entrypoint.sh /entrypoint.sh
+WORKDIR /app
+COPY --from=build /out/node_modules ./node_modules
+COPY --from=build /repo/apps/backend/dist ./dist
+COPY --from=build /repo/apps/backend/package.json ./package.json
+COPY apps/backend/docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
-
 EXPOSE 4000
-
 ENTRYPOINT ["/entrypoint.sh"]

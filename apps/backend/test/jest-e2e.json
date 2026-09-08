@@ -7,6 +7,8 @@
   "transform": {
     "^.+\\.(t|j)s$": ["ts-jest", { "tsconfig": "<rootDir>/../tsconfig.spec.json" }]
   },
-  "transformIgnorePatterns": ["/node_modules/(?!(@nestjs/schedule|uuid)/)"],
+  "transformIgnorePatterns": [
+    "/node_modules/(?!(?:.*/)?(?:@nestjs/schedule|uuid)/)"
+  ],
   "testTimeout": 30000
 }

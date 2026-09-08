@@ -4,11 +4,12 @@
   "type": "module",
   "packageManager": "pnpm@10.18.3",
   "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "prepare": "husky || true",
     "lint": "eslint . --ext .ts,.js,.vue",
     "lint:fix": "eslint . --ext .ts,.js,.vue --fix",
     "format": "prettier --write \"**/*.{js,ts,json,md,vue}\"",
-    "storybook": "pnpm --filter storybook storybook",
-    "prepare": "husky"
+    "storybook": "pnpm --filter storybook storybook"
   },
   "lint-staged": {
     "apps/backend/**/*.ts": [
