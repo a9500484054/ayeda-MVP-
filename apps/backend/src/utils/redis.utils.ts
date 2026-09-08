@@ -4,27 +4,40 @@ import redisClient from '../config/redis';
 export const cacheGetOrSet = async <T>(
   key: string,
   fetchFn: () => Promise<T>,
-  ttlSeconds: number = 3600
+  ttlSeconds: number = 3600,
 ): Promise<T> => {
   // Пробуем получить из кэша
   const cached = await redisClient.get(key);
 
-  if (cached) {
-    return JSON.parse(cached);
+  if (cached !== null && cached !== undefined) {
+    try {
+      return JSON.parse(cached) as T;
+    } catch {
+      // Битое значение в кэше — игнорируем и перечитываем из источника
+    }
   }
 
   // Если нет в кэше - получаем данные
   const data = await fetchFn();
 
-  // Сохраняем в кэш
-  await redisClient.setEx(key, ttlSeconds, JSON.stringify(data));
+  // null/undefined не кэшируем, чтобы не залипал «промах»
+  if (data !== null && data !== undefined) {
+    await redisClient.setEx(key, ttlSeconds, JSON.stringify(data));
+  }
 
   return data;
 };
 
-// Очистка кэша по паттерну
+// Очистка кэша по паттерну — через неблокирующий SCAN (KEYS блокирует Redis)
 export const clearCachePattern = async (pattern: string): Promise<void> => {
-  const keys = await redisClient.keys(pattern);
+  const keys: string[] = [];
+  for await (const key of redisClient.scanIterator({ MATCH: pattern, COUNT: 200 })) {
+    if (Array.isArray(key)) {
+      keys.push(...key);
+    } else {
+      keys.push(key);
+    }
+  }
   if (keys.length > 0) {
     await redisClient.del(keys);
   }
@@ -41,11 +54,21 @@ export const incrementAndGet = async (key: string, ttlSeconds?: number): Promise
   return count;
 };
 
+// Одноразовый маркер с TTL: true — если ключа не было и он установлен сейчас
+// (используется для дедупликации, напр. счётчика просмотров по IP)
+export const setOnce = async (
+  key: string,
+  ttlSeconds: number,
+): Promise<boolean> => {
+  const res = await redisClient.set(key, '1', { NX: true, EX: ttlSeconds });
+  return res === 'OK';
+};
+
 // Установка сессии пользователя
 export const setUserSession = async (
   userId: string,
   sessionData: any,
-  ttlSeconds: number = 86400 // 24 часа
+  ttlSeconds: number = 86400, // 24 часа
 ): Promise<void> => {
   await redisClient.setEx(`session:${userId}`, ttlSeconds, JSON.stringify(sessionData));
 };

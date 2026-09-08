@@ -40,6 +40,7 @@ interface RequestWithUser extends Request {
     email: string;
     role: string;
   };
+  ip?: string;
 }
 
 @ApiTags('recipes')
@@ -104,7 +105,7 @@ export class RecipesController {
     const recipe = await this.recipesService.findOne(id, userId, userRole);
 
     if (recipe.status === RecipeStatus.PUBLIC) {
-      this.recipesService.incrementViews(id).catch((err) => {
+      this.recipesService.incrementViews(id, req.ip).catch((err) => {
         this.logger.warn(`Не удалось увеличить счётчик просмотров ${id}: ${err}`);
       });
     }
@@ -127,7 +128,7 @@ export class RecipesController {
     const recipe = await this.recipesService.findBySrcPath(srcPath, userId, userRole);
 
     if (recipe.status === RecipeStatus.PUBLIC) {
-      this.recipesService.incrementViews(recipe.id).catch((err) => {
+      this.recipesService.incrementViews(recipe.id, req.ip).catch((err) => {
         this.logger.warn(
           `Не удалось увеличить счётчик просмотров ${recipe.id}: ${err}`,
         );

@@ -22,8 +22,6 @@ import { ShoppingCategoriesModule } from './modules/shopping-categories/shopping
 import { ShoppingListsModule } from './modules/shopping-lists/shopping-lists.module';
 import { ArticlesModule } from './modules/articles/articles.module';
 import { RedisModule } from './modules/redis/redis.module';
-import { CacheModule } from '@nestjs/cache-manager';
-import { redisStore } from 'cache-manager-redis-yet';
 import { DashboardModule } from './modules/dashboard/dashboard.module'; // 👈 ДОБАВИТЬ
 
 @Module({
@@ -40,19 +38,6 @@ import { DashboardModule } from './modules/dashboard/dashboard.module'; // 👈 
 
     // Планировщик (крон-задачи: очистка refresh-токенов)
     ScheduleModule.forRoot(),
-
-    // Добавьте CacheModule для глобального кэширования
-    CacheModule.registerAsync({
-      isGlobal: true,
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        store: await redisStore({
-          url: configService.get('REDIS_URL', 'redis://localhost:6379'),
-          ttl: 3600, // 1 час по умолчанию
-        }),
-      }),
-    }),
 
     // Асинхронно подключаем TypeORM
     TypeOrmModule.forRootAsync({

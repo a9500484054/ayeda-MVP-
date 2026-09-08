@@ -67,6 +67,9 @@ export class UsersService {
   }
 
   async findOne(id: string): Promise<User> {
+    // TTL 5 минут: этот путь используется в JwtStrategy на каждом запросе,
+    // поэтому окно устаревания роли/бана держим коротким. Смена роли/профиля
+    // через API инвалидирует кэш сразу (clearUserCache).
     return cacheGetOrSet(
       `user:${id}`,
       async () => {
@@ -76,7 +79,7 @@ export class UsersService {
         }
         return user;
       },
-      3600
+      300
     );
   }
 
@@ -89,7 +92,7 @@ export class UsersService {
           where: { email: email.toLowerCase() },
         });
       },
-      3600
+      300
     );
   }
 

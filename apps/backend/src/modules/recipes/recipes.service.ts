@@ -20,6 +20,7 @@ import { RecipeStatus, RecipeType } from './enums/recipe.enums';
 import { RecipeResponseDto } from './dto/recipe-response.dto';
 import { UserRole } from '../users/entities/user.entity';
 import { Favorite } from '../favorites/entities/favorite.entity';
+import { setOnce } from '../../utils/redis.utils';
 
 @Injectable()
 export class RecipesService {
@@ -409,12 +410,20 @@ export class RecipesService {
   //   return queryBuilder.getManyAndCount();
   // }
 
-  async incrementViews(id: string): Promise<void> {
-    await this.recipesRepository.increment(
-      { id },
-      'viewsCount',
-      1
-    );
+  async incrementViews(id: string, viewerKey?: string): Promise<void> {
+    // Дедупликация: один и тот же посетитель накручивает счётчик не чаще
+    // раза в час. Без ключа (нет IP) — считаем каждый просмотр.
+    if (viewerKey) {
+      const isFirstView = await setOnce(
+        `recipe:view:${id}:${viewerKey}`,
+        3600,
+      );
+      if (!isFirstView) {
+        return;
+      }
+    }
+
+    await this.recipesRepository.increment({ id }, 'viewsCount', 1);
   }
 
   toResponseDto(recipe: Recipe): RecipeResponseDto {
