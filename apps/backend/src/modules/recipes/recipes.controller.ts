@@ -11,6 +11,7 @@ import {
   Query,
   HttpStatus,
   HttpCode,
+  Logger,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -44,6 +45,8 @@ interface RequestWithUser extends Request {
 @ApiTags('recipes')
 @Controller('recipes')
 export class RecipesController {
+  private readonly logger = new Logger(RecipesController.name);
+
   constructor(private readonly recipesService: RecipesService) {}
 
   @Post()
@@ -101,8 +104,8 @@ export class RecipesController {
     const recipe = await this.recipesService.findOne(id, userId, userRole);
 
     if (recipe.status === RecipeStatus.PUBLIC) {
-      this.recipesService.incrementViews(id).catch(err => {
-        console.error('Failed to increment views:', err);
+      this.recipesService.incrementViews(id).catch((err) => {
+        this.logger.warn(`Не удалось увеличить счётчик просмотров ${id}: ${err}`);
       });
     }
 
@@ -118,16 +121,16 @@ export class RecipesController {
     @Param('srcPath') srcPath: string,
     @Req() req: RequestWithUser,
   ): Promise<RecipeResponseDto> {
-    console.log('CONTROLLER req.user:', req.user);
-
     const userId = req.user?.id;
     const userRole = req.user?.role;
 
     const recipe = await this.recipesService.findBySrcPath(srcPath, userId, userRole);
 
     if (recipe.status === RecipeStatus.PUBLIC) {
-      this.recipesService.incrementViews(recipe.id).catch(err => {
-        console.error('Failed to increment views:', err);
+      this.recipesService.incrementViews(recipe.id).catch((err) => {
+        this.logger.warn(
+          `Не удалось увеличить счётчик просмотров ${recipe.id}: ${err}`,
+        );
       });
     }
 

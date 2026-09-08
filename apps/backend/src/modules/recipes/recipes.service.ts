@@ -209,12 +209,6 @@ export class RecipesService {
     userId?: string,
     userRole?: string,
   ): Promise<Recipe> {
-
-    console.log('========== findBySrcPath ==========');
-    console.log('srcPath:', srcPath);
-    console.log('userId:', userId);
-    console.log('userRole:', userRole);
-
     const recipe = await this.recipesRepository
       .createQueryBuilder('recipe')
       .leftJoinAndSelect('recipe.author', 'author')
@@ -227,14 +221,9 @@ export class RecipesService {
       .andWhere('recipe.deletedAt IS NULL')
       .getOne();
 
-    console.log('recipe found:', !!recipe);
-
     if (!recipe) {
       throw new NotFoundException('Рецепт не найден');
     }
-
-    console.log('recipe.authorId:', recipe.authorId);
-    console.log('recipe.status:', recipe.status);
 
     const isOwner = !!userId && recipe.authorId === userId;
 
@@ -243,17 +232,6 @@ export class RecipesService {
       userRole === UserRole.MODERATOR;
 
     const isPublic = recipe.status === RecipeStatus.PUBLIC;
-
-    console.log('isOwner:', isOwner);
-    console.log('isAdminOrModerator:', isAdminOrModerator);
-    console.log('isPublic:', isPublic);
-
-    console.log('UserRole.ADMIN:', UserRole.ADMIN);
-    console.log('UserRole.MODERATOR:', UserRole.MODERATOR);
-
-    console.log('ACCESS RESULT:', {
-      denied: !isPublic && !isOwner && !isAdminOrModerator,
-    });
 
     if (!isPublic && !isOwner && !isAdminOrModerator) {
       throw new ForbiddenException('У вас нет доступа к этому рецепту');

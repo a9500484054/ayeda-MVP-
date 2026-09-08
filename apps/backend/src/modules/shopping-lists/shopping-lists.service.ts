@@ -153,8 +153,6 @@ export class ShoppingListsService {
       .where('list.user_id = :userId', { userId }) // Изменил с 'list.userId' на 'list.user_id'
       .getRawOne();
 
-    console.log('maxOrderResult:', maxOrderResult); // Отладка
-
     let sortOrder: number;
     if (dto.sortOrder !== undefined) {
       sortOrder = dto.sortOrder;
@@ -162,7 +160,6 @@ export class ShoppingListsService {
       // Используем максимальный sortOrder + 1
       const maxSortOrder = maxOrderResult?.max ? parseInt(maxOrderResult.max) : 0;
       sortOrder = maxSortOrder + 1;
-      console.log('Auto-generated sortOrder:', sortOrder);
     }
 
     // Используем транзакцию
@@ -174,7 +171,6 @@ export class ShoppingListsService {
       list.sortOrder = sortOrder;
 
       const savedList = await manager.save(list);
-      console.log('Saved list sortOrder:', savedList.sortOrder); // Отладка
 
       // 2. Создаем позиции, если они есть
       if (dto.items && dto.items.length > 0) {
@@ -239,8 +235,6 @@ export class ShoppingListsService {
       .addSelect('SUM(CASE WHEN item.isChecked = true THEN 1 ELSE 0 END)', 'checkedItems')
       .where('item.shoppingListId = :listId', { listId })
       .getRawOne();
-
-    console.log('getListStats result:', result); // Добавьте
 
     return {
       totalItems: parseInt(result.totalItems) || 0,

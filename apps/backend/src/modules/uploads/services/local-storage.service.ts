@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as path from 'path';
 import * as fs from 'fs/promises';
@@ -10,6 +10,7 @@ import {
 
 @Injectable()
 export class LocalStorageService implements IStorageService {
+  private readonly logger = new Logger(LocalStorageService.name);
   private readonly uploadRoot: string;
   private readonly baseUrl: string;
 
@@ -56,12 +57,12 @@ export class LocalStorageService implements IStorageService {
       const absolutePath = path.join(process.cwd(), filePath);
       await fs.access(absolutePath);
       await fs.unlink(absolutePath);
-      console.log(`✅ Файл удален физически: ${absolutePath}`);
+      this.logger.debug(`Файл удалён физически: ${absolutePath}`);
 
       // Пытаемся удалить пустую папку
       await this.removeEmptyDir(path.dirname(absolutePath));
     } catch (error) {
-      console.error('❌ Ошибка при удалении файла:', error);
+      this.logger.error(`Не удалось удалить файл ${filePath}`, error as Error);
       throw new Error('Не удалось удалить файл');
     }
   }
@@ -75,9 +76,9 @@ export class LocalStorageService implements IStorageService {
       const files = await fs.readdir(dirPath);
       if (files.length === 0) {
         await fs.rmdir(dirPath);
-        console.log(`📁 Пустая папка удалена: ${dirPath}`);
+        this.logger.debug(`Пустая папка удалена: ${dirPath}`);
       }
-    } catch (error) {
+    } catch {
       // Игнорируем ошибки при удалении папки
     }
   }

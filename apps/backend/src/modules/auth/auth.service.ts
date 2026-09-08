@@ -11,6 +11,7 @@ import { Repository, LessThan, IsNull, Not, MoreThan } from 'typeorm';
 import { createHash, randomUUID } from 'crypto';
 import * as argon2 from 'argon2';
 import { UsersService } from '../users/users.service';
+import { UserResponseDto } from '../users/dto/user-response.dto';
 import { RefreshToken } from './entities/refresh-token.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -56,7 +57,7 @@ export class AuthService {
 
     return {
       ...tokens,
-      user,
+      user: new UserResponseDto(user),
     };
   }
 
@@ -93,7 +94,7 @@ export class AuthService {
 
     return {
       ...tokens,
-      user,
+      user: new UserResponseDto(user),
     };
   }
 

@@ -12,6 +12,7 @@ import helmet from 'helmet';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { join } from 'path';
 import redisClient from './config/redis';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule); // 👈 ИЗМЕНИТЬ (добавить <NestExpressApplication>)
@@ -62,6 +63,9 @@ async function bootstrap() {
 
   // Serialization
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+
+  // Единый формат ошибок + логирование 5xx
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   // API Versioning
   app.enableVersioning({

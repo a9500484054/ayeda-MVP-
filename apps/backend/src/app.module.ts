@@ -68,7 +68,13 @@ import { DashboardModule } from './modules/dashboard/dashboard.module'; // 👈 
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         migrations: [__dirname + '/migrations/*{.ts,.js}'],
         synchronize: false, // false в продакшне, используем миграции
-        logging: configService.get('NODE_ENV') === 'development',
+        // По умолчанию логируем только ошибки и медленные запросы.
+        // Полный лог SQL — только при DB_LOGGING=true
+        logging:
+          configService.get('DB_LOGGING', 'false') === 'true'
+            ? 'all'
+            : ['error', 'warn'],
+        maxQueryExecutionTime: 1000,
       }),
     }),
     UsersModule,
