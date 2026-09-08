@@ -41,10 +41,22 @@ export class RecipesService {
 
   async create(
     userId: string,
+    userRole: string,
     createRecipeDto: CreateRecipeDto,
   ): Promise<Recipe> {
     // Проверяем существование автора
     const author = await this.usersService.findOne(userId);
+
+    // Статус из тела запроса уважаем только для admin/moderator.
+    // Обычный автор не может опубликоваться в обход модерации.
+    const isStaff =
+      userRole === UserRole.ADMIN || userRole === UserRole.MODERATOR;
+    const resolvedStatus =
+      isStaff && createRecipeDto.status
+        ? createRecipeDto.status
+        : createRecipeDto.type === RecipeType.COMMUNITY
+          ? RecipeStatus.PENDING
+          : RecipeStatus.PRIVATE;
 
     // Проверяем уникальность srcPath
     const existingPath = await this.recipesRepository.findOne({
@@ -60,11 +72,7 @@ export class RecipesService {
       const recipe = manager.create(Recipe, {
         ...createRecipeDto,
         authorId: userId,
-        status: createRecipeDto.status
-          ? createRecipeDto.status
-          : (createRecipeDto.type === RecipeType.COMMUNITY
-              ? RecipeStatus.PENDING
-              : RecipeStatus.PRIVATE),
+        status: resolvedStatus,
       });
 
       const saved = await manager.save(recipe);
@@ -268,6 +276,12 @@ export class RecipesService {
 
     if (!isOwner && !isAdminOrModerator) {
       throw new ForbiddenException('Вы не можете редактировать этот рецепт');
+    }
+
+    // Смену статуса через PATCH разрешаем только персоналу. Владелец меняет
+    // статус только через выделенные эндпоинты (/submit, /make-private).
+    if (!isAdminOrModerator && updateRecipeDto.status !== undefined) {
+      delete updateRecipeDto.status;
     }
 
     if (updateRecipeDto.srcPath && updateRecipeDto.srcPath !== recipe.srcPath) {

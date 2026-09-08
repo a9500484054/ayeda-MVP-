@@ -57,6 +57,7 @@ export class RecipesController {
   ): Promise<RecipeResponseDto> {
     const recipe = await this.recipesService.create(
       req.user.id,
+      req.user.role,
       createRecipeDto,
     );
     return this.recipesService.toResponseDto(recipe);
@@ -86,6 +87,7 @@ export class RecipesController {
   }
 
   @Get(':id')
+  @UseGuards(OptionalJwtAuthGuard)
   @ApiOperation({ summary: 'Получить рецепт по ID' })
   @ApiParam({ name: 'id', description: 'UUID рецепта' })
   @ApiResponse({ status: HttpStatus.OK, type: RecipeResponseDto })
@@ -133,10 +135,9 @@ export class RecipesController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Обновить рецепт' })
+  @ApiOperation({ summary: 'Обновить рецепт (владелец или admin/moderator)' })
   @ApiParam({ name: 'id', description: 'UUID рецепта' })
   @ApiResponse({ status: HttpStatus.OK, type: RecipeResponseDto })
   async update(
