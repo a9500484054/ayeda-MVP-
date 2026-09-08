@@ -15,6 +15,7 @@ export default defineConfig([
     '**/.git/',
     '**/tmp/',
     '**/temp/',
+    'docs/module-template/**', // эталонный код, не часть сборки
   ]),
 
   // 2. Базовая конфигурация для всех JS/TS/Vue файлов
