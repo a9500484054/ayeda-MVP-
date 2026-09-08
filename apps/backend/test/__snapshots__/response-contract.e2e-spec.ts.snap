@@ -1,0 +1,332 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Response contract (e2e snapshots) GET /articles (пагинация): envelope-keys 1`] = `
+[
+  "items",
+  "limit",
+  "page",
+  "total",
+]
+`;
+
+exports[`Response contract (e2e snapshots) GET /articles (пагинация): item 1`] = `
+{
+  "author": {
+    "avatar": null,
+    "email": "<email>",
+    "first_name": null,
+    "id": "<uuid>",
+    "last_name": null,
+    "username": "<username>",
+  },
+  "categories": [
+    "советы",
+  ],
+  "content": "article body",
+  "created_at": "<date>",
+  "excerpt": "short",
+  "featured_image": null,
+  "id": "<uuid>",
+  "published_at": "<date>",
+  "seo": {
+    "description": "short",
+    "title": "<title>",
+  },
+  "slug": "<slug>",
+  "status": "published",
+  "steps": null,
+  "title": "<title>",
+  "type": "article",
+  "updated_at": "<date>",
+  "views": 1,
+}
+`;
+
+exports[`Response contract (e2e snapshots) GET /articles/:slug 1`] = `
+{
+  "author": {
+    "avatar": null,
+    "email": "<email>",
+    "first_name": null,
+    "id": "<uuid>",
+    "last_name": null,
+    "username": "<username>",
+  },
+  "categories": [
+    "советы",
+  ],
+  "content": "article body",
+  "created_at": "<date>",
+  "excerpt": "short",
+  "featured_image": null,
+  "id": "<uuid>",
+  "published_at": "<date>",
+  "seo": {
+    "description": "short",
+    "title": "<title>",
+  },
+  "slug": "<slug>",
+  "status": "published",
+  "steps": null,
+  "title": "<title>",
+  "type": "article",
+  "updated_at": "<date>",
+  "views": 1,
+}
+`;
+
+exports[`Response contract (e2e snapshots) GET /recipes (пагинация): envelope-keys 1`] = `
+[
+  "data",
+  "hasNext",
+  "hasPrev",
+  "limit",
+  "page",
+  "pages",
+  "total",
+]
+`;
+
+exports[`Response contract (e2e snapshots) GET /recipes (пагинация): item 1`] = `
+{
+  "author": {
+    "avatar": null,
+    "id": "<uuid>",
+    "username": "<username>",
+  },
+  "calories": null,
+  "categories": [
+    {
+      "code": "<code>",
+      "createdAt": "<date>",
+      "description": null,
+      "id": "<uuid>",
+      "name": "<name>",
+      "updatedAt": "<date>",
+    },
+  ],
+  "commentsCount": 1,
+  "cookingTime": 30,
+  "createdAt": "<date>",
+  "description": "desc",
+  "difficulty": "medium",
+  "id": "<uuid>",
+  "ingredients": [
+    {
+      "amount": "100.00",
+      "id": "<uuid>",
+      "ingredient": {
+        "code": "<code>",
+        "createdAt": "<date>",
+        "description": null,
+        "id": "<uuid>",
+        "name": "<name>",
+        "nutritionInfo": {},
+        "photo": null,
+        "seo": {},
+        "srcPath": "<slug>",
+        "unitId": "<uuid>",
+        "updatedAt": "<date>",
+      },
+      "notes": "по вкусу",
+      "unit": null,
+    },
+  ],
+  "likes": 0,
+  "photo": null,
+  "publishedAt": null,
+  "seo": null,
+  "servings": 2,
+  "srcPath": "<slug>",
+  "status": "private",
+  "steps": null,
+  "title": "<title>",
+  "type": "personal",
+  "updatedAt": "<date>",
+  "video": null,
+  "viewsCount": 0,
+}
+`;
+
+exports[`Response contract (e2e snapshots) GET /recipes/:id 1`] = `
+{
+  "author": {
+    "avatar": null,
+    "id": "<uuid>",
+    "username": "<username>",
+  },
+  "calories": null,
+  "categories": [
+    {
+      "code": "<code>",
+      "createdAt": "<date>",
+      "description": null,
+      "id": "<uuid>",
+      "name": "<name>",
+      "updatedAt": "<date>",
+    },
+  ],
+  "commentsCount": 1,
+  "cookingTime": 30,
+  "createdAt": "<date>",
+  "description": "desc",
+  "difficulty": "medium",
+  "id": "<uuid>",
+  "ingredients": [
+    {
+      "amount": "100.00",
+      "id": "<uuid>",
+      "ingredient": {
+        "code": "<code>",
+        "createdAt": "<date>",
+        "description": null,
+        "id": "<uuid>",
+        "name": "<name>",
+        "nutritionInfo": {},
+        "photo": null,
+        "seo": {},
+        "srcPath": "<slug>",
+        "unit": {
+          "code": "<code>",
+          "createdAt": "<date>",
+          "id": "<uuid>",
+          "name": "<name>",
+          "short": "eu",
+          "type": "mass",
+          "updatedAt": "<date>",
+        },
+        "unitId": "<uuid>",
+        "updatedAt": "<date>",
+      },
+      "notes": "по вкусу",
+      "unit": {
+        "code": "<code>",
+        "createdAt": "<date>",
+        "id": "<uuid>",
+        "name": "<name>",
+        "short": "eu",
+        "type": "mass",
+        "updatedAt": "<date>",
+      },
+    },
+  ],
+  "likes": 0,
+  "photo": null,
+  "publishedAt": null,
+  "seo": null,
+  "servings": 2,
+  "srcPath": "<slug>",
+  "status": "private",
+  "steps": null,
+  "title": "<title>",
+  "type": "personal",
+  "updatedAt": "<date>",
+  "video": null,
+  "viewsCount": 0,
+}
+`;
+
+exports[`Response contract (e2e snapshots) GET /recipes/:id/comments 1`] = `
+{
+  "data": [
+    {
+      "author": {
+        "avatar": null,
+        "id": "<uuid>",
+        "username": "<username>",
+      },
+      "createdAt": "<date>",
+      "deletedAt": null,
+      "id": "<uuid>",
+      "isHidden": false,
+      "recipeId": "<uuid>",
+      "text": "<text>",
+      "updatedAt": "<date>",
+    },
+  ],
+  "hasNext": false,
+  "hasPrev": false,
+  "limit": 10,
+  "page": 1,
+  "pages": 1,
+  "total": 1,
+}
+`;
+
+exports[`Response contract (e2e snapshots) GET /recipes/by-path/:srcPath 1`] = `
+{
+  "author": {
+    "avatar": null,
+    "id": "<uuid>",
+    "username": "<username>",
+  },
+  "calories": null,
+  "categories": [
+    {
+      "code": "<code>",
+      "createdAt": "<date>",
+      "description": null,
+      "id": "<uuid>",
+      "name": "<name>",
+      "updatedAt": "<date>",
+    },
+  ],
+  "commentsCount": 1,
+  "cookingTime": 30,
+  "createdAt": "<date>",
+  "description": "desc",
+  "difficulty": "medium",
+  "id": "<uuid>",
+  "ingredients": [
+    {
+      "amount": "100.00",
+      "id": "<uuid>",
+      "ingredient": {
+        "code": "<code>",
+        "createdAt": "<date>",
+        "description": null,
+        "id": "<uuid>",
+        "name": "<name>",
+        "nutritionInfo": {},
+        "photo": null,
+        "seo": {},
+        "srcPath": "<slug>",
+        "unit": {
+          "code": "<code>",
+          "createdAt": "<date>",
+          "id": "<uuid>",
+          "name": "<name>",
+          "short": "eu",
+          "type": "mass",
+          "updatedAt": "<date>",
+        },
+        "unitId": "<uuid>",
+        "updatedAt": "<date>",
+      },
+      "notes": "по вкусу",
+      "unit": {
+        "code": "<code>",
+        "createdAt": "<date>",
+        "id": "<uuid>",
+        "name": "<name>",
+        "short": "eu",
+        "type": "mass",
+        "updatedAt": "<date>",
+      },
+    },
+  ],
+  "likes": 0,
+  "photo": null,
+  "publishedAt": null,
+  "seo": null,
+  "servings": 2,
+  "srcPath": "<slug>",
+  "status": "private",
+  "steps": null,
+  "title": "<title>",
+  "type": "personal",
+  "updatedAt": "<date>",
+  "video": null,
+  "viewsCount": 0,
+}
+`;

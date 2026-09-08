@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
+import { DataSource } from 'typeorm';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { AllExceptionsFilter } from '../src/common/filters/all-exceptions.filter';
@@ -88,4 +89,64 @@ export async function registerUser(app: INestApplication): Promise<{
     userId: res.body.user.id,
     email,
   };
+}
+
+/** Регистрирует пользователя и повышает до admin (через БД + сброс кэша). */
+export async function registerAdmin(app: INestApplication): Promise<{
+  accessToken: string;
+  userId: string;
+}> {
+  const user = await registerUser(app);
+  const ds = app.get(DataSource);
+  await ds.query(`UPDATE "users" SET "role" = 'admin' WHERE "id" = $1`, [
+    user.userId,
+  ]);
+  // кэш user:<id> живёт 5 минут — сбрасываем, чтобы RolesGuard увидел admin
+  if (redisClient.isOpen) {
+    await redisClient.del(`user:${user.userId}`);
+    await redisClient.del(`user:email:${user.email}`);
+  }
+  return { accessToken: user.accessToken, userId: user.userId };
+}
+
+/**
+ * Рекурсивно заменяет динамические значения (uuid, ISO-даты, slug/srcPath)
+ * на плейсхолдеры — чтобы snapshot формы ответа был стабильным.
+ */
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const ISO_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
+
+export function normalizeShape(value: unknown, key?: string): unknown {
+  if (Array.isArray(value)) {
+    return value.map((v) => normalizeShape(v));
+  }
+  if (value && typeof value === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value)) {
+      out[k] = normalizeShape(v, k);
+    }
+    return out;
+  }
+  if (typeof value === 'string') {
+    if (UUID_RE.test(value)) return '<uuid>';
+    if (ISO_RE.test(value)) return '<date>';
+    if (key === 'srcPath' || key === 'slug') return '<slug>';
+    if (key === 'email') return '<email>';
+    if (key === 'avatar' || key === 'photo' || key === 'featured_image') {
+      return value ? '<path>' : value;
+    }
+    if (
+      key === 'title' ||
+      key === 'name' ||
+      key === 'code' ||
+      key === 'text' ||
+      key === 'username' ||
+      key === 'first_name' ||
+      key === 'last_name'
+    ) {
+      return `<${key}>`;
+    }
+  }
+  return value;
 }
