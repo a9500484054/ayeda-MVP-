@@ -1,6 +1,8 @@
 // apps/backend/src/app.module.ts
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { UsersModule } from './modules/users/users.module';
@@ -30,6 +32,10 @@ import { DashboardModule } from './modules/dashboard/dashboard.module'; // 👈 
       isGlobal: true,
       envFilePath: '.env',
     }),
+
+    // Глобальный rate-limit: 120 запросов в минуту с одного IP.
+    // Точечные лимиты на чувствительных ручках заданы через @Throttle.
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
 
     // Добавьте CacheModule для глобального кэширования
     CacheModule.registerAsync({
@@ -80,7 +86,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module'; // 👈 
     DashboardModule, // 👈 ДОБАВИТЬ
   ],
   controllers: [],
-  providers: [],
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {
   constructor(private dataSource: DataSource) {} // инжектим DataSource

@@ -14,6 +14,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { Request } from 'express'; // импорт остается
+import { Throttle, minutes, hours } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -41,6 +42,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
+  @Throttle({ default: { limit: 5, ttl: hours(1) } })
   @ApiOperation({ summary: 'Регистрация нового пользователя' })
   @ApiResponse({
     status: HttpStatus.CREATED,
@@ -57,6 +59,7 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 10, ttl: minutes(1) } })
   @UseGuards(RateLimitGuard) // Добавьте guard для защиты от брутфорса
   @ApiOperation({ summary: 'Вход в систему' })
   @ApiResponse({
@@ -74,6 +77,7 @@ export class AuthController {
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 30, ttl: minutes(1) } })
   @ApiOperation({ summary: 'Обновление токенов' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -118,6 +122,7 @@ export class AuthController {
 
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 3, ttl: hours(1) } })
   @ApiOperation({ summary: 'Запрос на сброс пароля' })
   async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
     return this.authService.forgotPassword(forgotPasswordDto);
@@ -125,6 +130,7 @@ export class AuthController {
 
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: hours(1) } })
   @ApiOperation({ summary: 'Сброс пароля по токену' })
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     return this.authService.resetPassword(resetPasswordDto);
@@ -148,6 +154,7 @@ export class AuthController {
 
   @Post('send-verification')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: hours(1) } })
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Отправить письмо для подтверждения email' })
@@ -157,6 +164,7 @@ export class AuthController {
 
   @Post('verify-email')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 10, ttl: hours(1) } })
   @ApiOperation({ summary: 'Подтвердить email по токену' })
   async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto) {
     return this.authService.verifyEmail(verifyEmailDto.token);

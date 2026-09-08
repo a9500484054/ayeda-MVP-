@@ -8,15 +8,36 @@ import {
   VersioningType,
 } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { join } from 'path';
 import redisClient from './config/redis';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule); // 👈 ИЗМЕНИТЬ (добавить <NestExpressApplication>)
-  // CORS
+
+  // За обратным прокси (nginx) — доверяем первому hop'у, чтобы rate-limit
+  // видел реальный IP клиента из X-Forwarded-For
+  app.set('trust proxy', 1);
+
+  // Заголовки безопасности. CSP выключаем — API отдаёт JSON, а дефолтный CSP
+  // ломает Swagger UI на /api/docs
+  app.use(helmet({ contentSecurityPolicy: false }));
+
+  // CORS: список доменов из CORS_ORIGIN (через запятую). Запросы без Origin
+  // (SSR, curl, Swagger, мобильные) пропускаем
+  const corsOrigins = (process.env.CORS_ORIGIN ?? 'http://localhost:3000')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
   app.enableCors({
-    origin: true,
+    origin: (origin, callback) => {
+      // origin отсутствует у не-браузерных запросов (SSR, curl, Swagger) — пропускаем.
+      // Неразрешённый Origin: не бросаем 500, просто не отдаём CORS-заголовки —
+      // браузер сам заблокирует ответ
+      callback(null, !origin || corsOrigins.includes(origin));
+    },
     credentials: true,
   });
 
