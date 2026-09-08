@@ -4,6 +4,7 @@ import { UnitResponseDto } from '../../units/dto/unit-response.dto';
 import { IngredientResponseDto } from '../../ingredients/dto/ingredient-response.dto';
 import { CategoryResponseDto } from '../../categories/dto/category-response.dto';
 import { RecipeStatus, RecipeType, Difficulty } from '../enums/recipe.enums';
+import { Recipe } from '../entities/recipe.entity';
 
 export class RecipePhotoDto {
   @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174000' })
@@ -153,4 +154,45 @@ export class RecipeResponseDto {
     description: 'SEO настройки рецепта',
   })
   seo?: RecipeSeoDto;
+
+  static from(recipe: Recipe): RecipeResponseDto {
+    const dto = new RecipeResponseDto();
+    dto.id = recipe.id;
+    dto.title = recipe.title;
+    dto.description = recipe.description;
+    dto.cookingTime = recipe.cookingTime;
+    dto.servings = recipe.servings;
+    dto.calories = recipe.calories;
+    dto.difficulty = recipe.difficulty;
+    dto.status = recipe.status;
+    dto.type = recipe.type;
+    dto.photo = recipe.photo;
+    dto.video = recipe.video;
+    dto.steps = recipe.steps;
+    dto.srcPath = recipe.srcPath;
+    dto.likes = recipe.likes;
+    dto.author = PublicAuthorDto.fromUser(recipe.author);
+    dto.ingredients = (recipe.ingredients ?? []).map((ri) => ({
+      id: ri.id,
+      ingredient: ri.ingredient,
+      amount: ri.amount,
+      unit: ri.ingredient?.unit ?? null,
+      notes: ri.notes,
+    })) as RecipeIngredientResponseDto[];
+    dto.categories = (recipe.categories ?? []).map((rc) => ({
+      id: rc.category.id,
+      code: rc.category.code,
+      name: rc.category.name,
+      description: rc.category.description,
+      createdAt: rc.category.createdAt,
+      updatedAt: rc.category.updatedAt,
+    })) as CategoryResponseDto[];
+    dto.createdAt = recipe.createdAt;
+    dto.updatedAt = recipe.updatedAt;
+    dto.publishedAt = recipe.publishedAt;
+    dto.seo = recipe.seo;
+    dto.commentsCount = recipe.commentsCount || 0;
+    dto.viewsCount = recipe.viewsCount || 0;
+    return dto;
+  }
 }

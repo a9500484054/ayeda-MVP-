@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Article } from '../entities/article.entity';
 
 class AuthorDto {
   @ApiProperty()
@@ -99,4 +100,39 @@ export class ArticleResponseDto {
 
   @ApiProperty({ type: AuthorDto })
   author: AuthorDto;
+
+  static from(article: Article): ArticleResponseDto {
+    const dto = new ArticleResponseDto();
+    dto.id = article.id;
+    dto.title = article.title;
+    dto.slug = article.slug;
+    dto.content = article.content;
+    dto.steps = article.steps
+      ? article.steps.map((step) => ({
+          id: step.id,
+          text: step.text,
+          image: step.image || null,
+          sort: step.sort,
+        }))
+      : null;
+    dto.excerpt = article.excerpt;
+    dto.featured_image = article.featuredImage;
+    dto.categories = article.categories;
+    dto.type = article.type;
+    dto.status = article.status;
+    dto.views = article.views;
+    dto.seo = article.seo;
+    dto.published_at = article.publishedAt;
+    dto.created_at = article.createdAt;
+    dto.updated_at = article.updatedAt;
+    dto.author = {
+      id: article.author.id,
+      username: article.author.username,
+      email: article.author.email,
+      avatar: article.author.avatar,
+      first_name: article.author.firstName,
+      last_name: article.author.lastName,
+    };
+    return dto;
+  }
 }

@@ -14,10 +14,7 @@ import {
 } from './entities/article.entity';
 import { CreateArticleDto, ArticleStepDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
-import {
-  ArticleResponseDto,
-  StepResponseDto,
-} from './dto/article-response.dto';
+import { ArticleResponseDto } from './dto/article-response.dto';
 import { ArticlesQueryDto } from './dto/articles-query.dto';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -98,44 +95,6 @@ export class ArticlesService {
       .sort((a, b) => a.sort - b.sort);
   }
 
-  private toResponseDto(article: Article): ArticleResponseDto {
-    // Преобразуем steps из ArticleStep[] в StepResponseDto[]
-    const steps: StepResponseDto[] | null = article.steps
-      ? article.steps.map((step) => ({
-          id: step.id,
-          text: step.text,
-          image: step.image || null,
-          sort: step.sort,
-        }))
-      : null;
-
-    return {
-      id: article.id,
-      title: article.title,
-      slug: article.slug,
-      content: article.content,
-      steps: steps,
-      excerpt: article.excerpt,
-      featured_image: article.featuredImage,
-      categories: article.categories,
-      type: article.type,
-      status: article.status,
-      views: article.views,
-      seo: article.seo,
-      published_at: article.publishedAt,
-      created_at: article.createdAt,
-      updated_at: article.updatedAt,
-      author: {
-        id: article.author.id,
-        username: article.author.username,
-        email: article.author.email,
-        avatar: article.author.avatar,
-        first_name: article.author.firstName,
-        last_name: article.author.lastName,
-      },
-    };
-  }
-
   async create(
     userId: string,
     dto: CreateArticleDto,
@@ -180,7 +139,7 @@ export class ArticlesService {
       relations: ['author'],
     });
 
-    return this.toResponseDto(withAuthor!);
+    return ArticleResponseDto.from(withAuthor!);
   }
 
   async findAll(query: ArticlesQueryDto): Promise<{
@@ -219,7 +178,7 @@ export class ArticlesService {
     });
 
     return {
-      items: items.map((item) => this.toResponseDto(item)),
+      items: items.map((item) => ArticleResponseDto.from(item)),
       total: total,
       page: page,
       limit: limit,
@@ -242,7 +201,7 @@ export class ArticlesService {
     await this.articlesRepository.increment({ id: article.id }, 'views', 1);
     article.views += 1;
 
-    return this.toResponseDto(article);
+    return ArticleResponseDto.from(article);
   }
 
   async findOne(userId: string, id: string): Promise<ArticleResponseDto> {
@@ -259,7 +218,7 @@ export class ArticlesService {
       throw new ForbiddenException('Нет доступа к этой статье');
     }
 
-    return this.toResponseDto(article);
+    return ArticleResponseDto.from(article);
   }
 
   async update(
@@ -329,7 +288,7 @@ export class ArticlesService {
     }
 
     const saved = await this.articlesRepository.save(article);
-    return this.toResponseDto(saved);
+    return ArticleResponseDto.from(saved);
   }
 
   async publish(userId: string, id: string): Promise<ArticleResponseDto> {

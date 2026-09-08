@@ -64,7 +64,7 @@ export class RecipesController {
       req.user.role,
       createRecipeDto,
     );
-    return this.recipesService.toResponseDto(recipe);
+    return RecipeResponseDto.from(recipe);
   }
 
   @Get()
@@ -83,9 +83,7 @@ export class RecipesController {
 
     const [recipes, total] = await this.recipesService.findAll(query);
 
-    const recipeDtos = recipes.map((recipe) =>
-      this.recipesService.toResponseDto(recipe),
-    );
+    const recipeDtos = recipes.map((recipe) => RecipeResponseDto.from(recipe));
 
     return new PaginatedResponseDto(recipeDtos, total, page, limit);
   }
@@ -112,7 +110,7 @@ export class RecipesController {
       });
     }
 
-    return this.recipesService.toResponseDto(recipe);
+    return RecipeResponseDto.from(recipe);
   }
 
   @Get('by-path/:srcPath')
@@ -141,7 +139,7 @@ export class RecipesController {
       });
     }
 
-    return this.recipesService.toResponseDto(recipe);
+    return RecipeResponseDto.from(recipe);
   }
 
   @Patch(':id')
@@ -160,7 +158,7 @@ export class RecipesController {
       id,
       updateRecipeDto,
     );
-    return this.recipesService.toResponseDto(recipe);
+    return RecipeResponseDto.from(recipe);
   }
 
   @Delete(':id')
@@ -187,7 +185,7 @@ export class RecipesController {
     @Param('id') id: string,
   ): Promise<RecipeResponseDto> {
     const recipe = await this.recipesService.publish(id, req.user.id);
-    return this.recipesService.toResponseDto(recipe);
+    return RecipeResponseDto.from(recipe);
   }
 
   @Post(':id/reject')
@@ -201,7 +199,7 @@ export class RecipesController {
     @Param('id') id: string,
   ): Promise<RecipeResponseDto> {
     const recipe = await this.recipesService.reject(id, req.user.id);
-    return this.recipesService.toResponseDto(recipe);
+    return RecipeResponseDto.from(recipe);
   }
 
   @Post(':id/submit')
@@ -218,7 +216,7 @@ export class RecipesController {
       id,
       req.user.id,
     );
-    return this.recipesService.toResponseDto(recipe);
+    return RecipeResponseDto.from(recipe);
   }
 
   @Post(':id/make-private')
@@ -237,7 +235,7 @@ export class RecipesController {
     @Param('id') id: string,
   ): Promise<RecipeResponseDto> {
     const recipe = await this.recipesService.makePrivate(id, req.user.id);
-    return this.recipesService.toResponseDto(recipe);
+    return RecipeResponseDto.from(recipe);
   }
 
   // ==================== ПОИСКОВЫЕ ЭНДПОИНТЫ ====================
@@ -271,9 +269,7 @@ export class RecipesController {
       limit: Number(limit),
     });
 
-    const recipeDtos = recipes.map((recipe) =>
-      this.recipesService.toResponseDto(recipe),
-    );
+    const recipeDtos = recipes.map((recipe) => RecipeResponseDto.from(recipe));
 
     return new PaginatedResponseDto(
       recipeDtos,
@@ -316,9 +312,7 @@ export class RecipesController {
       { page: Number(page), limit: Number(limit) },
     );
 
-    const recipeDtos = recipes.map((recipe) =>
-      this.recipesService.toResponseDto(recipe),
-    );
+    const recipeDtos = recipes.map((recipe) => RecipeResponseDto.from(recipe));
 
     return new PaginatedResponseDto(
       recipeDtos,
@@ -361,9 +355,7 @@ export class RecipesController {
       { page: Number(page), limit: Number(limit) },
     );
 
-    const recipeDtos = recipes.map((recipe) =>
-      this.recipesService.toResponseDto(recipe),
-    );
+    const recipeDtos = recipes.map((recipe) => RecipeResponseDto.from(recipe));
 
     return new PaginatedResponseDto(
       recipeDtos,
@@ -406,9 +398,7 @@ export class RecipesController {
       { page: Number(page), limit: Number(limit) },
     );
 
-    const recipeDtos = recipes.map((recipe) =>
-      this.recipesService.toResponseDto(recipe),
-    );
+    const recipeDtos = recipes.map((recipe) => RecipeResponseDto.from(recipe));
 
     return new PaginatedResponseDto(
       recipeDtos,
@@ -437,9 +427,7 @@ export class RecipesController {
       limit: Number(limit),
     });
 
-    const recipeDtos = recipes.map((recipe) =>
-      this.recipesService.toResponseDto(recipe),
-    );
+    const recipeDtos = recipes.map((recipe) => RecipeResponseDto.from(recipe));
 
     return new PaginatedResponseDto(
       recipeDtos,

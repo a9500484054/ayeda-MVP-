@@ -8,13 +8,11 @@ import { Repository, IsNull } from 'typeorm';
 import { Comment } from './entities/comment.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
-import { CommentResponseDto } from './dto/comment-response.dto';
 import {
   PaginatedResponseDto,
   PaginationDto,
 } from 'src/common/dto/pagination.dto';
 import { UserRole } from '../users/entities/user.entity';
-import { PublicAuthorDto } from '../users/dto/public-author.dto';
 import { Recipe } from '../recipes/entities/recipe.entity';
 
 @Injectable()
@@ -272,18 +270,5 @@ export class CommentsService {
     const [comments, total] = await queryBuilder.getManyAndCount();
 
     return new PaginatedResponseDto(comments, total, page, limit);
-  }
-
-  toResponseDto(comment: Comment): CommentResponseDto {
-    return {
-      id: comment.id,
-      text: comment.text,
-      recipeId: comment.recipeId,
-      author: PublicAuthorDto.fromUser(comment.author),
-      isHidden: comment.isHidden,
-      createdAt: comment.createdAt,
-      updatedAt: comment.updatedAt,
-      deletedAt: comment.deletedAt,
-    };
   }
 }

@@ -21,6 +21,7 @@ import {
   ReorderDaysDto,
 } from './dto/create-day.dto';
 import { RecipesService } from '../recipes/recipes.service';
+import { RecipeResponseDto } from '../recipes/dto/recipe-response.dto';
 import { MenuListResponseDto } from './dto/menu-list-response.dto';
 import { MenuSlotResponseDto } from './dto/menu-slot-response.dto';
 import { MenuSlotItemResponseDto } from './dto/menu-slot-item-response.dto';
@@ -88,9 +89,7 @@ export class MenuPlannerService {
       notes: item.notes,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt,
-      recipe: item.recipe
-        ? this.recipesService.toResponseDto(item.recipe)
-        : undefined,
+      recipe: item.recipe ? RecipeResponseDto.from(item.recipe) : undefined,
     };
   }
 

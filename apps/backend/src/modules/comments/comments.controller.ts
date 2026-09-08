@@ -64,7 +64,7 @@ export class CommentsController {
       req.user.id,
       createCommentDto,
     );
-    return this.commentsService.toResponseDto(comment);
+    return CommentResponseDto.from(comment);
   }
 
   @Get()
@@ -93,7 +93,7 @@ export class CommentsController {
     );
 
     const commentDtos = result.data.map((comment) =>
-      this.commentsService.toResponseDto(comment),
+      CommentResponseDto.from(comment),
     );
 
     return new PaginatedResponseDto(
@@ -111,7 +111,7 @@ export class CommentsController {
   @ApiResponse({ status: HttpStatus.OK, type: CommentResponseDto })
   async findOne(@Param('id') id: string): Promise<CommentResponseDto> {
     const comment = await this.commentsService.findOne(id);
-    return this.commentsService.toResponseDto(comment);
+    return CommentResponseDto.from(comment);
   }
 
   @Patch(':id')
@@ -132,7 +132,7 @@ export class CommentsController {
       req.user.role,
       updateCommentDto,
     );
-    return this.commentsService.toResponseDto(comment);
+    return CommentResponseDto.from(comment);
   }
 
   @Delete(':id')
@@ -162,7 +162,7 @@ export class CommentsController {
     @Param('id') id: string,
   ): Promise<CommentResponseDto> {
     const comment = await this.commentsService.hide(id, req.user.id);
-    return this.commentsService.toResponseDto(comment);
+    return CommentResponseDto.from(comment);
   }
 
   @Post(':id/unhide')
@@ -180,7 +180,7 @@ export class CommentsController {
     @Param('id') id: string,
   ): Promise<CommentResponseDto> {
     const comment = await this.commentsService.unhide(id, req.user.id);
-    return this.commentsService.toResponseDto(comment);
+    return CommentResponseDto.from(comment);
   }
 
   @Get('moderator/all')
@@ -292,7 +292,7 @@ export class CommentsController {
     });
 
     const commentDtos = result.data.map((comment) =>
-      this.commentsService.toResponseDto(comment),
+      CommentResponseDto.from(comment),
     );
 
     return new PaginatedResponseDto(

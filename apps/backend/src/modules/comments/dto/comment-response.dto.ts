@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { PublicAuthorDto } from '../../users/dto/public-author.dto';
+import { Comment } from '../entities/comment.entity';
 
 export class CommentResponseDto {
   @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174000' })
@@ -25,4 +26,17 @@ export class CommentResponseDto {
 
   @ApiProperty({ example: null, nullable: true })
   deletedAt: Date | null;
+
+  static from(comment: Comment): CommentResponseDto {
+    const dto = new CommentResponseDto();
+    dto.id = comment.id;
+    dto.text = comment.text;
+    dto.recipeId = comment.recipeId;
+    dto.author = PublicAuthorDto.fromUser(comment.author);
+    dto.isHidden = comment.isHidden;
+    dto.createdAt = comment.createdAt;
+    dto.updatedAt = comment.updatedAt;
+    dto.deletedAt = comment.deletedAt;
+    return dto;
+  }
 }

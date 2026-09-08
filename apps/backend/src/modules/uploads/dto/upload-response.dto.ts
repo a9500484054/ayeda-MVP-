@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Upload } from '../entities/upload.entity';
 
 export class UploadResponseDto {
   @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174000' })
@@ -29,4 +30,18 @@ export class UploadResponseDto {
     example: 'http://localhost:4000/uploads/recipes/123/image.jpg',
   })
   url: string;
+
+  /** url вычисляется хранилищем и передаётся сюда сервисом. */
+  static from(upload: Upload, url: string): UploadResponseDto {
+    const dto = new UploadResponseDto();
+    dto.id = upload.id;
+    dto.userId = upload.userId;
+    dto.path = upload.path;
+    dto.originalName = upload.originalName;
+    dto.mimeType = upload.mimeType;
+    dto.size = upload.size;
+    dto.createdAt = upload.createdAt;
+    dto.url = url;
+    return dto;
+  }
 }

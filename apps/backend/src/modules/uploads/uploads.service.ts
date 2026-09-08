@@ -138,15 +138,9 @@ export class UploadsService {
   }
 
   toResponseDto(upload: Upload): UploadResponseDto {
-    return {
-      id: upload.id,
-      userId: upload.userId,
-      path: upload.path,
-      originalName: upload.originalName,
-      mimeType: upload.mimeType,
-      size: upload.size,
-      createdAt: upload.createdAt,
-      url: this.storageService.getFileUrl(upload.path),
-    };
+    return UploadResponseDto.from(
+      upload,
+      this.storageService.getFileUrl(upload.path),
+    );
   }
 }

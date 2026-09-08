@@ -20,19 +20,6 @@ export class ShoppingCategoriesService {
     private categoryRepository: Repository<ShoppingCategory>,
   ) {}
 
-  private toResponseDto(category: ShoppingCategory): CategoryResponseDto {
-    return {
-      id: category.id,
-      code: category.code,
-      name: category.name,
-      icon: category.icon,
-      sortOrder: category.sortOrder,
-      isActive: category.isActive,
-      createdAt: category.createdAt,
-      updatedAt: category.updatedAt,
-    };
-  }
-
   private async loadDefaultCategoryId(): Promise<string> {
     if (this.defaultCategoryId) return this.defaultCategoryId;
 
@@ -67,7 +54,7 @@ export class ShoppingCategoriesService {
     });
 
     const saved = await this.categoryRepository.save(category);
-    return this.toResponseDto(saved);
+    return CategoryResponseDto.from(saved);
   }
 
   async findAll(activeOnly: boolean = true): Promise<CategoryResponseDto[]> {
@@ -81,7 +68,7 @@ export class ShoppingCategoriesService {
       order: { sortOrder: 'ASC', name: 'ASC' },
     });
 
-    return categories.map((cat) => this.toResponseDto(cat));
+    return categories.map((cat) => CategoryResponseDto.from(cat));
   }
 
   async findAllForAdmin(): Promise<CategoryResponseDto[]> {
@@ -89,7 +76,7 @@ export class ShoppingCategoriesService {
       order: { sortOrder: 'ASC', name: 'ASC' },
     });
 
-    return categories.map((cat) => this.toResponseDto(cat));
+    return categories.map((cat) => CategoryResponseDto.from(cat));
   }
 
   async findOne(id: string): Promise<ShoppingCategory> {
@@ -105,7 +92,7 @@ export class ShoppingCategoriesService {
   }
 
   async findOneResponse(id: string): Promise<CategoryResponseDto> {
-    return this.toResponseDto(await this.findOne(id));
+    return CategoryResponseDto.from(await this.findOne(id));
   }
 
   async update(
@@ -117,7 +104,7 @@ export class ShoppingCategoriesService {
     Object.assign(category, dto);
 
     const saved = await this.categoryRepository.save(category);
-    return this.toResponseDto(saved);
+    return CategoryResponseDto.from(saved);
   }
 
   async remove(id: string): Promise<void> {

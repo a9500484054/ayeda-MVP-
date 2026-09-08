@@ -18,9 +18,7 @@ import { IngredientsService } from '../ingredients/ingredients.service';
 import { CategoriesService } from '../categories/categories.service';
 import { UnitsService } from '../units/units.service';
 import { RecipeStatus, RecipeType } from './enums/recipe.enums';
-import { RecipeResponseDto } from './dto/recipe-response.dto';
 import { UserRole } from '../users/entities/user.entity';
-import { PublicAuthorDto } from '../users/dto/public-author.dto';
 import { Favorite } from '../favorites/entities/favorite.entity';
 import { setOnce } from '../../utils/redis.utils';
 
@@ -417,53 +415,6 @@ export class RecipesService {
     }
 
     await this.recipesRepository.increment({ id }, 'viewsCount', 1);
-  }
-
-  toResponseDto(recipe: Recipe): RecipeResponseDto {
-    const categories =
-      recipe.categories?.map((rc) => ({
-        id: rc.category.id,
-        code: rc.category.code,
-        name: rc.category.name,
-        description: rc.category.description,
-        createdAt: rc.category.createdAt,
-        updatedAt: rc.category.updatedAt,
-      })) || [];
-
-    const ingredients =
-      recipe.ingredients?.map((ri) => ({
-        id: ri.id,
-        ingredient: ri.ingredient,
-        amount: ri.amount,
-        unit: ri.ingredient.unit || null, // Получаем unit из связанного ингредиента
-        notes: ri.notes,
-      })) || [];
-
-    return {
-      id: recipe.id,
-      title: recipe.title,
-      description: recipe.description,
-      cookingTime: recipe.cookingTime,
-      servings: recipe.servings,
-      calories: recipe.calories,
-      difficulty: recipe.difficulty,
-      status: recipe.status,
-      type: recipe.type,
-      photo: recipe.photo,
-      video: recipe.video,
-      steps: recipe.steps,
-      srcPath: recipe.srcPath,
-      likes: recipe.likes,
-      author: PublicAuthorDto.fromUser(recipe.author),
-      ingredients,
-      categories,
-      createdAt: recipe.createdAt,
-      updatedAt: recipe.updatedAt,
-      publishedAt: recipe.publishedAt,
-      seo: recipe.seo,
-      commentsCount: recipe.commentsCount || 0, // ✅ ДОБАВЬТЕ ЭТУ СТРОКУ
-      viewsCount: recipe.viewsCount || 0, // ✅ Добавьте эту строку
-    };
   }
 
   async submitForModeration(id: string, userId: string): Promise<Recipe> {
