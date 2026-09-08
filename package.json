@@ -7,9 +7,21 @@
     "lint": "eslint . --ext .ts,.js,.vue",
     "lint:fix": "eslint . --ext .ts,.js,.vue --fix",
     "format": "prettier --write \"**/*.{js,ts,json,md,vue}\"",
-    "storybook": "pnpm --filter storybook storybook"
+    "storybook": "pnpm --filter storybook storybook",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "apps/backend/**/*.ts": [
+      "prettier --write",
+      "eslint --fix --no-warn-ignored"
+    ],
+    "**/*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
   },
   "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2",
     "@eslint/js": "^10.0.1",
     "@types/node": "^25.3.0",
     "@typescript-eslint/eslint-plugin": "^8.56.1",
