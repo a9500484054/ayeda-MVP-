@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { DataSource } from 'typeorm';
 import { join } from 'path';
 
@@ -11,8 +12,10 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_DATABASE,
 
   synchronize: false,
-  logging: true,
+  logging: ['error', 'warn'],
 
-  entities: [join(__dirname, 'entities/*.entity.js')],
-  migrations: [join(__dirname, 'migrations/*.js')],
+  // Миграции пишутся вручную и не требуют загрузки сущностей.
+  // entities не подключаем — иначе ts-node CLI спотыкается на path-алиасах.
+  entities: [],
+  migrations: [join(__dirname, 'migrations', '*.{ts,js}')],
 });
