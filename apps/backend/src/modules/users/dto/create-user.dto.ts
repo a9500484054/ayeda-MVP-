@@ -2,10 +2,13 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail,
   IsString,
+  IsOptional,
+  IsEnum,
   MinLength,
   MaxLength,
   Matches,
 } from 'class-validator';
+import { UserRole } from '../entities/user.entity';
 
 export class CreateUserDto {
   @ApiProperty({
@@ -48,4 +51,14 @@ export class CreateUserDto {
       'Имя пользователя может содержать только буквы, цифры и подчеркивания',
   })
   username: string;
+
+  @ApiProperty({
+    required: false,
+    enum: UserRole,
+    example: UserRole.USER,
+    description: 'Роль (только для администратора через POST /users)',
+  })
+  @IsEnum(UserRole)
+  @IsOptional()
+  role?: UserRole;
 }

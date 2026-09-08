@@ -13,6 +13,7 @@ import {
   Query,
   UseGuards,
   Req,
+  ForbiddenException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -29,7 +30,7 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
-import { User, UserRole } from './entities/user.entity';
+import { UserRole } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PaginatedResponseDto, PaginationDto } from 'src/common/dto/pagination.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -37,6 +38,12 @@ import { RolesGuard } from '../../common/guards/roles.guard'; // Добавьт�
 import { UsersCacheService } from './users.cache.service';
 import { Roles } from '../../common/decorators/roles.decorator'; // Исправьте путь
 import redisClient from 'src/config/redis';
+
+interface AuthedRequest {
+  user: { id: string; email: string; role: UserRole };
+}
+
+const STAFF_ROLES: UserRole[] = [UserRole.ADMIN, UserRole.MODERATOR];
 
 @ApiTags('users')
 @Controller('users')
@@ -48,7 +55,10 @@ export class UsersController {
   ) {}
 
   @Post()
-  @ApiOperation({ summary: 'Создание нового пользователя' })
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Создание пользователя (только администратор)' })
   @ApiBody({ type: CreateUserDto })
   @ApiCreatedResponse({
     description: 'Пользователь успешно создан',
@@ -63,8 +73,11 @@ export class UsersController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @ApiBearerAuth()
   @ApiOperation({
-    summary: 'Получить список всех пользователей (с пагинацией)',
+    summary: 'Список пользователей с пагинацией (admin/moderator)',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -110,20 +123,28 @@ export class UsersController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Получение пользователя по ID' })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Получение пользователя по ID (сам или admin/moderator)' })
   @ApiParam({ name: 'id', description: 'UUID пользователя' })
   @ApiOkResponse({
     description: 'Пользователь найден',
     type: UserResponseDto,
   })
   @ApiNotFoundResponse({ description: 'Пользователь не найден' })
-  async findOne(@Param('id') id: string): Promise<UserResponseDto> {
+  async findOne(
+    @Req() req: AuthedRequest,
+    @Param('id') id: string,
+  ): Promise<UserResponseDto> {
+    this.assertSelfOrStaff(req, id);
     const user = await this.usersService.findOne(id);
     return new UserResponseDto(user);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Обновление данных пользователя' })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Обновление данных пользователя (сам или администратор)' })
   @ApiParam({ name: 'id', description: 'UUID пользователя' })
   @ApiBody({ type: UpdateUserDto })
   @ApiOkResponse({
@@ -132,24 +153,53 @@ export class UsersController {
   })
   @ApiNotFoundResponse({ description: 'Пользователь не найден' })
   async update(
+    @Req() req: AuthedRequest,
     @Param('id') id: string,
-    @Body() updateData: Partial<User>,
+    @Body() updateDto: UpdateUserDto,
   ): Promise<UserResponseDto> {
-    const user = await this.usersService.update(id, updateData);
+    const isSelf = req.user.id === id;
+    const isAdmin = req.user.role === UserRole.ADMIN;
+
+    if (!isSelf && !isAdmin) {
+      throw new ForbiddenException('Вы можете изменять только свой профиль');
+    }
+    if (updateDto.role !== undefined && !isAdmin) {
+      throw new ForbiddenException('Изменение роли доступно только администратору');
+    }
+
+    const user = await this.usersService.update(id, updateDto);
     return new UserResponseDto(user);
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Удаление пользователя (soft delete)' })
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Удаление пользователя (сам или администратор, soft delete)' })
   @ApiParam({ name: 'id', description: 'UUID пользователя' })
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,
     description: 'Пользователь удален',
   })
   @ApiNotFoundResponse({ description: 'Пользователь не найден' })
-  async remove(@Param('id') id: string): Promise<void> {
+  async remove(
+    @Req() req: AuthedRequest,
+    @Param('id') id: string,
+  ): Promise<void> {
+    const isSelf = req.user.id === id;
+    const isAdmin = req.user.role === UserRole.ADMIN;
+    if (!isSelf && !isAdmin) {
+      throw new ForbiddenException('Вы можете удалить только свой аккаунт');
+    }
     await this.usersService.remove(id);
+  }
+
+  private assertSelfOrStaff(req: AuthedRequest, id: string): void {
+    const isSelf = req.user.id === id;
+    const isStaff = STAFF_ROLES.includes(req.user.role);
+    if (!isSelf && !isStaff) {
+      throw new ForbiddenException('Недостаточно прав для просмотра профиля');
+    }
   }
 
   @Post('cache/clear')

@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional, MinLength, MaxLength } from 'class-validator';
+import { IsString, IsOptional, IsEnum, MinLength, MaxLength } from 'class-validator';
+import { UserRole } from '../entities/user.entity';
 
 export class UpdateUserDto {
   @ApiProperty({ required: false, example: 'john_doe' })
@@ -33,10 +34,11 @@ export class UpdateUserDto {
 
   @ApiProperty({
     required: false,
-    enum: ['user', 'moderator', 'admin'],
-    example: 'admin',
+    enum: UserRole,
+    example: UserRole.ADMIN,
+    description: 'Изменение доступно только администратору',
   })
-  @IsString()
+  @IsEnum(UserRole)
   @IsOptional()
-  role?: string;
+  role?: UserRole;
 }
