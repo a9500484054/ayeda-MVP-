@@ -32,13 +32,20 @@ async function bootstrap() {
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean);
+  const isProd = process.env.NODE_ENV === 'production';
+  const localhostRe = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
   app.enableCors({
     origin: (origin, callback) => {
       // origin отсутствует у не-браузерных запросов (SSR, curl, Swagger) — пропускаем.
+      // В dev пускаем любой localhost (любой порт). В prod — только whitelist.
       // Неразрешённый Origin: не бросаем 500, просто не отдаём CORS-заголовки —
       // браузер сам заблокирует ответ
-      callback(null, !origin || corsOrigins.includes(origin));
+      const allowed =
+        !origin ||
+        corsOrigins.includes(origin) ||
+        (!isProd && localhostRe.test(origin));
+      callback(null, allowed);
     },
     credentials: true,
   });
