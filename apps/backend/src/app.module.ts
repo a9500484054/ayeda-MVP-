@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { UsersModule } from './modules/users/users.module';
@@ -36,6 +37,9 @@ import { DashboardModule } from './modules/dashboard/dashboard.module'; // 👈 
     // Глобальный rate-limit: 120 запросов в минуту с одного IP.
     // Точечные лимиты на чувствительных ручках заданы через @Throttle.
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
+
+    // Планировщик (крон-задачи: очистка refresh-токенов)
+    ScheduleModule.forRoot(),
 
     // Добавьте CacheModule для глобального кэширования
     CacheModule.registerAsync({

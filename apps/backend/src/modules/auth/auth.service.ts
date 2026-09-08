@@ -5,8 +5,10 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThan, IsNull, Not, MoreThan } from 'typeorm';
+import { createHash, randomUUID } from 'crypto';
 import * as argon2 from 'argon2';
 import { UsersService } from '../users/users.service';
 import { RefreshToken } from './entities/refresh-token.entity';
@@ -97,72 +99,46 @@ export class AuthService {
 
   // ========== ОБНОВЛЕНИЕ ТОКЕНОВ ==========
   async refresh(refreshToken: string) {
-    // Находим все НЕ отозванные и НЕ просроченные токены
-    const tokenRecords = await this.refreshTokenRepository.find({
+    // Сначала проверяем подпись и срок самого refresh-JWT
+    let payload: { sub: string };
+    try {
+      payload = this.jwtService.verify<{ sub: string }>(refreshToken, {
+        secret: this.configService.get('JWT_REFRESH_SECRET'),
+      });
+    } catch {
+      throw new UnauthorizedException('Недействительный refresh токен');
+    }
+
+    // Один индексированный поиск по детерминированному хэшу
+    const tokenHash = this.hashToken(refreshToken);
+    const tokenRecord = await this.refreshTokenRepository.findOne({
       where: {
+        userId: payload.sub,
+        tokenHash,
         revokedAt: IsNull(),
-        expiresAt: MoreThan(new Date())
+        expiresAt: MoreThan(new Date()),
       },
       relations: ['user'],
     });
 
-    // Ищем совпадение через argon2.verify
-    let validTokenRecord: RefreshToken | null = null;
-
-    for (const record of tokenRecords) {
-      try {
-        const isValid = await argon2.verify(record.tokenHash, refreshToken);
-        if (isValid) {
-          validTokenRecord = record;
-          break;
-        }
-      } catch (error) {
-        continue;
-      }
-    }
-
-    if (!validTokenRecord) {
+    if (!tokenRecord) {
       throw new UnauthorizedException('Недействительный refresh токен');
     }
 
-    // Отзываем старый токен
-    validTokenRecord.revokedAt = new Date();
-    await this.refreshTokenRepository.save(validTokenRecord);
+    // Ротация: отзываем старый токен и выдаём новую пару
+    tokenRecord.revokedAt = new Date();
+    await this.refreshTokenRepository.save(tokenRecord);
 
-    // Генерируем новые токены
-    return this.generateTokens(validTokenRecord.user);
+    return this.generateTokens(tokenRecord.user);
   }
 
   // ========== ВЫХОД ==========
   async logout(userId: string, refreshToken: string) {
-    // Находим ВСЕ активные токены пользователя
-    const tokenRecords = await this.refreshTokenRepository.find({
-      where: {
-        userId,
-        revokedAt: IsNull(),
-      },
-    });
-
-    // Ищем нужный токен через verify
-    let tokenToRevoke: RefreshToken | null = null;
-
-    for (const record of tokenRecords) {
-      try {
-        const isValid = await argon2.verify(record.tokenHash, refreshToken);
-        if (isValid) {
-          tokenToRevoke = record;
-          break;
-        }
-      } catch (error) {
-        continue;
-      }
-    }
-
-    if (tokenToRevoke) {
-      tokenToRevoke.revokedAt = new Date();
-      await this.refreshTokenRepository.save(tokenToRevoke);
-    }
-
+    const tokenHash = this.hashToken(refreshToken);
+    await this.refreshTokenRepository.update(
+      { userId, tokenHash, revokedAt: IsNull() },
+      { revokedAt: new Date() },
+    );
     return { success: true };
   }
 
@@ -337,7 +313,7 @@ export class AuthService {
         {
           userId,
           revokedAt: IsNull(),
-          tokenHash: Not(await this.hashToken(currentRefreshToken))
+          tokenHash: Not(this.hashToken(currentRefreshToken)),
         },
         { revokedAt: new Date() }
       );
@@ -362,10 +338,15 @@ export class AuthService {
       expiresIn: this.configService.get('JWT_ACCESS_EXPIRES_IN', '15m'),
     });
 
-    const refreshToken = this.jwtService.sign(payload, {
-      secret: this.configService.get('JWT_REFRESH_SECRET'),
-      expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN', '7d'),
-    });
+    // jti делает каждый refresh-токен уникальным даже при выпуске в одну секунду —
+    // иначе повторный refresh даёт байт-в-байт тот же JWT и ротация ломается
+    const refreshToken = this.jwtService.sign(
+      { ...payload, jti: randomUUID() },
+      {
+        secret: this.configService.get('JWT_REFRESH_SECRET'),
+        expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN', '7d'),
+      },
+    );
 
     // Сохраняем refresh токен в БД
     await this.saveRefreshToken(user.id, refreshToken);
@@ -385,7 +366,7 @@ export class AuthService {
     const expiresInMs = this.parseExpiresIn(expiresIn);
     expiresAt.setTime(expiresAt.getTime() + expiresInMs);
 
-    const tokenHash = await this.hashToken(token);
+    const tokenHash = this.hashToken(token);
 
     const refreshToken = this.refreshTokenRepository.create({
       userId,
@@ -397,8 +378,10 @@ export class AuthService {
   }
 
   // ========== ХЕШИРОВАНИЕ ТОКЕНОВ ==========
-  private async hashToken(token: string): Promise<string> {
-    return argon2.hash(token);
+  // Детерминированный SHA-256: refresh-токен — высокоэнтропийный JWT, argon2
+  // тут не нужен, а детерминизм позволяет искать запись одним индексным запросом
+  private hashToken(token: string): string {
+    return createHash('sha256').update(token).digest('hex');
   }
 
   // ========== ПАРСИНГ ВРЕМЕНИ ==========
@@ -416,9 +399,15 @@ export class AuthService {
   }
 
   // ========== ОЧИСТКА ПРОСРОЧЕННЫХ ТОКЕНОВ ==========
+  // Ежедневно в 03:00: удаляем протухшие и давно отозванные refresh-токены,
+  // чтобы таблица не росла бесконечно
+  @Cron(CronExpression.EVERY_DAY_AT_3AM)
   async cleanExpiredTokens() {
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    await this.refreshTokenRepository.delete({ expiresAt: LessThan(now) });
     await this.refreshTokenRepository.delete({
-      expiresAt: LessThan(new Date()),
+      revokedAt: LessThan(thirtyDaysAgo),
     });
   }
 }
