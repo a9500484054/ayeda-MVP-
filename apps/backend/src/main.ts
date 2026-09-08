@@ -4,6 +4,7 @@ import { NestExpressApplication } from '@nestjs/platform-express'; // 👈 ДО�
 import { AppModule } from './app.module';
 import {
   ClassSerializerInterceptor,
+  Logger,
   ValidationPipe,
   VersioningType,
 } from '@nestjs/common';
@@ -93,7 +94,9 @@ async function bootstrap() {
 
   const port = process.env.PORT ?? 3001;
   await app.listen(port, '0.0.0.0');
-  console.log(`🚀 Server is running on http://localhost:${port}`);
-  console.log(`📚 Swagger docs available at http://localhost:${port}/api/docs`);
+
+  const logger = new Logger('Bootstrap');
+  logger.log(`Server is running on port ${port}`);
+  logger.log(`Swagger docs: /api/docs`);
 }
 bootstrap();

@@ -22,6 +22,7 @@ import { ShoppingCategoriesModule } from './modules/shopping-categories/shopping
 import { ShoppingListsModule } from './modules/shopping-lists/shopping-lists.module';
 import { ArticlesModule } from './modules/articles/articles.module';
 import { RedisModule } from './modules/redis/redis.module';
+import { HealthModule } from './modules/health/health.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module'; // 👈 ДОБАВИТЬ
 
 @Module({
@@ -78,6 +79,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module'; // 👈 
     ShoppingListsModule,
     ArticlesModule,
     RedisModule,
+    HealthModule,
     DashboardModule, // 👈 ДОБАВИТЬ
   ],
   controllers: [],
