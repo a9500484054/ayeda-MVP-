@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { UserResponseDto } from '../../users/dto/user-response.dto';
+import { PublicAuthorDto } from '../../users/dto/public-author.dto';
 import { UnitResponseDto } from '../../units/dto/unit-response.dto';
 import { IngredientResponseDto } from '../../ingredients/dto/ingredient-response.dto';
 import { CategoryResponseDto } from '../../categories/dto/category-response.dto';
@@ -121,8 +121,8 @@ export class RecipeResponseDto {
   @ApiProperty({ example: 42 })
   likes: number;
 
-  @ApiProperty({ type: () => UserResponseDto })
-  author: UserResponseDto;
+  @ApiProperty({ type: () => PublicAuthorDto, nullable: true })
+  author: PublicAuthorDto | null;
 
   @ApiProperty({ type: [RecipeIngredientResponseDto] })
   ingredients: RecipeIngredientResponseDto[];

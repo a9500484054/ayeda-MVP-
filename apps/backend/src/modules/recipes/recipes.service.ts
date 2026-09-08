@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Recipe } from './entities/recipe.entity';
@@ -19,6 +20,7 @@ import { UnitsService } from '../units/units.service';
 import { RecipeStatus, RecipeType } from './enums/recipe.enums';
 import { RecipeResponseDto } from './dto/recipe-response.dto';
 import { UserRole } from '../users/entities/user.entity';
+import { PublicAuthorDto } from '../users/dto/public-author.dto';
 import { Favorite } from '../favorites/entities/favorite.entity';
 import { setOnce } from '../../utils/redis.utils';
 
@@ -410,6 +412,27 @@ export class RecipesService {
   //   return queryBuilder.getManyAndCount();
   // }
 
+  // Ночная сверка денормализованных счётчиков рецепта с таблицами-источниками.
+  // Self-healing на случай, если increment/decrement где-то разъехался.
+  @Cron(CronExpression.EVERY_DAY_AT_4AM)
+  async reconcileCounters(): Promise<void> {
+    await this.recipesRepository.query(`
+      UPDATE recipes r SET
+        comments_count = sub.c_cnt,
+        likes = sub.l_cnt
+      FROM (
+        SELECT
+          rr.id,
+          (SELECT COUNT(*) FROM comments c
+             WHERE c.recipe_id = rr.id AND c.deleted_at IS NULL) AS c_cnt,
+          (SELECT COUNT(*) FROM likes l WHERE l.recipe_id = rr.id) AS l_cnt
+        FROM recipes rr
+      ) sub
+      WHERE r.id = sub.id
+        AND (r.comments_count <> sub.c_cnt OR r.likes <> sub.l_cnt)
+    `);
+  }
+
   async incrementViews(id: string, viewerKey?: string): Promise<void> {
     // Дедупликация: один и тот же посетитель накручивает счётчик не чаще
     // раза в час. Без ключа (нет IP) — считаем каждый просмотр.
@@ -461,7 +484,7 @@ export class RecipesService {
       steps: recipe.steps,
       srcPath: recipe.srcPath,
       likes: recipe.likes,
-      author: recipe.author,
+      author: PublicAuthorDto.fromUser(recipe.author),
       ingredients,
       categories,
       createdAt: recipe.createdAt,

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { UserResponseDto } from '../../users/dto/user-response.dto';
+import { PublicAuthorDto } from '../../users/dto/public-author.dto';
 
 export class CommentResponseDto {
   @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174000' })
@@ -11,8 +11,8 @@ export class CommentResponseDto {
   @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174000' })
   recipeId: string;
 
-  @ApiProperty({ type: () => UserResponseDto, nullable: true })
-  author: UserResponseDto | null;
+  @ApiProperty({ type: () => PublicAuthorDto, nullable: true })
+  author: PublicAuthorDto | null;
 
   @ApiProperty({ example: false })
   isHidden: boolean;

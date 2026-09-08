@@ -15,6 +15,7 @@ import {
   PaginationDto,
 } from 'src/common/dto/pagination.dto';
 import { UserRole } from '../users/entities/user.entity';
+import { PublicAuthorDto } from '../users/dto/public-author.dto';
 import { Recipe } from '../recipes/entities/recipe.entity';
 
 @Injectable()
@@ -282,7 +283,7 @@ export class CommentsService {
       id: comment.id,
       text: comment.text,
       recipeId: comment.recipeId,
-      author: comment.author,
+      author: PublicAuthorDto.fromUser(comment.author),
       isHidden: comment.isHidden,
       createdAt: comment.createdAt,
       updatedAt: comment.updatedAt,
