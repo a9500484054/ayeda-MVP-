@@ -106,7 +106,9 @@ export class RecipesController {
 
     if (recipe.status === RecipeStatus.PUBLIC) {
       this.recipesService.incrementViews(id, req.ip).catch((err) => {
-        this.logger.warn(`Не удалось увеличить счётчик просмотров ${id}: ${err}`);
+        this.logger.warn(
+          `Не удалось увеличить счётчик просмотров ${id}: ${err}`,
+        );
       });
     }
 
@@ -125,7 +127,11 @@ export class RecipesController {
     const userId = req.user?.id;
     const userRole = req.user?.role;
 
-    const recipe = await this.recipesService.findBySrcPath(srcPath, userId, userRole);
+    const recipe = await this.recipesService.findBySrcPath(
+      srcPath,
+      userId,
+      userRole,
+    );
 
     if (recipe.status === RecipeStatus.PUBLIC) {
       this.recipesService.incrementViews(recipe.id, req.ip).catch((err) => {
@@ -222,7 +228,10 @@ export class RecipesController {
   @ApiParam({ name: 'id', description: 'UUID рецепта' })
   @ApiResponse({ status: HttpStatus.OK, type: RecipeResponseDto })
   @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Нет прав' })
-  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Нельзя сделать приватным опубликованный рецепт' })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Нельзя сделать приватным опубликованный рецепт',
+  })
   async makePrivate(
     @Req() req: RequestWithUser,
     @Param('id') id: string,
@@ -236,9 +245,22 @@ export class RecipesController {
   @Get('search/public')
   @ApiOperation({ summary: 'Публичный поиск рецептов (только опубликованные)' })
   @ApiQuery({ name: 'q', description: 'Поисковый запрос', required: false })
-  @ApiQuery({ name: 'page', description: 'Номер страницы', required: false, example: 1 })
-  @ApiQuery({ name: 'limit', description: 'Рецептов на странице', required: false, example: 12 })
-  @ApiResponse({ status: HttpStatus.OK, type: PaginatedResponseDto<RecipeResponseDto> })
+  @ApiQuery({
+    name: 'page',
+    description: 'Номер страницы',
+    required: false,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Рецептов на странице',
+    required: false,
+    example: 12,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: PaginatedResponseDto<RecipeResponseDto>,
+  })
   async searchPublic(
     @Query('q') query: string,
     @Query('page') page: number = 1,
@@ -253,7 +275,12 @@ export class RecipesController {
       this.recipesService.toResponseDto(recipe),
     );
 
-    return new PaginatedResponseDto(recipeDtos, total, Number(page), Number(limit));
+    return new PaginatedResponseDto(
+      recipeDtos,
+      total,
+      Number(page),
+      Number(limit),
+    );
   }
 
   @Get('search/my')
@@ -261,9 +288,22 @@ export class RecipesController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Поиск по своим рецептам (все статусы)' })
   @ApiQuery({ name: 'q', description: 'Поисковый запрос', required: false })
-  @ApiQuery({ name: 'page', description: 'Номер страницы', required: false, example: 1 })
-  @ApiQuery({ name: 'limit', description: 'Рецептов на странице', required: false, example: 12 })
-  @ApiResponse({ status: HttpStatus.OK, type: PaginatedResponseDto<RecipeResponseDto> })
+  @ApiQuery({
+    name: 'page',
+    description: 'Номер страницы',
+    required: false,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Рецептов на странице',
+    required: false,
+    example: 12,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: PaginatedResponseDto<RecipeResponseDto>,
+  })
   async searchMyRecipes(
     @Req() req: RequestWithUser,
     @Query('q') query: string,
@@ -280,7 +320,12 @@ export class RecipesController {
       this.recipesService.toResponseDto(recipe),
     );
 
-    return new PaginatedResponseDto(recipeDtos, total, Number(page), Number(limit));
+    return new PaginatedResponseDto(
+      recipeDtos,
+      total,
+      Number(page),
+      Number(limit),
+    );
   }
 
   @Get('search/favorites')
@@ -288,9 +333,22 @@ export class RecipesController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Поиск по избранным рецептам' })
   @ApiQuery({ name: 'q', description: 'Поисковый запрос', required: false })
-  @ApiQuery({ name: 'page', description: 'Номер страницы', required: false, example: 1 })
-  @ApiQuery({ name: 'limit', description: 'Рецептов на странице', required: false, example: 12 })
-  @ApiResponse({ status: HttpStatus.OK, type: PaginatedResponseDto<RecipeResponseDto> })
+  @ApiQuery({
+    name: 'page',
+    description: 'Номер страницы',
+    required: false,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Рецептов на странице',
+    required: false,
+    example: 12,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: PaginatedResponseDto<RecipeResponseDto>,
+  })
   async searchFavorites(
     @Req() req: RequestWithUser,
     @Query('q') query: string,
@@ -307,7 +365,12 @@ export class RecipesController {
       this.recipesService.toResponseDto(recipe),
     );
 
-    return new PaginatedResponseDto(recipeDtos, total, Number(page), Number(limit));
+    return new PaginatedResponseDto(
+      recipeDtos,
+      total,
+      Number(page),
+      Number(limit),
+    );
   }
 
   @Get('search/all')
@@ -315,9 +378,22 @@ export class RecipesController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Поиск по публичным + своим рецептам' })
   @ApiQuery({ name: 'q', description: 'Поисковый запрос', required: false })
-  @ApiQuery({ name: 'page', description: 'Номер страницы', required: false, example: 1 })
-  @ApiQuery({ name: 'limit', description: 'Рецептов на странице', required: false, example: 12 })
-  @ApiResponse({ status: HttpStatus.OK, type: PaginatedResponseDto<RecipeResponseDto> })
+  @ApiQuery({
+    name: 'page',
+    description: 'Номер страницы',
+    required: false,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Рецептов на странице',
+    required: false,
+    example: 12,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: PaginatedResponseDto<RecipeResponseDto>,
+  })
   async searchPublicAndMy(
     @Req() req: RequestWithUser,
     @Query('q') query: string,
@@ -334,13 +410,23 @@ export class RecipesController {
       this.recipesService.toResponseDto(recipe),
     );
 
-    return new PaginatedResponseDto(recipeDtos, total, Number(page), Number(limit));
+    return new PaginatedResponseDto(
+      recipeDtos,
+      total,
+      Number(page),
+      Number(limit),
+    );
   }
 
   @Get('search')
-  @ApiOperation({ summary: 'Поиск рецептов (устаревший, используйте /search/public)' })
+  @ApiOperation({
+    summary: 'Поиск рецептов (устаревший, используйте /search/public)',
+  })
   @ApiQuery({ name: 'q', description: 'Поисковый запрос' })
-  @ApiResponse({ status: HttpStatus.OK, type: PaginatedResponseDto<RecipeResponseDto> })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: PaginatedResponseDto<RecipeResponseDto>,
+  })
   async searchLegacy(
     @Query('q') query: string,
     @Query('page') page: number = 1,
@@ -355,6 +441,11 @@ export class RecipesController {
       this.recipesService.toResponseDto(recipe),
     );
 
-    return new PaginatedResponseDto(recipeDtos, total, Number(page), Number(limit));
+    return new PaginatedResponseDto(
+      recipeDtos,
+      total,
+      Number(page),
+      Number(limit),
+    );
   }
 }

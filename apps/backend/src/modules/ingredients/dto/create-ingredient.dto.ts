@@ -62,7 +62,7 @@ export class CreateIngredientDto {
     example: {
       title: 'Абрикос - полезные свойства',
       description: 'Все об абрикосе',
-      keywords: ['абрикос', 'польза', 'состав']
+      keywords: ['абрикос', 'польза', 'состав'],
     },
     description: 'SEO данные',
   })

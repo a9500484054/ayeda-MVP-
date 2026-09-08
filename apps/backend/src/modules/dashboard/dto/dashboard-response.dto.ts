@@ -14,7 +14,14 @@ export class StatItemDto {
   trend: string;
 
   @ApiProperty({ example: 'warning' })
-  color: 'warning' | 'info' | 'success' | 'secondary' | 'primary' | 'neutral' | 'error';
+  color:
+    | 'warning'
+    | 'info'
+    | 'success'
+    | 'secondary'
+    | 'primary'
+    | 'neutral'
+    | 'error';
 }
 
 export class RecentRecipeDto {

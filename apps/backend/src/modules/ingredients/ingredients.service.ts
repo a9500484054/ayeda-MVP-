@@ -233,9 +233,12 @@ export class IngredientsService {
     const queryBuilder = this.ingredientsRepository
       .createQueryBuilder('ingredient')
       .leftJoinAndSelect('ingredient.unit', 'unit')
-      .where('LOWER(ingredient.name) LIKE LOWER(:query) OR LOWER(ingredient.code) LIKE LOWER(:query)', {
-        query: `%${query}%`,
-      })
+      .where(
+        'LOWER(ingredient.name) LIKE LOWER(:query) OR LOWER(ingredient.code) LIKE LOWER(:query)',
+        {
+          query: `%${query}%`,
+        },
+      )
       .orderBy('ingredient.name', 'ASC')
       .skip(skip)
       .take(limit);
@@ -254,7 +257,7 @@ export class IngredientsService {
       .where('ingredient.id != :id', { id })
       .andWhere(
         '(LOWER(ingredient.name) LIKE LOWER(:search) OR LOWER(ingredient.code) LIKE LOWER(:search))',
-        { search: `%${ingredient.name.split(' ')[0]}%` }
+        { search: `%${ingredient.name.split(' ')[0]}%` },
       )
       .orderBy('ingredient.name', 'ASC')
       .take(limit)

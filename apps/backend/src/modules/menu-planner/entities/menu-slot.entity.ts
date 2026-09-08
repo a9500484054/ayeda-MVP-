@@ -66,7 +66,9 @@ export class MenuSlot {
 
   // ❌ УДАЛЕНА строка: @DeleteDateColumn({ name: 'deleted_at' })
 
-  @ManyToOne(() => MenuList, (menuList) => menuList.slots, { onDelete: 'CASCADE' })
+  @ManyToOne(() => MenuList, (menuList) => menuList.slots, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'menu_list_id' })
   menuList: MenuList;
 

@@ -10,13 +10,7 @@ import { Category } from '../categories/entities/category.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      Recipe,
-      User,
-      Comment,
-      Ingredient,
-      Category,
-    ]),
+    TypeOrmModule.forFeature([Recipe, User, Comment, Ingredient, Category]),
   ],
   controllers: [DashboardController],
   providers: [DashboardService],

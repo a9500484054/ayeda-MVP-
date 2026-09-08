@@ -22,7 +22,10 @@ import { ShoppingListsService } from './shopping-lists.service';
 import { CreateShoppingListDto } from './dto/requests/create-shopping-list.dto';
 import { UpdateShoppingListDto } from './dto/requests/update-shopping-list.dto';
 import { ReorderShoppingListsDto } from './dto/requests/reorder-shopping-lists.dto';
-import { BulkCreateShoppingItemsDto, CreateShoppingItemDto } from './dto/requests/create-shopping-item.dto';
+import {
+  BulkCreateShoppingItemsDto,
+  CreateShoppingItemDto,
+} from './dto/requests/create-shopping-item.dto';
 import { UpdateShoppingItemDto } from './dto/requests/update-shopping-item.dto';
 import { ReorderShoppingItemsDto } from './dto/requests/reorder-shopping-items.dto';
 import { ShareListResponseDto } from './dto/requests/share-list.dto';
@@ -61,7 +64,9 @@ export class ShoppingListsController {
   @Get()
   @ApiOperation({ summary: 'Получить все списки покупок пользователя' })
   @ApiResponse({ status: HttpStatus.OK, type: [ShoppingListResponseDto] })
-  async findAll(@Req() req: RequestWithUser): Promise<ShoppingListResponseDto[]> {
+  async findAll(
+    @Req() req: RequestWithUser,
+  ): Promise<ShoppingListResponseDto[]> {
     return this.shoppingListsService.findAll(req.user.id);
   }
 

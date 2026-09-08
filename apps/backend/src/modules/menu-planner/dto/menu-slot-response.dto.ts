@@ -19,8 +19,8 @@ export class MenuSlotResponseDto {
   @ApiProperty({ required: false, type: 'string', format: 'date' })
   slotDate?: string | null;
 
-  @ApiProperty({ enum: MealType, required: false, nullable: true })  // ← Добавить nullable: true
-  mealType?: MealType | null;  // ← Изменить тип на MealType | null
+  @ApiProperty({ enum: MealType, required: false, nullable: true }) // ← Добавить nullable: true
+  mealType?: MealType | null; // ← Изменить тип на MealType | null
 
   @ApiProperty()
   order: number;

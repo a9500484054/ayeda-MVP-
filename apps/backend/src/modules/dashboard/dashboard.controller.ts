@@ -1,5 +1,10 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { DashboardService } from './dashboard.service';
 import { DashboardResponseDto } from './dto/dashboard-response.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -36,4 +41,4 @@ export class DashboardController {
   async getDashboard(): Promise<DashboardResponseDto> {
     return this.dashboardService.getDashboardData();
   }
-} 
+}

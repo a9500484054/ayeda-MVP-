@@ -7,7 +7,11 @@ import { Comment } from '../comments/entities/comment.entity';
 import { Ingredient } from '../ingredients/entities/ingredient.entity';
 import { Category } from '../categories/entities/category.entity';
 import { RecipeStatus } from '../recipes/enums/recipe.enums';
-import { DashboardResponseDto, StatItemDto, RecentRecipeDto } from './dto/dashboard-response.dto';
+import {
+  DashboardResponseDto,
+  StatItemDto,
+  RecentRecipeDto,
+} from './dto/dashboard-response.dto';
 
 @Injectable()
 export class DashboardService {
@@ -139,7 +143,9 @@ export class DashboardService {
     });
   }
 
-  private async getRecentRecipes(limit: number = 5): Promise<RecentRecipeDto[]> {
+  private async getRecentRecipes(
+    limit: number = 5,
+  ): Promise<RecentRecipeDto[]> {
     const recipes = await this.recipeRepository
       .createQueryBuilder('recipe')
       .leftJoinAndSelect('recipe.author', 'author')

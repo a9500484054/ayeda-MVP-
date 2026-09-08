@@ -56,8 +56,8 @@ export class BulkCreateShoppingItemsDto {
     type: [CreateShoppingItemDto],
     example: [
       { name: 'Молоко', quantity: 2, unit: 'л' },
-      { name: 'Хлеб', quantity: 1, unit: 'шт' }
-    ]
+      { name: 'Хлеб', quantity: 1, unit: 'шт' },
+    ],
   })
   @IsArray()
   @ValidateNested({ each: true })

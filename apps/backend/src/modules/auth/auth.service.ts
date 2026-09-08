@@ -22,7 +22,6 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { EmailService } from '../email/email.service';
 import { setUserSession } from 'src/utils/redis.utils';
 
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -85,12 +84,16 @@ export class AuthService {
     const tokens = await this.generateTokens(user);
 
     // Сохраняем сессию в Redis
-    await setUserSession(user.id, {
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-      lastLoginAt: new Date(),
-    }, 86400); // 24 часа
+    await setUserSession(
+      user.id,
+      {
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+        lastLoginAt: new Date(),
+      },
+      86400,
+    ); // 24 часа
 
     return {
       ...tokens,
@@ -316,7 +319,7 @@ export class AuthService {
           revokedAt: IsNull(),
           tokenHash: Not(this.hashToken(currentRefreshToken)),
         },
-        { revokedAt: new Date() }
+        { revokedAt: new Date() },
       );
     } else {
       // Если нет текущего токена - отзываем все
@@ -391,11 +394,16 @@ export class AuthService {
     const value = parseInt(expiresIn.slice(0, -1), 10);
 
     switch (unit) {
-      case 's': return value * 1000;
-      case 'm': return value * 60 * 1000;
-      case 'h': return value * 60 * 60 * 1000;
-      case 'd': return value * 24 * 60 * 60 * 1000;
-      default: return 7 * 24 * 60 * 60 * 1000;
+      case 's':
+        return value * 1000;
+      case 'm':
+        return value * 60 * 1000;
+      case 'h':
+        return value * 60 * 60 * 1000;
+      case 'd':
+        return value * 24 * 60 * 60 * 1000;
+      default:
+        return 7 * 24 * 60 * 60 * 1000;
     }
   }
 

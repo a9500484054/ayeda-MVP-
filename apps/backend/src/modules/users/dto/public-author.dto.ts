@@ -12,7 +12,11 @@ export class PublicAuthorDto {
   @ApiProperty({ example: 'john_doe' })
   username: string;
 
-  @ApiProperty({ required: false, nullable: true, example: '/uploads/avatars/…' })
+  @ApiProperty({
+    required: false,
+    nullable: true,
+    example: '/uploads/avatars/…',
+  })
   avatar: string | null;
 
   constructor(user?: Partial<User> | null) {

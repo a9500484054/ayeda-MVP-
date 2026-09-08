@@ -52,7 +52,7 @@ export class CommentsService {
     await this.recipesRepository.increment(
       { id: recipeId },
       'commentsCount',
-      1
+      1,
     );
 
     return savedComment;
@@ -86,7 +86,9 @@ export class CommentsService {
 
     // Если не включено отображение скрытых, фильтруем
     if (!includeHidden) {
-      queryBuilder.andWhere('comment.isHidden = :isHidden', { isHidden: false });
+      queryBuilder.andWhere('comment.isHidden = :isHidden', {
+        isHidden: false,
+      });
     }
 
     const [comments, total] = await queryBuilder.getManyAndCount();
@@ -131,7 +133,8 @@ export class CommentsService {
 
     // Проверяем права на удаление (автор, модератор, админ)
     const isAuthor = comment.authorId === userId;
-    const isModerator = userRole === UserRole.MODERATOR || userRole === UserRole.ADMIN;
+    const isModerator =
+      userRole === UserRole.MODERATOR || userRole === UserRole.ADMIN;
 
     if (!isAuthor && !isModerator) {
       throw new ForbiddenException('Вы не можете удалить этот комментарий');
@@ -147,14 +150,11 @@ export class CommentsService {
     await this.recipesRepository.decrement(
       { id: recipeId },
       'commentsCount',
-      1
+      1,
     );
   }
 
-  async hide(
-    id: string,
-    moderatorId: string,
-  ): Promise<Comment> {
+  async hide(id: string, moderatorId: string): Promise<Comment> {
     const comment = await this.findOne(id);
 
     comment.isHidden = true;
@@ -202,7 +202,7 @@ export class CommentsService {
     return recipe?.commentsCount || 0;
   }
 
-    // ==================== НОВЫЙ МЕТОД ДЛЯ МОДЕРАТОРА ====================
+  // ==================== НОВЫЙ МЕТОД ДЛЯ МОДЕРАТОРА ====================
 
   async findModeratorComments(filters: {
     page: number;
@@ -226,7 +226,7 @@ export class CommentsService {
       startDate,
       endDate,
       sortBy = 'createdAt',
-      sortOrder = 'DESC'
+      sortOrder = 'DESC',
     } = filters;
 
     const skip = (page - 1) * limit;
@@ -268,10 +268,7 @@ export class CommentsService {
     }
 
     // Сортировка
-    queryBuilder
-      .orderBy(`comment.${sortBy}`, sortOrder)
-      .skip(skip)
-      .take(limit);
+    queryBuilder.orderBy(`comment.${sortBy}`, sortOrder).skip(skip).take(limit);
 
     const [comments, total] = await queryBuilder.getManyAndCount();
 
@@ -290,5 +287,4 @@ export class CommentsService {
       deletedAt: comment.deletedAt,
     };
   }
-
 }

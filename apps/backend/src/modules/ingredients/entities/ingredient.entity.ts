@@ -41,7 +41,10 @@ export class Ingredient {
   @Column({ name: 'src_path', unique: true, length: 120 })
   srcPath: string;
 
-  @ApiProperty({ example: 'abrikos', description: 'Уникальный код ингредиента' })
+  @ApiProperty({
+    example: 'abrikos',
+    description: 'Уникальный код ингредиента',
+  })
   @Column({ unique: true, length: 50 })
   code: string;
 
@@ -113,18 +116,46 @@ export class Ingredient {
   private generateSlug(text: string): string {
     // Транслитерация с русского на латиницу
     const translitMap: { [key: string]: string } = {
-      'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'e',
-      'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
-      'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
-      'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch',
-      'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya'
+      а: 'a',
+      б: 'b',
+      в: 'v',
+      г: 'g',
+      д: 'd',
+      е: 'e',
+      ё: 'e',
+      ж: 'zh',
+      з: 'z',
+      и: 'i',
+      й: 'y',
+      к: 'k',
+      л: 'l',
+      м: 'm',
+      н: 'n',
+      о: 'o',
+      п: 'p',
+      р: 'r',
+      с: 's',
+      т: 't',
+      у: 'u',
+      ф: 'f',
+      х: 'h',
+      ц: 'ts',
+      ч: 'ch',
+      ш: 'sh',
+      щ: 'sch',
+      ъ: '',
+      ы: 'y',
+      ь: '',
+      э: 'e',
+      ю: 'yu',
+      я: 'ya',
     };
 
     let slug = text
       .toLowerCase()
       .trim()
       .split('')
-      .map(char => translitMap[char] || char)
+      .map((char) => translitMap[char] || char)
       .join('')
       .replace(/[^a-z0-9-]/g, '-') // заменяем все не буквы и не цифры на дефис
       .replace(/-+/g, '-') // убираем множественные дефисы

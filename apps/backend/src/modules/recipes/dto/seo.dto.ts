@@ -5,7 +5,7 @@ export class SeoDto {
   @ApiProperty({
     required: false,
     example: 'Борщ - традиционный русский суп',
-    description: 'SEO заголовок (до 60 символов)'
+    description: 'SEO заголовок (до 60 символов)',
   })
   @IsOptional()
   @IsString({ message: 'SEO заголовок должен быть строкой' })
@@ -14,8 +14,9 @@ export class SeoDto {
 
   @ApiProperty({
     required: false,
-    example: 'Узнайте как приготовить традиционный борщ по классическому рецепту',
-    description: 'SEO описание (до 160 символов)'
+    example:
+      'Узнайте как приготовить традиционный борщ по классическому рецепту',
+    description: 'SEO описание (до 160 символов)',
   })
   @IsOptional()
   @IsString({ message: 'SEO описание должно быть строкой' })
@@ -26,10 +27,13 @@ export class SeoDto {
     required: false,
     example: ['борщ', 'русская кухня', 'суп', 'рецепт'],
     description: 'SEO ключевые слова',
-    type: [String]
+    type: [String],
   })
   @IsOptional()
   @IsArray({ message: 'SEO ключевые слова должны быть массивом' })
-  @IsString({ each: true, message: 'Каждое ключевое слово должно быть строкой' })
+  @IsString({
+    each: true,
+    message: 'Каждое ключевое слово должно быть строкой',
+  })
   keywords?: string[];
 }

@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional, IsInt, Min, IsBoolean, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsInt,
+  Min,
+  IsBoolean,
+  MaxLength,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class UpdateCategoryDto {

@@ -3,7 +3,10 @@ import { IsString, IsOptional, IsInt, Min, MaxLength } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateCategoryDto {
-  @ApiProperty({ example: 'vegetables', description: 'Уникальный код категории' })
+  @ApiProperty({
+    example: 'vegetables',
+    description: 'Уникальный код категории',
+  })
   @IsString()
   @MaxLength(50)
   code: string;
@@ -18,7 +21,11 @@ export class CreateCategoryDto {
   @MaxLength(50)
   icon: string;
 
-  @ApiProperty({ required: false, default: 0, description: 'Порядок сортировки' })
+  @ApiProperty({
+    required: false,
+    default: 0,
+    description: 'Порядок сортировки',
+  })
   @IsOptional()
   @IsInt()
   @Min(0)

@@ -31,7 +31,10 @@ export const cacheGetOrSet = async <T>(
 // Очистка кэша по паттерну — через неблокирующий SCAN (KEYS блокирует Redis)
 export const clearCachePattern = async (pattern: string): Promise<void> => {
   const keys: string[] = [];
-  for await (const key of redisClient.scanIterator({ MATCH: pattern, COUNT: 200 })) {
+  for await (const key of redisClient.scanIterator({
+    MATCH: pattern,
+    COUNT: 200,
+  })) {
     if (Array.isArray(key)) {
       keys.push(...key);
     } else {
@@ -44,7 +47,10 @@ export const clearCachePattern = async (pattern: string): Promise<void> => {
 };
 
 // Инкремент счетчика (для лимитов)
-export const incrementAndGet = async (key: string, ttlSeconds?: number): Promise<number> => {
+export const incrementAndGet = async (
+  key: string,
+  ttlSeconds?: number,
+): Promise<number> => {
   const count = await redisClient.incr(key);
 
   if (ttlSeconds && count === 1) {
@@ -67,14 +73,20 @@ export const setOnce = async (
 // Установка сессии пользователя
 export const setUserSession = async (
   userId: string,
-  sessionData: any,
+  sessionData: Record<string, unknown>,
   ttlSeconds: number = 86400, // 24 часа
 ): Promise<void> => {
-  await redisClient.setEx(`session:${userId}`, ttlSeconds, JSON.stringify(sessionData));
+  await redisClient.setEx(
+    `session:${userId}`,
+    ttlSeconds,
+    JSON.stringify(sessionData),
+  );
 };
 
 // Получение сессии
-export const getUserSession = async (userId: string): Promise<any | null> => {
+export const getUserSession = async (
+  userId: string,
+): Promise<Record<string, unknown> | null> => {
   const session = await redisClient.get(`session:${userId}`);
-  return session ? JSON.parse(session) : null;
+  return session ? (JSON.parse(session) as Record<string, unknown>) : null;
 };

@@ -15,7 +15,11 @@ import { UpdateMenuListDto } from './dto/update-menu-list.dto';
 import { CreateMenuSlotDto } from './dto/create-menu-slot.dto';
 import { AddRecipeToSlotDto } from './dto/add-recipe-to-slot.dto';
 import { ReorderSlotItemsDto } from './dto/reorder-slot-items.dto';
-import { CreateDayDto, UpdateDayDto, ReorderDaysDto } from './dto/create-day.dto';
+import {
+  CreateDayDto,
+  UpdateDayDto,
+  ReorderDaysDto,
+} from './dto/create-day.dto';
 import { RecipesService } from '../recipes/recipes.service';
 import { MenuListResponseDto } from './dto/menu-list-response.dto';
 import { MenuSlotResponseDto } from './dto/menu-slot-response.dto';
@@ -63,14 +67,20 @@ export class MenuPlannerService {
     'recipe.categories.category',
   ];
 
-  private readonly dayRelations = ['slots', 'slots.items', 'slots.items.recipe'];
+  private readonly dayRelations = [
+    'slots',
+    'slots.items',
+    'slots.items.recipe',
+  ];
 
   private toDateString(date: Date | string | null): string | null {
     if (!date) return null;
     return date instanceof Date ? date.toISOString().split('T')[0] : date;
   }
 
-  private toMenuSlotItemResponseDto(item: MenuSlotItem): MenuSlotItemResponseDto {
+  private toMenuSlotItemResponseDto(
+    item: MenuSlotItem,
+  ): MenuSlotItemResponseDto {
     return {
       id: item.id,
       slotId: item.slotId,
@@ -79,7 +89,9 @@ export class MenuPlannerService {
       notes: item.notes,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt,
-      recipe: item.recipe ? this.recipesService.toResponseDto(item.recipe) : undefined,
+      recipe: item.recipe
+        ? this.recipesService.toResponseDto(item.recipe)
+        : undefined,
     };
   }
 
@@ -129,7 +141,10 @@ export class MenuPlannerService {
 
   // ==================== MENU LISTS ====================
 
-  async createMenuList(userId: string, dto: CreateMenuListDto): Promise<MenuListResponseDto> {
+  async createMenuList(
+    userId: string,
+    dto: CreateMenuListDto,
+  ): Promise<MenuListResponseDto> {
     const menuList = this.menuListRepository.create({
       userId,
       title: dto.title,
@@ -146,7 +161,11 @@ export class MenuPlannerService {
   async findAllMenuLists(userId: string): Promise<MenuListResponseDto[]> {
     const menuLists = await this.menuListRepository.find({
       where: { userId }, // Убрали deletedAt: IsNull()
-      relations: ['slots', 'days', ...this.slotRelations.map((r) => `slots.${r}`)],
+      relations: [
+        'slots',
+        'days',
+        ...this.slotRelations.map((r) => `slots.${r}`),
+      ],
       order: { createdAt: 'DESC' },
     });
 
@@ -156,7 +175,12 @@ export class MenuPlannerService {
   async findOneMenuList(userId: string, id: string): Promise<MenuList> {
     const menuList = await this.menuListRepository.findOne({
       where: { id }, // Убрали deletedAt: IsNull()
-      relations: ['slots', 'days', 'days.slots', ...this.slotRelations.map((r) => `slots.${r}`)],
+      relations: [
+        'slots',
+        'days',
+        'days.slots',
+        ...this.slotRelations.map((r) => `slots.${r}`),
+      ],
     });
 
     if (!menuList) throw new NotFoundException('Список меню не найден');
@@ -165,7 +189,10 @@ export class MenuPlannerService {
     return menuList;
   }
 
-  async findOneMenuListResponse(userId: string, id: string): Promise<MenuListResponseDto> {
+  async findOneMenuListResponse(
+    userId: string,
+    id: string,
+  ): Promise<MenuListResponseDto> {
     return this.toMenuListResponseDto(await this.findOneMenuList(userId, id));
   }
 
@@ -176,7 +203,9 @@ export class MenuPlannerService {
   ): Promise<MenuListResponseDto> {
     const menuList = await this.findOneMenuList(userId, id);
     Object.assign(menuList, dto);
-    return this.toMenuListResponseDto(await this.menuListRepository.save(menuList));
+    return this.toMenuListResponseDto(
+      await this.menuListRepository.save(menuList),
+    );
   }
 
   async removeMenuList(userId: string, id: string): Promise<void> {
@@ -187,7 +216,10 @@ export class MenuPlannerService {
 
   // ==================== DAYS ====================
 
-  async findAllDays(userId: string, menuListId: string): Promise<MenuDayResponseDto[]> {
+  async findAllDays(
+    userId: string,
+    menuListId: string,
+  ): Promise<MenuDayResponseDto[]> {
     await this.findOneMenuList(userId, menuListId);
     const days = await this.menuDayRepository.find({
       where: { menuListId },
@@ -197,7 +229,11 @@ export class MenuPlannerService {
     return days.map((day) => this.toMenuDayResponseDto(day));
   }
 
-  async createDay(userId: string, menuListId: string, dto: CreateDayDto): Promise<MenuDayResponseDto> {
+  async createDay(
+    userId: string,
+    menuListId: string,
+    dto: CreateDayDto,
+  ): Promise<MenuDayResponseDto> {
     const menuList = await this.findOneMenuList(userId, menuListId);
 
     if (menuList.displayType !== DisplayType.DAYS) {
@@ -209,7 +245,9 @@ export class MenuPlannerService {
     });
 
     if (existingDay) {
-      throw new BadRequestException(`День с порядком ${dto.dayOrder} уже существует`);
+      throw new BadRequestException(
+        `День с порядком ${dto.dayOrder} уже существует`,
+      );
     }
 
     const day = this.menuDayRepository.create({
@@ -222,7 +260,11 @@ export class MenuPlannerService {
     return this.toMenuDayResponseDto(saved);
   }
 
-  async updateDay(userId: string, dayId: string, dto: UpdateDayDto): Promise<MenuDayResponseDto> {
+  async updateDay(
+    userId: string,
+    dayId: string,
+    dto: UpdateDayDto,
+  ): Promise<MenuDayResponseDto> {
     const day = await this.menuDayRepository.findOne({
       where: { id: dayId },
       relations: ['menuList'],
@@ -237,7 +279,11 @@ export class MenuPlannerService {
     return this.toMenuDayResponseDto(saved);
   }
 
-  async reorderDays(userId: string, menuListId: string, dto: ReorderDaysDto): Promise<MenuDayResponseDto[]> {
+  async reorderDays(
+    userId: string,
+    menuListId: string,
+    dto: ReorderDaysDto,
+  ): Promise<MenuDayResponseDto[]> {
     await this.findOneMenuList(userId, menuListId);
 
     await this.dataSource.transaction(async (manager) => {
@@ -273,7 +319,10 @@ export class MenuPlannerService {
 
   // ==================== SLOTS ====================
 
-  async createSlot(userId: string, dto: CreateMenuSlotDto): Promise<MenuSlotResponseDto> {
+  async createSlot(
+    userId: string,
+    dto: CreateMenuSlotDto,
+  ): Promise<MenuSlotResponseDto> {
     await this.findOneMenuList(userId, dto.menuListId);
 
     const slot = this.menuSlotRepository.create({
@@ -289,7 +338,10 @@ export class MenuPlannerService {
     return this.toMenuSlotResponseDto(saved);
   }
 
-  async findAllSlotsByMenuList(userId: string, menuListId: string): Promise<MenuSlotResponseDto[]> {
+  async findAllSlotsByMenuList(
+    userId: string,
+    menuListId: string,
+  ): Promise<MenuSlotResponseDto[]> {
     await this.findOneMenuList(userId, menuListId);
     const slots = await this.menuSlotRepository.find({
       where: { menuListId }, // Убрали deletedAt: IsNull()
@@ -311,7 +363,10 @@ export class MenuPlannerService {
     return slot;
   }
 
-  async findOneSlotResponse(userId: string, slotId: string): Promise<MenuSlotResponseDto> {
+  async findOneSlotResponse(
+    userId: string,
+    slotId: string,
+  ): Promise<MenuSlotResponseDto> {
     return this.toMenuSlotResponseDto(await this.findOneSlot(userId, slotId));
   }
 
@@ -335,7 +390,11 @@ export class MenuPlannerService {
     const user = await this.usersService.findOne(userId);
 
     // Проверяем доступ к рецепту (передаем userId и userRole)
-    const recipe = await this.recipesService.findOne(dto.recipeId, userId, user.role);
+    const recipe = await this.recipesService.findOne(
+      dto.recipeId,
+      userId,
+      user.role,
+    );
 
     // Проверяем существование активной записи
     const existingItem = await this.menuSlotItemRepository.findOne({
@@ -352,7 +411,8 @@ export class MenuPlannerService {
       .where('item.slotId = :slotId', { slotId })
       .getRawOne();
 
-    const order = dto.order !== undefined ? dto.order : Number(maxOrder?.max ?? -1) + 1;
+    const order =
+      dto.order !== undefined ? dto.order : Number(maxOrder?.max ?? -1) + 1;
 
     const slotItem = this.menuSlotItemRepository.create({
       slotId,
@@ -424,7 +484,10 @@ export class MenuPlannerService {
     return this.toMenuSlotItemResponseDto(saved);
   }
 
-  async getSlotItems(userId: string, slotId: string): Promise<MenuSlotItemResponseDto[]> {
+  async getSlotItems(
+    userId: string,
+    slotId: string,
+  ): Promise<MenuSlotItemResponseDto[]> {
     await this.findOneSlot(userId, slotId);
     const items = await this.menuSlotItemRepository.find({
       where: { slotId },
@@ -436,8 +499,13 @@ export class MenuPlannerService {
 
   // ==================== UTILITY ====================
 
-  async getMenuStructure(userId: string, menuListId: string): Promise<MenuListResponseDto> {
-    return this.toMenuListResponseDto(await this.findOneMenuList(userId, menuListId));
+  async getMenuStructure(
+    userId: string,
+    menuListId: string,
+  ): Promise<MenuListResponseDto> {
+    return this.toMenuListResponseDto(
+      await this.findOneMenuList(userId, menuListId),
+    );
   }
 
   async getSlotsByDateRange(
@@ -463,7 +531,10 @@ export class MenuPlannerService {
 
   // ==================== BANQUET ====================
 
-  async getBanquetItems(userId: string, menuListId: string): Promise<MenuSlotItemResponseDto[]> {
+  async getBanquetItems(
+    userId: string,
+    menuListId: string,
+  ): Promise<MenuSlotItemResponseDto[]> {
     const menuList = await this.findOneMenuList(userId, menuListId);
 
     if (menuList.displayType !== DisplayType.BANQUET) {
@@ -495,7 +566,9 @@ export class MenuPlannerService {
     const menuList = await this.findOneMenuList(userId, menuListId);
 
     if (menuList.displayType !== DisplayType.BANQUET) {
-      throw new BadRequestException('Добавление блюд доступно только для банкета');
+      throw new BadRequestException(
+        'Добавление блюд доступно только для банкета',
+      );
     }
 
     let banquetSlot = await this.menuSlotRepository.findOne({
@@ -518,7 +591,11 @@ export class MenuPlannerService {
     return this.addRecipeToSlot(userId, banquetSlot.id, dto);
   }
 
-  async createDayWithAutoOrder(userId: string, menuListId: string, title?: string): Promise<MenuDayResponseDto> {
+  async createDayWithAutoOrder(
+    userId: string,
+    menuListId: string,
+    title?: string,
+  ): Promise<MenuDayResponseDto> {
     const menuList = await this.findOneMenuList(userId, menuListId);
 
     if (menuList.displayType !== DisplayType.DAYS) {

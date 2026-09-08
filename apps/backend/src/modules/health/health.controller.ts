@@ -16,9 +16,7 @@ import redisClient from '../../config/redis';
 @SkipThrottle()
 @Controller({ path: 'health', version: VERSION_NEUTRAL })
 export class HealthController {
-  constructor(
-    @InjectDataSource() private readonly dataSource: DataSource,
-  ) {}
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   @Get()
   @ApiOperation({ summary: 'Живость сервиса: БД + Redis' })

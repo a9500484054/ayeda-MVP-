@@ -31,7 +31,10 @@ describe('PublicAuthorDto', () => {
   });
 
   it('avatar по умолчанию null', () => {
-    const dto = PublicAuthorDto.fromUser({ id: 'u2', username: 'jane' } as User)!;
+    const dto = PublicAuthorDto.fromUser({
+      id: 'u2',
+      username: 'jane',
+    } as User)!;
     expect(dto.avatar).toBeNull();
   });
 });

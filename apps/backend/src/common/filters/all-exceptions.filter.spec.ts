@@ -1,4 +1,8 @@
-import { ArgumentsHost, ForbiddenException, HttpException } from '@nestjs/common';
+import {
+  ArgumentsHost,
+  ForbiddenException,
+  HttpException,
+} from '@nestjs/common';
 import { AllExceptionsFilter } from './all-exceptions.filter';
 
 function hostFor(method = 'GET', url = '/api/v1/x') {
@@ -37,7 +41,9 @@ describe('AllExceptionsFilter', () => {
       message: 'нельзя',
       path: '/api/v1/x',
     });
-    expect((res.body as { timestamp: string }).timestamp).toEqual(expect.any(String));
+    expect((res.body as { timestamp: string }).timestamp).toEqual(
+      expect.any(String),
+    );
   });
 
   it('произвольная ошибка → 500 без утечки стека', () => {
@@ -54,7 +60,13 @@ describe('AllExceptionsFilter', () => {
   it('массив сообщений валидации сохраняется', () => {
     const { host, res } = hostFor();
     filter.catch(
-      new HttpException({ message: ['a обязателен', 'b слишком длинный'], error: 'Bad Request' }, 400),
+      new HttpException(
+        {
+          message: ['a обязателен', 'b слишком длинный'],
+          error: 'Bad Request',
+        },
+        400,
+      ),
       host,
     );
     expect((res.body as { message: string[] }).message).toEqual([

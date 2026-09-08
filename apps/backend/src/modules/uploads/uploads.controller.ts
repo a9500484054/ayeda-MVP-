@@ -127,8 +127,8 @@ export class UploadsController {
   ): Promise<PaginatedResponseDto<UploadResponseDto>> {
     const result = await this.uploadsService.findAll(query);
 
-    const data = result.data.map(upload =>
-      this.uploadsService.toResponseDto(upload)
+    const data = result.data.map((upload) =>
+      this.uploadsService.toResponseDto(upload),
     );
 
     return new PaginatedResponseDto(
@@ -152,8 +152,8 @@ export class UploadsController {
   ): Promise<PaginatedResponseDto<UploadResponseDto>> {
     const result = await this.uploadsService.getUserUploads(userId, query);
 
-    const data = result.data.map(upload =>
-      this.uploadsService.toResponseDto(upload)
+    const data = result.data.map((upload) =>
+      this.uploadsService.toResponseDto(upload),
     );
 
     return new PaginatedResponseDto(

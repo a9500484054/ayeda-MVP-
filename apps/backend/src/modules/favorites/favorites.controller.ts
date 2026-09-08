@@ -22,7 +22,10 @@ import {
 } from './dto/favorite-response.dto';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { PaginatedResponseDto, PaginationDto } from 'src/common/dto/pagination.dto';
+import {
+  PaginatedResponseDto,
+  PaginationDto,
+} from 'src/common/dto/pagination.dto';
 
 interface RequestWithUser extends Request {
   user: {
@@ -95,7 +98,6 @@ export class UserFavoritesController {
   }
 
   private mapToFavoriteResponseDto(favorite: any): FavoriteResponseDto {
-
     // Безопасное получение категорий
     let categories = [];
     if (favorite.recipe?.categories) {

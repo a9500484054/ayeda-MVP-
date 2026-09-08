@@ -38,7 +38,9 @@ export class LocalStorageService implements IStorageService {
 
     // Полный путь к файлу
     const absolutePath = path.join(absoluteDir, uniqueFileName);
-    const relativePath = path.join(relativeDir, uniqueFileName).replace(/\\/g, '/');
+    const relativePath = path
+      .join(relativeDir, uniqueFileName)
+      .replace(/\\/g, '/');
 
     // Сохраняем файл
     await fs.writeFile(absolutePath, file.buffer);

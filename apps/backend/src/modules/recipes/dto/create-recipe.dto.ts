@@ -106,7 +106,11 @@ export class CreateRecipeDto {
   })
   difficulty: Difficulty;
 
-  @ApiProperty({ enum: RecipeStatus, required: false, example: RecipeStatus.PRIVATE })
+  @ApiProperty({
+    enum: RecipeStatus,
+    required: false,
+    example: RecipeStatus.PRIVATE,
+  })
   @IsOptional()
   @IsEnum(RecipeStatus, {
     message: 'Статус должен быть draft, private, pending, public или rejected',

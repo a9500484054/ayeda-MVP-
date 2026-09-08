@@ -81,8 +81,18 @@ export class IngredientsController {
   @Get('search')
   @ApiOperation({ summary: 'Поиск ингредиентов (публичный)' })
   @ApiQuery({ name: 'q', description: 'Поисковый запрос', required: true })
-  @ApiQuery({ name: 'page', description: 'Номер страницы', required: false, type: Number })
-  @ApiQuery({ name: 'limit', description: 'Количество элементов', required: false, type: Number })
+  @ApiQuery({
+    name: 'page',
+    description: 'Номер страницы',
+    required: false,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Количество элементов',
+    required: false,
+    type: Number,
+  })
   async search(
     @Query('q') query: string,
     @Query('page') page?: string,
@@ -91,11 +101,12 @@ export class IngredientsController {
     const pageNum = Number(page) || 1;
     const limitNum = Number(limit) || 10;
 
-    const [ingredients, total] = await this.ingredientsService.searchWithPagination(
-      query,
-      pageNum,
-      limitNum,
-    );
+    const [ingredients, total] =
+      await this.ingredientsService.searchWithPagination(
+        query,
+        pageNum,
+        limitNum,
+      );
 
     return new PaginatedResponseDto(ingredients, total, pageNum, limitNum);
   }
@@ -167,7 +178,9 @@ export class IngredientsController {
     status: HttpStatus.NOT_FOUND,
     description: 'Ингредиент не найден',
   })
-  async findBySrcPath(@Param('srcPath') srcPath: string): Promise<IngredientResponseDto> {
+  async findBySrcPath(
+    @Param('srcPath') srcPath: string,
+  ): Promise<IngredientResponseDto> {
     return this.ingredientsService.findBySrcPath(srcPath);
   }
 }

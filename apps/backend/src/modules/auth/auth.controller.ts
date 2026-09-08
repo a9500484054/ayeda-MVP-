@@ -149,7 +149,11 @@ export class AuthController {
     const authHeader = req.headers.authorization;
     const refreshToken = req.body.refreshToken; // или из тела запроса
 
-    return this.authService.changePassword(req.user.id, changePasswordDto, refreshToken);
+    return this.authService.changePassword(
+      req.user.id,
+      changePasswordDto,
+      refreshToken,
+    );
   }
 
   @Post('send-verification')

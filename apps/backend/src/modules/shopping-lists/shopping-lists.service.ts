@@ -158,7 +158,9 @@ export class ShoppingListsService {
       sortOrder = dto.sortOrder;
     } else {
       // Используем максимальный sortOrder + 1
-      const maxSortOrder = maxOrderResult?.max ? parseInt(maxOrderResult.max) : 0;
+      const maxSortOrder = maxOrderResult?.max
+        ? parseInt(maxOrderResult.max)
+        : 0;
       sortOrder = maxSortOrder + 1;
     }
 
@@ -177,9 +179,13 @@ export class ShoppingListsService {
         // Проверяем категории
         for (const item of dto.items) {
           if (item.categoryId) {
-            const category = await this.shoppingCategoriesService.findOne(item.categoryId);
+            const category = await this.shoppingCategoriesService.findOne(
+              item.categoryId,
+            );
             if (!category) {
-              throw new BadRequestException(`Категория с ID "${item.categoryId}" не найдена`);
+              throw new BadRequestException(
+                `Категория с ID "${item.categoryId}" не найдена`,
+              );
             }
           }
         }
@@ -191,7 +197,9 @@ export class ShoppingListsService {
           .where('item.shopping_list_id = :listId', { listId: savedList.id }) // Изменил на shopping_list_id
           .getRawOne();
 
-        let currentSortOrder = maxItemOrderResult?.max ? parseInt(maxItemOrderResult.max) + 1 : 1;
+        let currentSortOrder = maxItemOrderResult?.max
+          ? parseInt(maxItemOrderResult.max) + 1
+          : 1;
 
         // Создаем позиции
         const itemsToCreate = dto.items.map((itemDto) => {
@@ -232,7 +240,10 @@ export class ShoppingListsService {
     const result = await manager
       .createQueryBuilder(ShoppingListItem, 'item')
       .select('COUNT(item.id)', 'totalItems')
-      .addSelect('SUM(CASE WHEN item.isChecked = true THEN 1 ELSE 0 END)', 'checkedItems')
+      .addSelect(
+        'SUM(CASE WHEN item.isChecked = true THEN 1 ELSE 0 END)',
+        'checkedItems',
+      )
       .where('item.shoppingListId = :listId', { listId })
       .getRawOne();
 
@@ -245,12 +256,16 @@ export class ShoppingListsService {
   async findAll(userId: string): Promise<ShoppingListResponseDto[]> {
     const query = this.shoppingListRepository
       .createQueryBuilder('list')
-      .leftJoin('shopping_list_items', 'item', 'item.shopping_list_id = list.id')
+      .leftJoin(
+        'shopping_list_items',
+        'item',
+        'item.shopping_list_id = list.id',
+      )
       .select([
-        'list.id as id',                    // Добавил алиас
+        'list.id as id', // Добавил алиас
         'list.title as title',
         'list.share_token as "shareToken"', // Добавил алиас с camelCase
-        'list.sort_order as "sortOrder"',   // ВАЖНО: алиас для sortOrder
+        'list.sort_order as "sortOrder"', // ВАЖНО: алиас для sortOrder
         'list.created_at as "createdAt"',
         'list.updated_at as "updatedAt"',
         'COUNT(item.id) as "totalItems"',
@@ -284,24 +299,24 @@ export class ShoppingListsService {
     });
   }
 
-async findOne(userId: string, id: string): Promise<ShoppingListResponseDto> {
-  const list = await this.shoppingListRepository
-    .createQueryBuilder('list')
-    .leftJoinAndSelect('list.items', 'item')
-    .leftJoinAndSelect('item.category', 'category')
-    .where('list.id = :id', { id })
-    .andWhere('list.userId = :userId', { userId })
-    .andWhere('list.deletedAt IS NULL')
-    .getOne();
+  async findOne(userId: string, id: string): Promise<ShoppingListResponseDto> {
+    const list = await this.shoppingListRepository
+      .createQueryBuilder('list')
+      .leftJoinAndSelect('list.items', 'item')
+      .leftJoinAndSelect('item.category', 'category')
+      .where('list.id = :id', { id })
+      .andWhere('list.userId = :userId', { userId })
+      .andWhere('list.deletedAt IS NULL')
+      .getOne();
 
-  if (!list) {
-    throw new NotFoundException('Список покупок не найден');
+    if (!list) {
+      throw new NotFoundException('Список покупок не найден');
+    }
+
+    const stats = await this.getListStats(this.dataSource.manager, list.id);
+
+    return this.toListResponseDto(list, stats, true);
   }
-
-  const stats = await this.getListStats(this.dataSource.manager, list.id);
-
-  return this.toListResponseDto(list, stats, true);
-}
 
   async update(
     userId: string,
@@ -334,7 +349,9 @@ async findOne(userId: string, id: string): Promise<ShoppingListResponseDto> {
             `Список с ID "${item.id}" не найден или не принадлежит пользователю`,
           );
         }
-        await manager.update(ShoppingList, item.id, { sortOrder: item.sortOrder });
+        await manager.update(ShoppingList, item.id, {
+          sortOrder: item.sortOrder,
+        });
       }
     });
 
@@ -365,7 +382,11 @@ async findOne(userId: string, id: string): Promise<ShoppingListResponseDto> {
     // Получаем список со статистикой
     const query = this.shoppingListRepository
       .createQueryBuilder('list')
-      .leftJoin('shopping_list_items', 'item', 'item.shopping_list_id = list.id')
+      .leftJoin(
+        'shopping_list_items',
+        'item',
+        'item.shopping_list_id = list.id',
+      )
       .select([
         'list.id',
         'list.title',
@@ -401,10 +422,14 @@ async findOne(userId: string, id: string): Promise<ShoppingListResponseDto> {
     list.updatedAt = result.list_updated_at;
     list.items = listWithItems?.items || [];
 
-    return this.toListResponseDto(list, {
-      totalItems: parseInt(result.total_items),
-      checkedItems: parseInt(result.checked_items),
-    }, true);
+    return this.toListResponseDto(
+      list,
+      {
+        totalItems: parseInt(result.total_items),
+        checkedItems: parseInt(result.checked_items),
+      },
+      true,
+    );
   }
 
   // ==================== SHOPPING LIST ITEMS ====================
@@ -463,7 +488,9 @@ async findOne(userId: string, id: string): Promise<ShoppingListResponseDto> {
     });
 
     if (!existingItem) {
-      throw new BadRequestException('Позиция не найдена или не принадлежит этому списку');
+      throw new BadRequestException(
+        'Позиция не найдена или не принадлежит этому списку',
+      );
     }
 
     // Валидация категории если указана (и не null)
@@ -484,10 +511,7 @@ async findOne(userId: string, id: string): Promise<ShoppingListResponseDto> {
 
     // Выполняем прямое обновление в БД
     if (Object.keys(updateData).length > 0) {
-      await this.shoppingListItemRepository.update(
-        { id: itemId },
-        updateData
-      );
+      await this.shoppingListItemRepository.update({ id: itemId }, updateData);
     }
 
     // Загружаем обновленную позицию с категорией
@@ -568,7 +592,9 @@ async findOne(userId: string, id: string): Promise<ShoppingListResponseDto> {
           );
         }
 
-        await manager.update(ShoppingListItem, item.id, { sortOrder: item.sortOrder });
+        await manager.update(ShoppingListItem, item.id, {
+          sortOrder: item.sortOrder,
+        });
       }
     });
 
@@ -638,11 +664,12 @@ async findOne(userId: string, id: string): Promise<ShoppingListResponseDto> {
       currentSortOrder += 1000;
     });
 
-    const savedItems = await this.shoppingListItemRepository.save(itemsToCreate);
+    const savedItems =
+      await this.shoppingListItemRepository.save(itemsToCreate);
 
     // Загружаем с категориями для ответа
     const itemsWithCategories = await this.shoppingListItemRepository.find({
-      where: { id: In(savedItems.map(i => i.id)) },
+      where: { id: In(savedItems.map((i) => i.id)) },
       relations: ['category'],
       order: { sortOrder: 'ASC' },
     });

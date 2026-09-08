@@ -9,7 +9,7 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as argon2 from 'argon2';
-import { cacheGetOrSet, clearCachePattern } from '../../utils/redis.utils';
+import { cacheGetOrSet } from '../../utils/redis.utils';
 import { UsersCacheService } from './users.cache.service'; // Добавьте импорт
 
 @Injectable()
@@ -62,7 +62,7 @@ export class UsersService {
       async () => {
         return this.usersRepository.find();
       },
-      300
+      300,
     );
   }
 
@@ -79,7 +79,7 @@ export class UsersService {
         }
         return user;
       },
-      300
+      300,
     );
   }
 
@@ -92,7 +92,7 @@ export class UsersService {
           where: { email: email.toLowerCase() },
         });
       },
-      300
+      300,
     );
   }
 
@@ -127,7 +127,10 @@ export class UsersService {
     const updatedUser = await this.usersRepository.save(user);
 
     // Очищаем кэш через сервис
-    await this.usersCacheService.clearUserCache(id, updateData.email || user.email);
+    await this.usersCacheService.clearUserCache(
+      id,
+      updateData.email || user.email,
+    );
 
     return updatedUser;
   }
@@ -156,7 +159,7 @@ export class UsersService {
           order: { createdAt: 'DESC' },
         });
       },
-      300
+      300,
     );
   }
 }

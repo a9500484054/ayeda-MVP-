@@ -34,7 +34,7 @@ export class MenuListResponseDto {
   @ApiProperty({ type: [MenuSlotResponseDto], required: false })
   slots?: MenuSlotResponseDto[];
 
-  @ApiProperty({ type: [MenuDayResponseDto], required: false })  // ← Добавить это поле
+  @ApiProperty({ type: [MenuDayResponseDto], required: false }) // ← Добавить это поле
   days?: MenuDayResponseDto[];
 
   @ApiProperty({ enum: DisplayType })

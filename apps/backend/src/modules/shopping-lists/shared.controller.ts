@@ -1,16 +1,5 @@
-import {
-  Controller,
-  Get,
-  Param,
-  HttpStatus,
-  HttpCode,
-} from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
-} from '@nestjs/swagger';
+import { Controller, Get, Param, HttpStatus, HttpCode } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { ShoppingListsService } from './shopping-lists.service';
 import { ShoppingListResponseDto } from './dto/responses/shopping-list-response.dto';
 

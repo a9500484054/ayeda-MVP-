@@ -29,7 +29,10 @@ export class EmailService {
     token,
     username,
   }: SendVerificationEmailOptions): Promise<boolean> {
-    const frontendUrl = this.configService.get('FRONTEND_URL', 'https://ayeda.ru');
+    const frontendUrl = this.configService.get(
+      'FRONTEND_URL',
+      'https://ayeda.ru',
+    );
     const verificationUrl = `${frontendUrl}/verify-email?token=${token}`;
 
     const html = this.generateEmailTemplate({
@@ -38,8 +41,10 @@ export class EmailService {
       buttonText: 'Подтвердить Email',
       buttonUrl: verificationUrl,
       buttonColor: '#0d542b', // emerald green
-      message: 'Для завершения регистрации и подтверждения вашего email адреса, пожалуйста, нажмите на кнопку ниже:',
-      additionalInfo: 'Если вы не регистрировались в нашем сервисе, просто проигнорируйте это письмо.',
+      message:
+        'Для завершения регистрации и подтверждения вашего email адреса, пожалуйста, нажмите на кнопку ниже:',
+      additionalInfo:
+        'Если вы не регистрировались в нашем сервисе, просто проигнорируйте это письмо.',
       features: [
         { icon: '✨', text: '14 дней бесплатного доступа' },
         { icon: '🍳', text: '500+ проверенных рецептов' },
@@ -62,7 +67,10 @@ export class EmailService {
     email,
     token,
   }: SendPasswordResetEmailOptions): Promise<boolean> {
-    const frontendUrl = this.configService.get('FRONTEND_URL', 'https://ayeda.ru');
+    const frontendUrl = this.configService.get(
+      'FRONTEND_URL',
+      'https://ayeda.ru',
+    );
     const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
 
     const html = this.generateEmailTemplate({
@@ -71,8 +79,10 @@ export class EmailService {
       buttonText: 'Сбросить пароль',
       buttonUrl: resetUrl,
       buttonColor: '#dc3545', // red for password reset
-      message: 'Вы запросили сброс пароля для вашего аккаунта. Нажмите на кнопку ниже, чтобы создать новый пароль:',
-      additionalInfo: 'Ссылка действительна в течение 1 часа. Если вы не запрашивали сброс пароля, просто проигнорируйте это письмо.',
+      message:
+        'Вы запросили сброс пароля для вашего аккаунта. Нажмите на кнопку ниже, чтобы создать новый пароль:',
+      additionalInfo:
+        'Ссылка действительна в течение 1 часа. Если вы не запрашивали сброс пароля, просто проигнорируйте это письмо.',
       features: null,
       quote: null,
     });
@@ -423,12 +433,16 @@ export class EmailService {
               ${additionalInfo}
             </div>
 
-            ${quote ? `
+            ${
+              quote
+                ? `
               <div class="quote">
                 <div class="quote-text">${quote.text}</div>
                 <div class="quote-author">${quote.author}</div>
               </div>
-            ` : ''}
+            `
+                : ''
+            }
           </div>
 
           <!-- Footer -->

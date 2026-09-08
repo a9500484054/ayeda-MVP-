@@ -33,7 +33,7 @@ export class ShoppingList {
     type: 'varchar',
     length: 64,
     nullable: true,
-    unique: true
+    unique: true,
   })
   shareToken: string | null;
 

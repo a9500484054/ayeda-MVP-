@@ -30,7 +30,13 @@ export class ShoppingListItem {
   categoryId: string | null;
 
   @ApiProperty({ default: 1 })
-  @Column({ name: 'quantity', type: 'decimal', precision: 10, scale: 2, default: 1 })
+  @Column({
+    name: 'quantity',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 1,
+  })
   quantity: number;
 
   @ApiProperty({ default: 'шт' })
@@ -38,7 +44,13 @@ export class ShoppingListItem {
   unit: string;
 
   @ApiProperty({ nullable: true })
-  @Column({ name: 'price', type: 'decimal', precision: 10, scale: 2, nullable: true })
+  @Column({
+    name: 'price',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+  })
   price: number | null;
 
   @ApiProperty({ default: false })

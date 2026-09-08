@@ -63,25 +63,38 @@ export class ArticleStepDto {
 }
 
 export class CreateArticleDto {
-  @ApiProperty({ description: 'Заголовок статьи', example: '10 советов для начинающих' })
+  @ApiProperty({
+    description: 'Заголовок статьи',
+    example: '10 советов для начинающих',
+  })
   @IsString()
   @IsNotEmpty()
   @MaxLength(200)
   title: string;
 
-  @ApiProperty({ required: false, description: 'HTML контент (устаревает, используйте steps)' })
+  @ApiProperty({
+    required: false,
+    description: 'HTML контент (устаревает, используйте steps)',
+  })
   @IsOptional()
   @IsString()
   content?: string;
 
-  @ApiProperty({ type: [ArticleStepDto], required: false, description: 'Шаги статьи' })
+  @ApiProperty({
+    type: [ArticleStepDto],
+    required: false,
+    description: 'Шаги статьи',
+  })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => ArticleStepDto)
   steps?: ArticleStepDto[];
 
-  @ApiProperty({ required: false, description: 'ЧПУ (генерируется если не указан)' })
+  @ApiProperty({
+    required: false,
+    description: 'ЧПУ (генерируется если не указан)',
+  })
   @IsOptional()
   @IsString()
   @MaxLength(200)
@@ -99,7 +112,12 @@ export class CreateArticleDto {
   @MaxLength(500)
   featured_image?: string;
 
-  @ApiProperty({ required: false, type: [String], description: 'Категории', example: ['советы', 'кулинария'] })
+  @ApiProperty({
+    required: false,
+    type: [String],
+    description: 'Категории',
+    example: ['советы', 'кулинария'],
+  })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })

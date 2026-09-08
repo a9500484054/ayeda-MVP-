@@ -81,23 +81,31 @@ export class RecipesService {
       const saved = await manager.save(recipe);
 
       // ✅ СОХРАНЯЕМ КАТЕГОРИИ через RecipeCategory
-      if (createRecipeDto.categoryIds && createRecipeDto.categoryIds.length > 0) {
-        const recipeCategories = createRecipeDto.categoryIds.map(categoryId => {
-          return manager.create(RecipeCategory, {
-            recipeId: saved.id,
-            categoryId: categoryId
-          });
-        });
+      if (
+        createRecipeDto.categoryIds &&
+        createRecipeDto.categoryIds.length > 0
+      ) {
+        const recipeCategories = createRecipeDto.categoryIds.map(
+          (categoryId) => {
+            return manager.create(RecipeCategory, {
+              recipeId: saved.id,
+              categoryId: categoryId,
+            });
+          },
+        );
 
         await manager.save(recipeCategories);
       }
 
       // ✅ СОХРАНЯЕМ ИНГРЕДИЕНТЫ
-      if (createRecipeDto.ingredients && createRecipeDto.ingredients.length > 0) {
-        const ingredients = createRecipeDto.ingredients.map(ing => {
+      if (
+        createRecipeDto.ingredients &&
+        createRecipeDto.ingredients.length > 0
+      ) {
+        const ingredients = createRecipeDto.ingredients.map((ing) => {
           return manager.create(RecipeIngredient, {
             ...ing,
-            recipeId: saved.id
+            recipeId: saved.id,
           });
         });
         await manager.save(ingredients);
@@ -203,7 +211,11 @@ export class RecipesService {
     return queryBuilder.getManyAndCount();
   }
 
-  async findOne(id: string, userId?: string, userRole?: string): Promise<Recipe> {
+  async findOne(
+    id: string,
+    userId?: string,
+    userRole?: string,
+  ): Promise<Recipe> {
     return this.findOneWithRelations(id, userId, userRole);
   }
 
@@ -231,8 +243,7 @@ export class RecipesService {
     const isOwner = !!userId && recipe.authorId === userId;
 
     const isAdminOrModerator =
-      userRole === UserRole.ADMIN ||
-      userRole === UserRole.MODERATOR;
+      userRole === UserRole.ADMIN || userRole === UserRole.MODERATOR;
 
     const isPublic = recipe.status === RecipeStatus.PUBLIC;
 
@@ -253,7 +264,8 @@ export class RecipesService {
     const recipe = await this.findOneWithRelations(id, userId, user.role);
 
     const isOwner = recipe.authorId === userId;
-    const isAdminOrModerator = user.role === UserRole.ADMIN || user.role === UserRole.MODERATOR;
+    const isAdminOrModerator =
+      user.role === UserRole.ADMIN || user.role === UserRole.MODERATOR;
 
     if (!isOwner && !isAdminOrModerator) {
       throw new ForbiddenException('Вы не можете редактировать этот рецепт');
@@ -291,7 +303,10 @@ export class RecipesService {
         }
       });
 
-      if (updateRecipeDto.status === RecipeStatus.PUBLIC && recipeToUpdate.status !== RecipeStatus.PUBLIC) {
+      if (
+        updateRecipeDto.status === RecipeStatus.PUBLIC &&
+        recipeToUpdate.status !== RecipeStatus.PUBLIC
+      ) {
         recipeToUpdate.publishedAt = new Date();
       }
 
@@ -304,9 +319,8 @@ export class RecipesService {
         if (updateRecipeDto.ingredients.length > 0) {
           const uniqueIngredients = updateRecipeDto.ingredients.filter(
             (item, index, self) =>
-              index === self.findIndex(
-                (t) => t.ingredientId === item.ingredientId
-              )
+              index ===
+              self.findIndex((t) => t.ingredientId === item.ingredientId),
           );
 
           const recipeIngredients = uniqueIngredients.map((item) => {
@@ -349,7 +363,8 @@ export class RecipesService {
     const recipe = await this.findOneWithRelations(id, userId, user.role);
 
     const isOwner = recipe.authorId === userId;
-    const isAdminOrModerator = user.role === UserRole.ADMIN || user.role === UserRole.MODERATOR;
+    const isAdminOrModerator =
+      user.role === UserRole.ADMIN || user.role === UserRole.MODERATOR;
 
     if (!isOwner && !isAdminOrModerator) {
       throw new ForbiddenException('Вы не можете удалить этот рецепт');
@@ -360,7 +375,11 @@ export class RecipesService {
 
   async publish(id: string, moderatorId: string): Promise<Recipe> {
     const moderator = await this.usersService.findOne(moderatorId);
-    const recipe = await this.findOneWithRelations(id, moderatorId, moderator.role);
+    const recipe = await this.findOneWithRelations(
+      id,
+      moderatorId,
+      moderator.role,
+    );
 
     if (recipe.status !== RecipeStatus.PENDING) {
       throw new BadRequestException('Рецепт должен быть на модерации');
@@ -378,7 +397,11 @@ export class RecipesService {
 
   async reject(id: string, moderatorId: string): Promise<Recipe> {
     const moderator = await this.usersService.findOne(moderatorId);
-    const recipe = await this.findOneWithRelations(id, moderatorId, moderator.role);
+    const recipe = await this.findOneWithRelations(
+      id,
+      moderatorId,
+      moderator.role,
+    );
 
     if (recipe.status !== RecipeStatus.PENDING) {
       throw new BadRequestException('Рецепт должен быть на модерации');
@@ -437,10 +460,7 @@ export class RecipesService {
     // Дедупликация: один и тот же посетитель накручивает счётчик не чаще
     // раза в час. Без ключа (нет IP) — считаем каждый просмотр.
     if (viewerKey) {
-      const isFirstView = await setOnce(
-        `recipe:view:${id}:${viewerKey}`,
-        3600,
-      );
+      const isFirstView = await setOnce(`recipe:view:${id}:${viewerKey}`, 3600);
       if (!isFirstView) {
         return;
       }
@@ -538,12 +558,16 @@ export class RecipesService {
 
     // Проверяем, что пользователь - автор рецепта
     if (recipe.authorId !== userId) {
-      throw new ForbiddenException('Вы можете сделать приватным только свой рецепт');
+      throw new ForbiddenException(
+        'Вы можете сделать приватным только свой рецепт',
+      );
     }
 
     // Нельзя сделать приватным опубликованный рецепт
     if (recipe.status === RecipeStatus.PUBLIC) {
-      throw new BadRequestException('Опубликованный рецепт нельзя сделать приватным');
+      throw new BadRequestException(
+        'Опубликованный рецепт нельзя сделать приватным',
+      );
     }
 
     // Проверяем, не является ли уже рецепт приватным
@@ -563,23 +587,29 @@ export class RecipesService {
   // ==================== ПОИСК ====================
 
   // 1. Публичный поиск (без авторизации)
-  async searchPublic(query: string, paginationDto: any): Promise<[Recipe[], number]> {
+  async searchPublic(
+    query: string,
+    paginationDto: any,
+  ): Promise<[Recipe[], number]> {
     const { page, limit } = paginationDto;
     const skip = (page - 1) * limit;
 
-    const queryBuilder = this.buildSearchQuery(query)
-      .andWhere('recipe.status = :status', { status: RecipeStatus.PUBLIC });
+    const queryBuilder = this.buildSearchQuery(query).andWhere(
+      'recipe.status = :status',
+      { status: RecipeStatus.PUBLIC },
+    );
 
-    queryBuilder
-      .orderBy('recipe.createdAt', 'DESC')
-      .skip(skip)
-      .take(limit);
+    queryBuilder.orderBy('recipe.createdAt', 'DESC').skip(skip).take(limit);
 
     return queryBuilder.getManyAndCount();
   }
 
   // 2. Поиск по своим рецептам (все статусы)
-  async searchMyRecipes(userId: string, query: string, paginationDto: any): Promise<[Recipe[], number]> {
+  async searchMyRecipes(
+    userId: string,
+    query: string,
+    paginationDto: any,
+  ): Promise<[Recipe[], number]> {
     const { page, limit } = paginationDto;
     const skip = (page - 1) * limit;
 
@@ -587,16 +617,17 @@ export class RecipesService {
       .andWhere('recipe.authorId = :userId', { userId })
       .andWhere('recipe.deletedAt IS NULL');
 
-    queryBuilder
-      .orderBy('recipe.createdAt', 'DESC')
-      .skip(skip)
-      .take(limit);
+    queryBuilder.orderBy('recipe.createdAt', 'DESC').skip(skip).take(limit);
 
     return queryBuilder.getManyAndCount();
   }
 
   // 3. Поиск по избранным рецептам (с использованием Favorite Repository)
-  async searchFavorites(userId: string, query: string, paginationDto: any): Promise<[Recipe[], number]> {
+  async searchFavorites(
+    userId: string,
+    query: string,
+    paginationDto: any,
+  ): Promise<[Recipe[], number]> {
     const { page, limit } = paginationDto;
     const skip = (page - 1) * limit;
 
@@ -611,14 +642,17 @@ export class RecipesService {
 
     // Фильтруем по поиску и статусу
     let recipes = favorites
-      .map(f => f.recipe)
-      .filter(r => r && r.status === RecipeStatus.PUBLIC && r.deletedAt === null);
+      .map((f) => f.recipe)
+      .filter(
+        (r) => r && r.status === RecipeStatus.PUBLIC && r.deletedAt === null,
+      );
 
     if (query && query.trim()) {
       const searchTerm = query.trim().toLowerCase();
-      recipes = recipes.filter(recipe =>
-        recipe.title?.toLowerCase().includes(searchTerm) ||
-        recipe.description?.toLowerCase().includes(searchTerm)
+      recipes = recipes.filter(
+        (recipe) =>
+          recipe.title?.toLowerCase().includes(searchTerm) ||
+          recipe.description?.toLowerCase().includes(searchTerm),
       );
     }
 
@@ -627,7 +661,7 @@ export class RecipesService {
       return [[], 0];
     }
 
-    const recipeIds = recipes.map(r => r.id);
+    const recipeIds = recipes.map((r) => r.id);
     const recipesWithRelations = await this.recipesRepository
       .createQueryBuilder('recipe')
       .leftJoinAndSelect('recipe.author', 'author')
@@ -644,7 +678,11 @@ export class RecipesService {
   }
 
   // 4. Комбинированный поиск (публичные + свои рецепты)
-  async searchPublicAndMy(userId: string, query: string, paginationDto: any): Promise<[Recipe[], number]> {
+  async searchPublicAndMy(
+    userId: string,
+    query: string,
+    paginationDto: any,
+  ): Promise<[Recipe[], number]> {
     const { page, limit } = paginationDto;
     const skip = (page - 1) * limit;
 
@@ -654,14 +692,11 @@ export class RecipesService {
         {
           publicStatus: RecipeStatus.PUBLIC,
           userId: userId,
-        }
+        },
       )
       .andWhere('recipe.deletedAt IS NULL');
 
-    queryBuilder
-      .orderBy('recipe.createdAt', 'DESC')
-      .skip(skip)
-      .take(limit);
+    queryBuilder.orderBy('recipe.createdAt', 'DESC').skip(skip).take(limit);
 
     return queryBuilder.getManyAndCount();
   }
@@ -681,7 +716,7 @@ export class RecipesService {
       const searchTerm = query.trim();
       queryBuilder.andWhere(
         '(recipe.title ILIKE :search OR recipe.description ILIKE :search)',
-        { search: `%${searchTerm}%` }
+        { search: `%${searchTerm}%` },
       );
     }
 
@@ -702,7 +737,7 @@ export class RecipesService {
       .leftJoinAndSelect('recipe.author', 'author')
       .leftJoinAndSelect('recipe.ingredients', 'ingredients')
       .leftJoinAndSelect('ingredients.ingredient', 'ingredient')
-      .leftJoinAndSelect('ingredient.unit', 'unit')  // ← ИСПРАВЛЕНО
+      .leftJoinAndSelect('ingredient.unit', 'unit') // ← ИСПРАВЛЕНО
       .leftJoinAndSelect('recipe.categories', 'rc')
       .leftJoinAndSelect('rc.category', 'category')
       .where('recipe.id = :id', { id })
@@ -718,11 +753,16 @@ export class RecipesService {
   }
 
   // Публичный метод для API (С проверкой прав)
-  async findOneWithRelations(id: string, userId?: string, userRole?: string): Promise<Recipe> {
+  async findOneWithRelations(
+    id: string,
+    userId?: string,
+    userRole?: string,
+  ): Promise<Recipe> {
     const recipe = await this.findOneWithRelationsInternal(id);
 
     const isOwner = userId && recipe.authorId === userId;
-    const isAdminOrModerator = userRole === UserRole.ADMIN || userRole === UserRole.MODERATOR;
+    const isAdminOrModerator =
+      userRole === UserRole.ADMIN || userRole === UserRole.MODERATOR;
     const isPublic = recipe.status === RecipeStatus.PUBLIC;
 
     if (!isPublic && !isOwner && !isAdminOrModerator) {

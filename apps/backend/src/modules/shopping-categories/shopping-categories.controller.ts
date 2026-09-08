@@ -45,7 +45,11 @@ export class ShoppingCategoriesController {
 
   @Get()
   @ApiOperation({ summary: 'Получить все активные категории' })
-  @ApiQuery({ name: 'all', required: false, description: 'Показать все (включая неактивные) - только для Admin' })
+  @ApiQuery({
+    name: 'all',
+    required: false,
+    description: 'Показать все (включая неактивные) - только для Admin',
+  })
   @ApiResponse({ status: HttpStatus.OK, type: [CategoryResponseDto] })
   async findAll(@Query('all') all?: string): Promise<CategoryResponseDto[]> {
     if (all === 'true') {

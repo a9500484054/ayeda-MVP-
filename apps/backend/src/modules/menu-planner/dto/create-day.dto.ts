@@ -21,6 +21,12 @@ export class UpdateDayDto {
 }
 
 export class ReorderDaysDto {
-  @ApiProperty({ type: 'array', items: { type: 'object', properties: { id: { type: 'string' }, order: { type: 'number' } } } })
+  @ApiProperty({
+    type: 'array',
+    items: {
+      type: 'object',
+      properties: { id: { type: 'string' }, order: { type: 'number' } },
+    },
+  })
   items: Array<{ id: string; order: number }>;
 }

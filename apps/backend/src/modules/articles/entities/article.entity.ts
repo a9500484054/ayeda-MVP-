@@ -45,7 +45,7 @@ export class Article {
     type: 'object',
     nullable: true,
     additionalProperties: true,
-    description: 'Шаги статьи в формате JSON'
+    description: 'Шаги статьи в формате JSON',
   })
   @Column({ type: 'jsonb', nullable: true })
   steps: ArticleStep[] | null;
@@ -55,7 +55,12 @@ export class Article {
   excerpt: string | null;
 
   @ApiProperty({ nullable: true })
-  @Column({ name: 'featured_image', type: 'varchar', length: 500, nullable: true })
+  @Column({
+    name: 'featured_image',
+    type: 'varchar',
+    length: 500,
+    nullable: true,
+  })
   featuredImage: string | null;
 
   @ApiProperty({ type: [String], nullable: true })
@@ -78,7 +83,7 @@ export class Article {
     nullable: true,
     type: 'object',
     additionalProperties: true,
-    description: 'SEO метаданные'
+    description: 'SEO метаданные',
   })
   @Column({ type: 'jsonb', nullable: true })
   seo: any;

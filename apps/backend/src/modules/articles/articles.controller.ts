@@ -55,7 +55,12 @@ export class ArticlesController {
   @Get()
   @ApiOperation({ summary: 'Получить список статей' })
   @ApiResponse({ status: HttpStatus.OK, type: [ArticleResponseDto] })
-  async findAll(@Query() query: ArticlesQueryDto): Promise<{ items: ArticleResponseDto[]; total: number; page: number; limit: number }> {
+  async findAll(@Query() query: ArticlesQueryDto): Promise<{
+    items: ArticleResponseDto[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
     return this.articlesService.findAll(query);
   }
 

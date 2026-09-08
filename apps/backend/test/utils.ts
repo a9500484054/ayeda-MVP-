@@ -27,10 +27,11 @@ export async function createTestApp(): Promise<INestApplication> {
   const app = moduleRef.createNestApplication();
 
   // как в main.ts — чтобы rate-limit различал клиентов по X-Forwarded-For
-  (app.getHttpAdapter().getInstance() as { set: (k: string, v: unknown) => void }).set(
-    'trust proxy',
-    true,
-  );
+  (
+    app.getHttpAdapter().getInstance() as {
+      set: (k: string, v: unknown) => void;
+    }
+  ).set('trust proxy', true);
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -67,9 +68,12 @@ export function freshIp(): string {
 }
 
 /** Регистрирует нового пользователя, возвращает токены и id. */
-export async function registerUser(
-  app: INestApplication,
-): Promise<{ accessToken: string; refreshToken: string; userId: string; email: string }> {
+export async function registerUser(app: INestApplication): Promise<{
+  accessToken: string;
+  refreshToken: string;
+  userId: string;
+  email: string;
+}> {
   const uniq = `${Date.now()}${seq}`;
   const email = `e2e_${uniq}@example.com`;
   const res = await request(app.getHttpServer())

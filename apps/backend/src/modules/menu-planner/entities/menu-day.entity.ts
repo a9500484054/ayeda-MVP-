@@ -40,7 +40,9 @@ export class MenuDay {
 
   // Удаляем @DeleteDateColumn, так как используем физическое удаление
 
-  @ManyToOne(() => MenuList, (menuList) => menuList.days, { onDelete: 'CASCADE' })
+  @ManyToOne(() => MenuList, (menuList) => menuList.days, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'menu_list_id' })
   menuList: MenuList;
 

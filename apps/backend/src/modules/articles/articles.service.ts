@@ -9,7 +9,10 @@ import { Repository, Like, In, FindOptionsWhere } from 'typeorm';
 import { Article, ArticleStep } from './entities/article.entity';
 import { CreateArticleDto, ArticleStepDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
-import { ArticleResponseDto, StepResponseDto } from './dto/article-response.dto';
+import {
+  ArticleResponseDto,
+  StepResponseDto,
+} from './dto/article-response.dto';
 import { ArticlesQueryDto } from './dto/articles-query.dto';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -49,7 +52,10 @@ export class ArticlesService {
     return slug;
   }
 
-  private generateSeoMetadata(article: Partial<Article>, dto: CreateArticleDto): any {
+  private generateSeoMetadata(
+    article: Partial<Article>,
+    dto: CreateArticleDto,
+  ): any {
     const seo = dto.seo || {};
 
     if (!seo.title && article.title) {
@@ -77,8 +83,8 @@ export class ArticlesService {
     }
 
     return steps
-      .filter(step => step.text.trim().length > 0)
-      .map(step => ({
+      .filter((step) => step.text.trim().length > 0)
+      .map((step) => ({
         id: step.id || uuidv4(),
         text: step.text,
         image: step.image || null,
@@ -90,7 +96,7 @@ export class ArticlesService {
   private toResponseDto(article: Article): ArticleResponseDto {
     // Преобразуем steps из ArticleStep[] в StepResponseDto[]
     const steps: StepResponseDto[] | null = article.steps
-      ? article.steps.map(step => ({
+      ? article.steps.map((step) => ({
           id: step.id,
           text: step.text,
           image: step.image || null,
@@ -125,7 +131,10 @@ export class ArticlesService {
     };
   }
 
-  async create(userId: string, dto: CreateArticleDto): Promise<ArticleResponseDto> {
+  async create(
+    userId: string,
+    dto: CreateArticleDto,
+  ): Promise<ArticleResponseDto> {
     let slug = dto.slug;
 
     if (!slug) {
@@ -205,7 +214,7 @@ export class ArticlesService {
     });
 
     return {
-      items: items.map(item => this.toResponseDto(item)),
+      items: items.map((item) => this.toResponseDto(item)),
       total: total,
       page: page,
       limit: limit,
@@ -248,7 +257,11 @@ export class ArticlesService {
     return this.toResponseDto(article);
   }
 
-  async update(userId: string, id: string, dto: UpdateArticleDto): Promise<ArticleResponseDto> {
+  async update(
+    userId: string,
+    id: string,
+    dto: UpdateArticleDto,
+  ): Promise<ArticleResponseDto> {
     const article = await this.articlesRepository.findOne({
       where: { id: id },
       relations: ['author'],
@@ -346,6 +359,6 @@ export class ArticlesService {
       .andWhere('article.status = :status', { status: 'published' })
       .getRawMany();
 
-    return result.map(resultItem => resultItem.category).filter(Boolean);
+    return result.map((resultItem) => resultItem.category).filter(Boolean);
   }
 }

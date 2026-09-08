@@ -1,6 +1,13 @@
 // apps\backend\src\modules\menu-planner\dto\create-menu-list.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional, IsBoolean, MaxLength, MinLength, IsEnum } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsBoolean,
+  MaxLength,
+  MinLength,
+  IsEnum,
+} from 'class-validator';
 import { DisplayType } from '../enums/display-type.enum';
 
 export class CreateMenuListDto {
@@ -26,7 +33,11 @@ export class CreateMenuListDto {
   @IsBoolean()
   isActive?: boolean;
 
-  @ApiProperty({ enum: DisplayType, default: DisplayType.DAYS, required: false })
+  @ApiProperty({
+    enum: DisplayType,
+    default: DisplayType.DAYS,
+    required: false,
+  })
   @IsOptional()
   @IsEnum(DisplayType)
   displayType?: DisplayType;

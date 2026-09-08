@@ -18,10 +18,18 @@ export class RecipeSeoDto {
   @ApiProperty({ required: false, example: 'Борщ - традиционный русский суп' })
   title?: string;
 
-  @ApiProperty({ required: false, example: 'Узнайте как приготовить традиционный борщ по классическому рецепту' })
+  @ApiProperty({
+    required: false,
+    example:
+      'Узнайте как приготовить традиционный борщ по классическому рецепту',
+  })
   description?: string;
 
-  @ApiProperty({ required: false, type: [String], example: ['борщ', 'русская кухня', 'суп'] })
+  @ApiProperty({
+    required: false,
+    type: [String],
+    example: ['борщ', 'русская кухня', 'суп'],
+  })
   keywords?: string[];
 }
 
@@ -142,7 +150,7 @@ export class RecipeResponseDto {
   @ApiProperty({
     required: false,
     type: RecipeSeoDto,
-    description: 'SEO настройки рецепта'
+    description: 'SEO настройки рецепта',
   })
   seo?: RecipeSeoDto;
 }

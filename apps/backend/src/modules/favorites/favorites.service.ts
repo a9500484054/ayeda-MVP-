@@ -89,8 +89,8 @@ export class FavoritesService {
         'recipe.ingredients',
         'recipe.ingredients.ingredient',
         'recipe.ingredients.unit',
-        'recipe.categories',           // ✅ здесь 'categories', не 'recipeCategories'
-        'recipe.categories.category',   // загружаем саму категорию через связь
+        'recipe.categories', // ✅ здесь 'categories', не 'recipeCategories'
+        'recipe.categories.category', // загружаем саму категорию через связь
       ],
       order: { createdAt: 'DESC' },
       skip,

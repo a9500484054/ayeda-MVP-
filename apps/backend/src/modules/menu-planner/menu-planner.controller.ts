@@ -28,7 +28,11 @@ import { CreateMenuSlotDto } from './dto/create-menu-slot.dto';
 import { AddRecipeToSlotDto } from './dto/add-recipe-to-slot.dto';
 import { ReorderSlotItemsDto } from './dto/reorder-slot-items.dto';
 import { UpdateSlotItemNotesDto } from './dto/update-slot-item-notes.dto';
-import { CreateDayDto, UpdateDayDto, ReorderDaysDto } from './dto/create-day.dto';
+import {
+  CreateDayDto,
+  UpdateDayDto,
+  ReorderDaysDto,
+} from './dto/create-day.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { MenuListResponseDto } from './dto/menu-list-response.dto';
 import { MenuSlotResponseDto } from './dto/menu-slot-response.dto';
@@ -65,7 +69,9 @@ export class MenuPlannerController {
   @Get('lists')
   @ApiOperation({ summary: 'Получить все списки меню пользователя' })
   @ApiResponse({ status: HttpStatus.OK, type: [MenuListResponseDto] })
-  async findAllMenuLists(@Req() req: RequestWithUser): Promise<MenuListResponseDto[]> {
+  async findAllMenuLists(
+    @Req() req: RequestWithUser,
+  ): Promise<MenuListResponseDto[]> {
     return this.menuPlannerService.findAllMenuLists(req.user.id);
   }
 
@@ -254,7 +260,11 @@ export class MenuPlannerController {
     @Param('itemId') itemId: string,
     @Body() dto: UpdateSlotItemNotesDto,
   ): Promise<MenuSlotItemResponseDto> {
-    return this.menuPlannerService.updateSlotItemNotes(req.user.id, itemId, dto.notes);
+    return this.menuPlannerService.updateSlotItemNotes(
+      req.user.id,
+      itemId,
+      dto.notes,
+    );
   }
 
   @Get('slots/:slotId/items')

@@ -15,7 +15,10 @@ export class SlotItemOrderDto {
 }
 
 export class ReorderSlotItemsDto {
-  @ApiProperty({ type: [SlotItemOrderDto], description: 'Массив с новым порядком элементов' })
+  @ApiProperty({
+    type: [SlotItemOrderDto],
+    description: 'Массив с новым порядком элементов',
+  })
   @IsArray({ message: 'items должен быть массивом' })
   @ValidateNested({ each: true })
   @Type(() => SlotItemOrderDto)

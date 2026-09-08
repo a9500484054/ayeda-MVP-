@@ -32,7 +32,10 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { UserRole } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { PaginatedResponseDto, PaginationDto } from 'src/common/dto/pagination.dto';
+import {
+  PaginatedResponseDto,
+  PaginationDto,
+} from 'src/common/dto/pagination.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard'; // Добавьте импорт RolesGuard
 import { UsersCacheService } from './users.cache.service';
@@ -125,7 +128,9 @@ export class UsersController {
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Получение пользователя по ID (сам или admin/moderator)' })
+  @ApiOperation({
+    summary: 'Получение пользователя по ID (сам или admin/moderator)',
+  })
   @ApiParam({ name: 'id', description: 'UUID пользователя' })
   @ApiOkResponse({
     description: 'Пользователь найден',
@@ -144,7 +149,9 @@ export class UsersController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Обновление данных пользователя (сам или администратор)' })
+  @ApiOperation({
+    summary: 'Обновление данных пользователя (сам или администратор)',
+  })
   @ApiParam({ name: 'id', description: 'UUID пользователя' })
   @ApiBody({ type: UpdateUserDto })
   @ApiOkResponse({
@@ -164,7 +171,9 @@ export class UsersController {
       throw new ForbiddenException('Вы можете изменять только свой профиль');
     }
     if (updateDto.role !== undefined && !isAdmin) {
-      throw new ForbiddenException('Изменение роли доступно только администратору');
+      throw new ForbiddenException(
+        'Изменение роли доступно только администратору',
+      );
     }
 
     const user = await this.usersService.update(id, updateDto);
@@ -175,7 +184,9 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Удаление пользователя (сам или администратор, soft delete)' })
+  @ApiOperation({
+    summary: 'Удаление пользователя (сам или администратор, soft delete)',
+  })
   @ApiParam({ name: 'id', description: 'UUID пользователя' })
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,
@@ -223,10 +234,10 @@ export class UsersController {
     const stats = {
       totalCachedUsers: keys.length,
       keys: keys,
-      memory: await redisClient.info('memory').then(info => {
+      memory: await redisClient.info('memory').then((info) => {
         const match = info.match(/used_memory_human:(\d+\.?\d*\s*\w+)/);
         return match ? match[1] : 'unknown';
-      })
+      }),
     };
     return stats;
   }

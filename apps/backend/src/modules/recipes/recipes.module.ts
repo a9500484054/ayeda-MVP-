@@ -14,7 +14,12 @@ import { Favorite } from '../favorites/entities/favorite.entity'; // Добав�
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Recipe, RecipeIngredient, RecipeCategory, Favorite]),
+    TypeOrmModule.forFeature([
+      Recipe,
+      RecipeIngredient,
+      RecipeCategory,
+      Favorite,
+    ]),
     UsersModule,
     IngredientsModule,
     CategoriesModule,

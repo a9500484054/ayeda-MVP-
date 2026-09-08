@@ -83,8 +83,18 @@ export class CategoriesController {
   @Get('search')
   @ApiOperation({ summary: 'Поиск категорий (с пагинацией)' })
   @ApiQuery({ name: 'q', description: 'Поисковый запрос', required: true })
-  @ApiQuery({ name: 'page', description: 'Номер страницы', required: false, type: Number })
-  @ApiQuery({ name: 'limit', description: 'Количество элементов', required: false, type: Number })
+  @ApiQuery({
+    name: 'page',
+    description: 'Номер страницы',
+    required: false,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Количество элементов',
+    required: false,
+    type: Number,
+  })
   async search(
     @Query('q') query: string,
     @Query('page') page?: string,
@@ -93,11 +103,12 @@ export class CategoriesController {
     const pageNum = Number(page) || 1;
     const limitNum = Number(limit) || 10;
 
-    const [categories, total] = await this.categoriesService.searchWithPagination(
-      query,
-      pageNum,
-      limitNum,
-    );
+    const [categories, total] =
+      await this.categoriesService.searchWithPagination(
+        query,
+        pageNum,
+        limitNum,
+      );
 
     return new PaginatedResponseDto(categories, total, pageNum, limitNum);
   }

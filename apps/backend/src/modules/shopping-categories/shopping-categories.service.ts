@@ -54,7 +54,9 @@ export class ShoppingCategoriesService {
     });
 
     if (existing) {
-      throw new ConflictException(`Category with code "${dto.code}" already exists`);
+      throw new ConflictException(
+        `Category with code "${dto.code}" already exists`,
+      );
     }
 
     const category = this.categoryRepository.create({
@@ -106,7 +108,10 @@ export class ShoppingCategoriesService {
     return this.toResponseDto(await this.findOne(id));
   }
 
-  async update(id: string, dto: UpdateCategoryDto): Promise<CategoryResponseDto> {
+  async update(
+    id: string,
+    dto: UpdateCategoryDto,
+  ): Promise<CategoryResponseDto> {
     const category = await this.findOne(id);
 
     Object.assign(category, dto);

@@ -39,7 +39,6 @@ export class UnitsController {
   constructor(private readonly unitsService: UnitsService) {}
 
   @Post()
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Создать единицу измерения (только admin)' })
   @ApiResponse({ status: HttpStatus.CREATED, type: UnitResponseDto })
@@ -89,7 +88,6 @@ export class UnitsController {
   }
 
   @Patch(':id')
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Обновить единицу измерения (только admin)' })
   @ApiParam({ name: 'id', description: 'UUID единицы измерения' })
@@ -107,7 +105,6 @@ export class UnitsController {
   }
 
   @Delete(':id')
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   @Roles(UserRole.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Удалить единицу измерения (только admin)' })

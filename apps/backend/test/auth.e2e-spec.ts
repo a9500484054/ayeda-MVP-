@@ -17,7 +17,11 @@ describe('Auth (e2e)', () => {
     const res = await request(app.getHttpServer())
       .post('/api/v1/auth/register')
       .set('X-Forwarded-For', freshIp())
-      .send({ email: `a_${uniq}@e.com`, password: 'Passw0rd1', username: `a${uniq}` })
+      .send({
+        email: `a_${uniq}@e.com`,
+        password: 'Passw0rd1',
+        username: `a${uniq}`,
+      })
       .expect(201);
 
     expect(res.body.accessToken).toBeDefined();

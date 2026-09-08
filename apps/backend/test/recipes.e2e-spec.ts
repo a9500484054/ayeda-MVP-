@@ -64,7 +64,11 @@ describe('Recipes (e2e)', () => {
       if (r.author) {
         expect(r.author).not.toHaveProperty('email');
         expect(r.author).not.toHaveProperty('role');
-        expect(Object.keys(r.author).sort()).toEqual(['avatar', 'id', 'username']);
+        expect(Object.keys(r.author).sort()).toEqual([
+          'avatar',
+          'id',
+          'username',
+        ]);
       }
     }
   });
@@ -84,5 +88,8 @@ describe('Recipes (e2e)', () => {
   });
 
   it('создание рецепта требует токен', () =>
-    request(app.getHttpServer()).post('/api/v1/recipes').send(makeBody()).expect(401));
+    request(app.getHttpServer())
+      .post('/api/v1/recipes')
+      .send(makeBody())
+      .expect(401));
 });
