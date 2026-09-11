@@ -28,6 +28,22 @@ export const cacheGetOrSet = async <T>(
   return data;
 };
 
+// Получение всех ключей по паттерну — через неблокирующий SCAN (KEYS блокирует Redis)
+export const getKeysByPattern = async (pattern: string): Promise<string[]> => {
+  const keys: string[] = [];
+  for await (const key of redisClient.scanIterator({
+    MATCH: pattern,
+    COUNT: 200,
+  })) {
+    if (Array.isArray(key)) {
+      keys.push(...key);
+    } else {
+      keys.push(key);
+    }
+  }
+  return keys;
+};
+
 // Очистка кэша по паттерну — через неблокирующий SCAN (KEYS блокирует Redis)
 export const clearCachePattern = async (pattern: string): Promise<void> => {
   const keys: string[] = [];

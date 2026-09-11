@@ -13,6 +13,16 @@ import { StorageService } from './services/storage.service';
 import { PaginatedResponseDto } from 'src/common/dto/pagination.dto';
 import { UserRole } from '../users/entities/user.entity';
 
+// Единственный источник допустимых mimetype → расширение. Расширение сохраняемого
+// файла всегда берётся отсюда, а не из клиентского originalname (иначе можно
+// прислать валидный mimetype с именем evil.html и получить stored XSS)
+const ALLOWED_MIME_TO_EXTENSION: Record<string, string> = {
+  'image/jpeg': '.jpg',
+  'image/png': '.png',
+  'image/gif': '.gif',
+  'image/webp': '.webp',
+};
+
 @Injectable()
 export class UploadsService {
   constructor(
@@ -37,6 +47,7 @@ export class UploadsService {
     const fileInfo = await this.storageService.saveFile(file, {
       entity,
       userId: userId || 'anonymous',
+      extension: ALLOWED_MIME_TO_EXTENSION[file.mimetype],
     });
 
     // Сохраняем запись в БД
@@ -61,13 +72,7 @@ export class UploadsService {
     }
 
     // Типы файлов
-    const allowedMimeTypes = [
-      'image/jpeg',
-      'image/png',
-      'image/gif',
-      'image/webp',
-    ];
-    if (!allowedMimeTypes.includes(file.mimetype)) {
+    if (!ALLOWED_MIME_TO_EXTENSION[file.mimetype]) {
       throw new BadRequestException(
         'Разрешены только изображения (JPEG, PNG, GIF, WEBP)',
       );

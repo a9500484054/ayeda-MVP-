@@ -8,21 +8,18 @@ import {
 import type { Response } from 'express';
 import { SkipThrottle } from '@nestjs/throttler';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
-import redisClient from '../../config/redis';
+import { HealthService } from './health.service';
 
 @ApiTags('health')
 @SkipThrottle()
 @Controller({ path: 'health', version: VERSION_NEUTRAL })
 export class HealthController {
-  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
+  constructor(private readonly healthService: HealthService) {}
 
   @Get()
   @ApiOperation({ summary: 'Живость сервиса: БД + Redis' })
   async check(@Res({ passthrough: true }) res: Response) {
-    const [db, redis] = await Promise.all([this.pingDb(), this.pingRedis()]);
-    const ok = db && redis;
+    const { ok, db, redis } = await this.healthService.check();
 
     if (!ok) {
       res.status(HttpStatus.SERVICE_UNAVAILABLE);
@@ -35,22 +32,5 @@ export class HealthController {
       uptime: Math.round(process.uptime()),
       timestamp: new Date().toISOString(),
     };
-  }
-
-  private async pingDb(): Promise<boolean> {
-    try {
-      await this.dataSource.query('SELECT 1');
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  private async pingRedis(): Promise<boolean> {
-    try {
-      return (await redisClient.ping()) === 'PONG';
-    } catch {
-      return false;
-    }
   }
 }

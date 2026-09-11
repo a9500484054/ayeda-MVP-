@@ -23,11 +23,10 @@ export class LocalStorageService implements IStorageService {
     file: Express.Multer.File,
     options: StorageOptions,
   ): Promise<UploadedFileInfo> {
-    const { entity, userId } = options;
+    const { entity, userId, extension } = options;
 
-    // Генерируем уникальное имя файла
-    const fileExt = path.extname(file.originalname);
-    const uniqueFileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${fileExt}`;
+    // Генерируем уникальное имя файла с расширением из провалидированного mimetype
+    const uniqueFileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${extension}`;
 
     // Путь: /uploads/recipes/123/
     const relativeDir = path.join('uploads', entity, userId);

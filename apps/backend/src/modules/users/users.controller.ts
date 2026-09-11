@@ -40,7 +40,6 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { UsersCacheService } from './users.cache.service';
 import { Roles } from '../../common/decorators/roles.decorator';
-import redisClient from 'src/config/redis';
 
 interface AuthedRequest {
   user: { id: string; email: string; role: UserRole };
@@ -230,15 +229,6 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Статистика кэша пользователей (только админ)' })
   async getCacheStats() {
-    const keys = await redisClient.keys('user:*');
-    const stats = {
-      totalCachedUsers: keys.length,
-      keys: keys,
-      memory: await redisClient.info('memory').then((info) => {
-        const match = info.match(/used_memory_human:(\d+\.?\d*\s*\w+)/);
-        return match ? match[1] : 'unknown';
-      }),
-    };
-    return stats;
+    return this.usersCacheService.getCacheStats();
   }
 }

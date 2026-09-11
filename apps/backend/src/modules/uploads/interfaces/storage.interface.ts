@@ -2,6 +2,10 @@ export interface StorageOptions {
   entity: string; // recipes, avatars, general
   userId: string; // ID пользователя или 'anonymous'
   fileName?: string; // опциональное имя файла
+  // Расширение сохраняемого файла, выведенное из провалидированного mimetype
+  // (а не из клиентского file.originalname — иначе можно прислать image/png
+  // с именем evil.html и получить stored XSS при статической раздаче)
+  extension: string;
 }
 
 export interface UploadedFileInfo {
