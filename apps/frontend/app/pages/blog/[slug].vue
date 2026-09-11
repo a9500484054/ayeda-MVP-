@@ -150,6 +150,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import DOMPurify from 'isomorphic-dompurify'
 import { useArticlesApi } from '~/composables/useArticlesApi'
 import BlogCard from '~/components/blog/BlogCard.vue'
 import Loader from '~/shared/ui/loader/Loader.vue'
@@ -190,7 +191,10 @@ const relatedArticles = ref<any[]>([])
 
 const articleContent = computed(() => {
   if (!articleData.value?.content) return ''
-  return articleData.value.content
+  // Контент статьи пишут admin/moderator, но всё равно санитайзим перед
+  // v-html — иначе компрометация одного админ-аккаунта даёт persistent XSS
+  // на всех посетителях блога
+  return DOMPurify.sanitize(articleData.value.content)
 })
 
 const formatDate = (dateString: string) => {

@@ -26,6 +26,7 @@
     "@vueuse/core": "^14.3.0",
     "@vueuse/integrations": "^14.3.0",
     "date-fns": "^4.1.0",
+    "isomorphic-dompurify": "^4.2.0",
     "nuxt": "^4.3.1",
     "pinia": "^3.0.4",
     "sortablejs": "^1.15.7",
@@ -44,6 +45,7 @@
     "@vite-pwa/nuxt": "^1.1.1",
     "dotenv": "^16.6.1",
     "sharp": "^0.34.5",
+    "tailwindcss": "^4.2.4",
     "vitest": "^4.0.16",
     "zod": "^3.24.0"
   }
