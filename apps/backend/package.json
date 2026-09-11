@@ -98,9 +98,14 @@
     "transform": {
       "^.+\\.(t|j)s$": [
         "ts-jest",
-        { "tsconfig": "<rootDir>/../tsconfig.spec.json" }
+        {
+          "tsconfig": "<rootDir>/../tsconfig.spec.json"
+        }
       ]
     },
+    "transformIgnorePatterns": [
+      "/node_modules/(?!(?:.*/)?(?:@nestjs/schedule|uuid)/)"
+    ],
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],
