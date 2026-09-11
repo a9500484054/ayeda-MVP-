@@ -451,7 +451,8 @@ export class ShoppingListsService {
       .where('item.shoppingListId = :listId', { listId })
       .getRawOne();
 
-    const sortOrder = (maxOrderResult?.max || 0) + 1000;
+    const sortOrder =
+      (maxOrderResult?.max ? parseInt(maxOrderResult.max) : 0) + 1000;
 
     const item = this.shoppingListItemRepository.create({
       shoppingListId: listId,
@@ -645,11 +646,12 @@ export class ShoppingListsService {
       .where('item.shoppingListId = :listId', { listId })
       .getRawOne();
 
-    let currentSortOrder = (maxOrderResult?.max || 0) + 1000;
+    let currentSortOrder =
+      (maxOrderResult?.max ? parseInt(maxOrderResult.max) : 0) + 1000;
 
     // Создаем все позиции
     const itemsToCreate = items.map((itemDto) => {
-      return this.shoppingListItemRepository.create({
+      const item = this.shoppingListItemRepository.create({
         shoppingListId: listId,
         name: itemDto.name,
         categoryId: itemDto.categoryId || null,
@@ -660,6 +662,7 @@ export class ShoppingListsService {
         sortOrder: currentSortOrder,
       });
       currentSortOrder += 1000;
+      return item;
     });
 
     const savedItems =
@@ -701,7 +704,8 @@ export class ShoppingListsService {
       .where('list.userId = :userId', { userId })
       .getRawOne();
 
-    const sortOrder = (maxOrderResult?.max || 0) + 1000;
+    const sortOrder =
+      (maxOrderResult?.max ? parseInt(maxOrderResult.max) : 0) + 1000;
 
     // Формируем название для копии
     const newTitle = dto.title || `${originalList.title} (копия)`;
