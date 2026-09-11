@@ -129,8 +129,7 @@ import type { MenuSlotItem } from '~/composables/useMenuPlannerApi'
 import Button from '~/shared/ui/button/Button.vue'
 import PromptModal from '~/shared/ui/prompt-modal/PromptModal.vue'
 
-const config = useRuntimeConfig()
-const apiUrl = config.public.apiBase || 'http://localhost:3001'
+const { resolveImageUrl } = useImageUrl()
 const router = useRouter()
 
 const props = defineProps<{
@@ -151,13 +150,7 @@ const emit = defineEmits<{
 }>()
 
 
-const getImageUrl = (path: string) => {
-  if (!path) return ''
-  if (path.startsWith('http')) return path
-  const apiUrl = config.public.apiUrl || 'http://localhost:3001'
-  if (path.startsWith('/')) return `${apiUrl}${path}`
-  return `${apiUrl}/${path}`
-}
+const getImageUrl = (path: string) => resolveImageUrl(path)
 
 const isNotesModalOpen = ref(false)
 const notesValue = ref(props.item.notes || '')

@@ -153,21 +153,16 @@ const emit = defineEmits<{
 const fileInput = ref<HTMLInputElement>()
 const isDragOver = ref(false)
 
-const config = useRuntimeConfig()
+const { resolveImageUrl } = useImageUrl()
 
-
-const API_BASE_URL = config.public.apiUrl || 'http://localhost:3001'
 const imageUrl = computed(() => {
   if (!props.modelValue) return ''
 
   if (typeof props.modelValue === 'string') {
-    return props.modelValue.startsWith('http')
-      ? props.modelValue
-      : `${API_BASE_URL}${props.modelValue}`
+    return resolveImageUrl(props.modelValue)
   }
 
-  const src = props.modelValue.src
-  return src.startsWith('http') ? src : `${API_BASE_URL}${src}`
+  return resolveImageUrl(props.modelValue.src)
 })
 
 const labelClass = computed(() => {

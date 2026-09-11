@@ -47,20 +47,14 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const config = useRuntimeConfig()
+const { resolveImageUrl } = useImageUrl()
 
 const sortedSteps = computed(() => {
   if (!props.steps?.length) return []
   return [...props.steps].sort((a, b) => (a.sort || 0) - (b.sort || 0))
 })
 
-const getImageUrl = (path: string) => {
-  if (!path) return ''
-  if (path.startsWith('http')) return path
-  const apiUrl = config.public.apiUrl || 'http://localhost:3001'
-  if (path.startsWith('/')) return `${apiUrl}${path}`
-  return `${apiUrl}/${path}`
-}
+const getImageUrl = (path: string) => resolveImageUrl(path)
 
 const openImage = (imageUrl: string) => {
   window.open(getImageUrl(imageUrl), '_blank')

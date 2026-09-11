@@ -235,9 +235,7 @@ const isMyRecipesTab = computed(() => props.activeTab === 'my')
 const isFavoritesTab = computed(() => props.activeTab === 'favorites')
 const showModerationButton = computed(() => props.activeTab === 'my')
 
-const config = useRuntimeConfig()
-
-const API_BASE_URL = config.public.apiUrl || 'http://localhost:3001'
+const { resolveImageUrl } = useImageUrl()
 
 // Показывать кнопки редактирования/удаления только для черновиков, приватных и отклоненных
 const showEditDeleteButtons = computed(() => {
@@ -247,10 +245,8 @@ const showEditDeleteButtons = computed(() => {
 
 const imageUrl = computed(() => {
   const path = props.recipe.photo?.src
-  console.log('path', path)
   if (!path) return 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop'
-  if (path.startsWith('http')) return path
-  return `${API_BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`
+  return resolveImageUrl(path)
 })
 
 const statusBadgeClass = computed(() => {

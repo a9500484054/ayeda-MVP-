@@ -119,7 +119,7 @@ const emit = defineEmits<{
   like: [recipe: RecipeResponse, state: boolean]
 }>()
 
-const config = useRuntimeConfig()
+const { resolveImageUrl } = useImageUrl()
 
 const isListView = computed(() => props.viewMode === 'list')
 const isSmallGrid = computed(() => props.viewMode === 'grid-small')
@@ -143,19 +143,6 @@ const authorName = computed(() => {
   return 'Пользователь'
 })
 
-// const recipeImage = computed(() => {
-//   console.log('props.recipe.photo?.src', props.recipe.photo?.src)
-//   if (props.recipe.photo?.src) {
-//     const src = props.recipe.photo.src
-//     if (src.startsWith('http')) return src
-//     if (src.startsWith('/')) return `${config.public.apiUrl}${src}`
-//     console.log('props.recipe.photo?.src',`${config.public.apiUrl}/${src}`)
-//     return `${config.public.apiUrl}/${src}`
-//   }
-//   return '/placeholder-recipe.jpg'
-// })
-
-
 const recipeImage = computed(() => {
   if (props.recipe?.photo?.src) {
     return getImageUrl(props.recipe?.photo?.src)
@@ -163,13 +150,7 @@ const recipeImage = computed(() => {
   return 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop'
 })
 
-const getImageUrl = (path: string) => {
-  if (!path) return ''
-  if (path.startsWith('http')) return path
-  const apiUrl = config.public.apiUrl || 'http://localhost:3001'
-  if (path.startsWith('/')) return `${apiUrl}${path}`
-  return `${apiUrl}/${path}`
-}
+const getImageUrl = (path: string) => resolveImageUrl(path)
 
 const openRecipe = () => {
   emit('open', props.recipe)

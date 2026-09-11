@@ -148,7 +148,7 @@ const emit = defineEmits<{
   dragOverState: [state: boolean]
 }>()
 
-const config = useRuntimeConfig()
+const { resolveImageUrl } = useImageUrl()
 const selectRef = ref<InstanceType<typeof Select> | null>(null)
 const searchContainerRef = ref<HTMLElement | null>(null)
 
@@ -190,14 +190,7 @@ watch(() => props.isDragOver, (newValue) => {
   localDragOver.value = newValue
 })
 
-const getImageUrl = (recipe: RecipeResponse) => {
-  const src = recipe.photo?.src
-  if (!src) return ''
-  if (src.startsWith('http')) return src
-  const apiUrl = config.public.apiUrl || 'http://localhost:3001'
-  if (src.startsWith('/')) return `${apiUrl}${src}`
-  return `${apiUrl}/${src}`
-}
+const getImageUrl = (recipe: RecipeResponse) => resolveImageUrl(recipe.photo?.src)
 
 
 const isRecipeAlreadyAdded = (recipeId: string) => {

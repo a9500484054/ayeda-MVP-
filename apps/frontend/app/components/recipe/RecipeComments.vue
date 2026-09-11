@@ -254,7 +254,7 @@ const emit = defineEmits<{
   'login': []
 }>()
 
-const config = useRuntimeConfig()
+const { resolveImageUrl } = useImageUrl()
 const newCommentText = ref('')
 const editingId = ref<string | null>(null)
 const editingText = ref('')
@@ -291,13 +291,7 @@ watch(() => props.editPending, (newVal, oldVal) => {
   }
 })
 
-const getImageUrl = (path: string) => {
-  if (!path) return ''
-  if (path.startsWith('http')) return path
-  const apiUrl = config.public.apiUrl || 'http://localhost:3001'
-  if (path.startsWith('/')) return `${apiUrl}${path}`
-  return `${apiUrl}/${path}`
-}
+const getImageUrl = (path: string) => resolveImageUrl(path)
 
 const getAuthorName = (author?: Author | null) => {
   if (author?.username) return author.username

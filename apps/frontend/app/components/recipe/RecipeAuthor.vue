@@ -34,7 +34,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const config = useRuntimeConfig()
+const { resolveImageUrl } = useImageUrl()
 
 const authorName = computed(() => {
   if (props.author?.username) return props.author.username
@@ -42,13 +42,7 @@ const authorName = computed(() => {
   return 'Пользователь'
 })
 
-const getImageUrl = (path: string) => {
-  if (!path) return ''
-  if (path.startsWith('http')) return path
-  const apiUrl = config.public.apiUrl || 'http://localhost:3001'
-  if (path.startsWith('/')) return `${apiUrl}${path}`
-  return `${apiUrl}/${path}`
-}
+const getImageUrl = (path: string) => resolveImageUrl(path)
 
 const handleAvatarError = (e: Event) => {
   const target = e.target as HTMLImageElement
