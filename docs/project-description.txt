@@ -1,0 +1,561 @@
+Техническое описание проекта «АуЕда» (ayeda-MVP)
+
+Аудит по факту содержимого репозитория. Где данных нет или они противоречивы — указано явно, без предположений.
+
+================================================================================
+1. ОБЩЕЕ ОПИСАНИЕ
+================================================================================
+
+- Название: АуЕда (ayeda-MVP), домен ayeda.ru. В README заголовок сломан —
+  имя проекта перед тире отсутствует ("#  — Сервис планирования питания и
+  покупок 🍽️").
+- Назначение: SaaS-платформа для планирования питания — рецепты,
+  планировщик меню (календарь/дни/банкет), автогенерация списков покупок,
+  обмен рецептами (community), блог, партнёрская доставка продуктов.
+- Тип: Full-stack веб-приложение (REST API + SSR-фронтенд) с PWA.
+- Целевая аудитория: конечные пользователи (занятые люди/семьи 25–45,
+  судя по маркетинговым текстам лендинга), плюс встроенная админка для
+  контент-модераторов/администраторов.
+
+================================================================================
+2. ТЕХНОЛОГИЧЕСКИЙ СТЕК
+================================================================================
+
+Слой                    | Технология                        | Версия
+-------------------------|------------------------------------|------------------
+Backend язык             | TypeScript                         | ^5.7.3
+Backend фреймворк        | NestJS                              | @nestjs/common/core/platform-express ^11.0.1
+ORM                       | TypeORM                             | ^0.3.28
+БД                        | PostgreSQL                          | 15-alpine (Docker-образ)
+Кэш/rate-limit/дедуп      | Redis (клиент redis)                | ^5.12.1
+Очереди/воркеры          | отсутствуют (только @nestjs/schedule cron ^12.0.1)
+Аутентификация           | JWT (@nestjs/jwt ^11.0.2, passport-jwt ^4.0.1) + argon2 ^0.44.0 для паролей
+Rate-limit                | @nestjs/throttler ^6.5.0 (120 req/60s глобально)
+Frontend язык             | TypeScript, Vue SFC
+Frontend фреймворк        | Nuxt ^4.3.1 (Vue ^3.5.28)
+State                     | Pinia ^3.0.4 (@pinia/nuxt ^0.11.3)
+UI-библиотека             | @nuxt/ui ^4.7.1, @nuxt/icon ^2.2.4 (Lucide через @iconify-json/lucide)
+CSS                       | Tailwind CSS ^4.2.4 (devDependencies фронтенда)
+Формы                     | vee-validate ^4.15.1 + @vee-validate/zod + zod ^3.24.0
+PWA                       | @vite-pwa/nuxt ^1.1.1
+Санитайзинг HTML          | isomorphic-dompurify ^4.2.0 (добавлено в этой сессии)
+Типобезопасный API-клиент | @hey-api/openapi-ts ^0.87.0 → генерирует в packages/shared-api (папка на момент анализа не создана)
+Инфраструктура            | Docker (multi-stage), docker-compose (Postgres+Redis+backend+pgAdmin; frontend-сервис закомментирован), GitHub Actions CI (backend/frontend), husky+lint-staged
+Монорепо                  | pnpm workspaces (apps/*, packages/*), only-allow pnpm
+
+================================================================================
+3. СТРУКТУРА ПРОЕКТА
+================================================================================
+
+ayeda-MVP-/
+├── apps/
+│   ├── backend/                    # NestJS API
+│   │   ├── src/
+│   │   │   ├── modules/            # 20 доменных модулей (см. раздел 4)
+│   │   │   ├── common/             # guards, decorators, dto, filters (общие для всех модулей)
+│   │   │   ├── config/redis.ts     # единственный конфиг-файл (клиент Redis)
+│   │   │   ├── utils/redis.utils.ts# cacheGetOrSet, clearCachePattern, getKeysByPattern, incrementAndGet, setOnce
+│   │   │   ├── migrations/         # 25 файлов TypeORM-миграций
+│   │   │   ├── data-source.ts      # CLI DataSource для миграций
+│   │   │   ├── migration-run.ts    # прод-раннер миграций (dist/migration-run.js)
+│   │   │   └── main.ts             # bootstrap (helmet, CORS, versioning, Swagger)
+│   │   ├── test/                   # 5 e2e-спеков + jest-e2e.json
+│   │   ├── docker/entrypoint.sh    # прод-энтрипоинт (ждёт Postgres → миграции → старт)
+│   │   ├── Dockerfile              # multi-stage (base→build→development→production)
+│   │   └── .env.example
+│   ├── frontend/                   # Nuxt 4 SSR-приложение
+│   │   ├── app/
+│   │   │   ├── pages/              # 51 файл (публичные, cabinet/*, admin/*, demo/*)
+│   │   │   ├── components/         # доменные Vue-компоненты
+│   │   │   ├── shared/ui/          # переиспользуемые UI-примитивы (минуя ui-kit)
+│   │   │   ├── stores/             # 5 Pinia-сторов
+│   │   │   ├── composables/        # 28 файлов (API-обёртки + доменная логика)
+│   │   │   ├── middleware/         # auth.global.ts, admin.global.ts
+│   │   │   ├── layouts/            # default.vue, admin.vue, cabinet.vue
+│   │   │   ├── plugins/            # auth.client.ts, icons.ts, swiper.client.ts
+│   │   │   └── server/             # Nitro: api/proxy/[...].ts, middleware/rate-limit.ts, routes/sitemap.xml.ts
+│   │   ├── tests/unit/, tests/e2e/ # 1 vitest-тест, 1 playwright-спек (конфиг playwright отсутствует)
+│   │   ├── Dockerfile              # на npm — несовместим с pnpm-монорепой, не используется (сервис в compose закомментирован)
+│   │   └── .env.example
+│   └── storybook/                  # витрина packages/ui-kit (+ 2 компонента напрямую из frontend/app/shared/ui)
+├── packages/
+│   ├── shared/                     # общие типы (UserRole/RecipeStatus/UnitType/Entity) — не импортируется никем
+│   └── ui-kit/                     # @ayeda/ui-kit, единственный компонент — Button.vue
+├── docs/
+│   ├── architecture.md             # слоистость, mermaid-граф зависимостей модулей
+│   └── module-template/            # эталонный CRUD-модуль widgets (для копирования при новом модуле)
+├── .github/workflows/
+│   ├── backend-ci.yml              # migrate→lint→type-check→test→e2e→build (с Postgres+Redis service-контейнерами)
+│   ├── frontend-ci.yml             # lint→type-check→test→build (без e2e)
+│   └── deploy.yml                  # пустой файл-заглушка, ни одного job
+├── docker-compose.yml               # postgres, redis, backend, pgadmin (frontend закомментирован)
+├── docker-compose.override.yml      # dev-профиль backend (hot-reload, debug-порт 9229)
+├── redis.conf                       # requirepass, запрет FLUSHALL/FLUSHDB/CONFIG, maxmemory 256mb
+├── setup.sh                         # скрипт первого запуска (ссылается на несуществующие npm-скрипты и порт Adminer)
+├── pnpm-workspace.yaml, tsconfig.json, eslint.config.js
+├── CLAUDE.md, CONTRIBUTING.md, README.md, REDIS_SETUP.md
+├── CLAUDE.md                        # untracked на момент анализа
+└── install.cmd                      # untracked, назначение не проверялось
+
+================================================================================
+4. ФУНКЦИОНАЛЬНОСТЬ (по модулям backend)
+================================================================================
+
+Модуль            | Что делает                                                                              | Ключевые зависимости
+-------------------|------------------------------------------------------------------------------------------|----------------------
+auth               | Регистрация, логин, refresh-ротация JWT, logout/logoutAll, смена/сброс пароля, подтверждение email | Users, Email, Redis (сессии)
+users              | CRUD (admin), /users/me, кэш в Redis 5 мин, статистика/очистка кэша для админа          | Redis
+recipes            | CRUD рецептов, модерация (draft→pending/private→public/rejected), поиск (публичный/свой/избранное/все), инкремент просмотров с Redis-дедупом, self-healing cron пересчёта счётчиков | Users, Ingredients, Categories, Units, Favorites, Redis
+recipe-ingredients/recipe-categories | M2M-связки рецепта с ингредиентами (с количеством/единицей) и категориями       | Recipes, Ingredients, Units, Categories
+ingredients        | Справочник CRUD (admin/moderator), авто-генерация slug (srcPath) транслитерацией         | —
+categories         | Справочник категорий рецептов, CRUD (admin)                                              | —
+units              | Справочник единиц измерения (mass/volume/piece/other), CRUD (admin)                      | —
+comments           | Комментарии к рецепту, скрытие/показ модератором, очередь модерации                      | Recipes
+likes              | Тумблер лайка на рецепт + список лайков пользователя                                     | Recipes
+favorites          | Тумблер избранного + список избранного пользователя                                      | Recipes
+menu-planner       | Списки меню (DAYS/BANQUET), дни, слоты, позиции-рецепты, reorder, выборка по датам, добавление в банкет | Recipes, Users
+shopping-lists     | Списки покупок, позиции с категориями/чек-боксами, bulk-добавление, reorder, копирование, публичный доступ по share-токену | ShoppingCategories
+shopping-categories| Справочник категорий покупок (поля видны через toCategoryResponseDto: id/code/name/icon/sortOrder/isActive) | —
+articles           | CRUD статей (draft/published), публикация по slug, отдельный доступ по id для редактирования | Users
+uploads            | Загрузка (авторизованная и публичная), аватары, удаление своего/(admin) любого файла, локальное хранилище (S3 — не реализован) | Users
+dashboard          | Агрегированная статистика для админки                                                    | все справочники
+email              | Отправка писем подтверждения/сброса пароля через nodemailer (SMTP Yandex по умолчанию)   | —
+health             | Проверка доступности Postgres + Redis                                                    | Redis
+redis              | Глобальный провайдер Redis-клиента                                                        | —
+
+Frontend-функциональность: публичный каталог рецептов/ингредиентов/блог,
+кабинет (профиль, мои рецепты, планировщик, списки покупок), публичный
+доступ к расшаренному списку по токену, полная админка (модерация,
+справочники, пользователи), PWA (офлайн-страница, установка), демо-витрина
+всех UI-компонентов (pages/demo/*).
+
+================================================================================
+5. МОДЕЛИ ДАННЫХ
+================================================================================
+
+Поля/типы — как в TypeORM-декораторах. Где значение enum не было напрямую
+подтверждено чтением файла enum'а (только по использованию в коде),
+помечено "(неполный список)".
+
+Entity              | Таблица              | Ключевые поля                                                                                                                                   | Связи                                        | Ограничения
+---------------------|-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------|-------------
+User                 | users                 | id uuid, email unique, password (@Exclude), username unique(50), firstName/lastName(100) null, bio text null, avatar(512) null, isEmailVerified bool, role enum UserRole(user/moderator/admin), lastLoginAt null | —                                                | Check: username>=3 симв., bio<=1200
+RefreshToken         | refresh_tokens        | id, userId, tokenHash (SHA-256), expiresAt, revokedAt null, createdAt                                                                            | ManyToOne→User CASCADE                          | —
+Recipe               | recipes                | id, title(200), description null, cookingTime null, servings null, calories null, difficulty enum Difficulty(easy/medium/hard), status enum RecipeStatus(draft/private/pending/public/rejected), type enum RecipeType(personal/community), photo jsonb {id,src}, video(1024) null, steps jsonb {sort,text,image?}[], srcPath unique(120), likes int, commentsCount int, viewsCount int, authorId FK→User RESTRICT, publishedAt null, deletedAt (soft delete), searchVector tsvector (генерируется БД), seo jsonb null | OneToMany→RecipeIngredient, RecipeCategory      | Check: title>=3, servings>0
+RecipeCategory       | recipe_categories      | составной PK (recipeId, categoryId)                                                                                                               | recipe CASCADE, category RESTRICT               | M2M
+RecipeIngredient     | recipe_ingredients     | id, recipeId CASCADE, ingredientId RESTRICT, unitId RESTRICT null, amount numeric(10,2), notes null                                              | —                                                | —
+Ingredient           | ingredients            | id, srcPath unique(120) (авто-slug), code unique(50), name(100), description null, photo(512) null, unitId FK (eager), nutritionInfo jsonb, seo jsonb null | ManyToOne→Unit                                  | —
+Category             | categories             | id, code unique(20), name unique(100), description null                                                                                          | —                                                | —
+Unit                 | units                  | id, code unique(20), name(50), short(10), type enum UnitType(mass/volume/piece/other)                                                            | —                                                | —
+Comment              | comments               | id, text, recipeId CASCADE, authorId→User SET NULL null, isHidden bool, deletedAt                                                                | —                                                | —
+Like                 | likes                  | id, recipeId, userId                                                                                                                               | Unique(recipeId,userId)                         | —
+Favorite             | favorites              | id, recipeId, userId                                                                                                                               | Unique(recipeId,userId)                         | —
+Article              | articles               | id, userId CASCADE, title(200), slug unique(200), content null, steps jsonb null, excerpt(500) null, featuredImage(500) null, categories text[] null, type enum ArticleType(article/tip/news), status enum ArticleStatus(draft/published), views int, seo jsonb null, publishedAt null, deletedAt | ManyToOne→User                                  | —
+Upload               | uploads                | id, userId null, path, originalName, mimeType, size                                                                                              | —                                                | —
+MenuList             | menu_lists             | id, userId, title(100), description null, icon(50) null, isActive bool, displayType enum DisplayType (подтверждены значения DAYS, BANQUET; CLAUDE.md упоминает третий вид "Календарь", значение в enum-файле напрямую не проверено) | ManyToOne→User CASCADE; OneToMany→MenuDay, MenuSlot | —
+MenuDay              | menu_days              | id, menuListId, dayOrder int, title(100) — без soft delete (физическое удаление)                                                                 | ManyToOne→MenuList CASCADE; OneToMany→MenuSlot  | —
+MenuSlot             | menu_slots             | id, menuListId, slotType enum SlotType (подтверждены значения CALENDAR, BANQUET по использованию), dayId null, slotDate date null, mealType enum MealType null (значения не проверялись напрямую), order int | ManyToOne→MenuList, MenuDay CASCADE; OneToMany→MenuSlotItem | —
+MenuSlotItem         | menu_slot_items        | id, slotId, recipeId, order int, notes null                                                                                                      | ManyToOne→MenuSlot, Recipe CASCADE              | —
+ShoppingList         | shopping_lists         | id, userId uuid, title(200), shareToken(64) null unique, sortOrder int, deletedAt (soft delete)                                                  | OneToMany→ShoppingListItem                      | —
+ShoppingListItem     | shopping_list_items    | id, shoppingListId uuid, name(200), categoryId uuid null, quantity decimal(10,2), unit(20) def 'шт', price decimal(10,2) null, isChecked bool, sortOrder int, note null | ManyToOne→ShoppingCategory                      | —
+ShoppingCategory     | (не проверялась entity-декларация напрямую) | поля подтверждены через маппер сервиса: id, code, name, icon, sortOrder, isActive, createdAt, updatedAt                                          | —                                                | —
+
+Схемы валидации (входные DTO, class-validator): отдельного Zod/Marshmallow-
+слоя на backend нет — весь input-валидация через class-validator + глобальный
+ValidationPipe({whitelist:true, transform:true, forbidNonWhitelisted:true}).
+На фронтенде формы валидируются через zod + vee-validate.
+
+================================================================================
+6. API / ИНТЕРФЕЙСЫ
+================================================================================
+
+Базовый префикс: /api/v1/* (URI-versioning, defaultVersion:'1'), health —
+version-neutral (/health, без префикса /api/v1).
+
+auth:
+  POST /auth/register
+  POST /auth/login
+  POST /auth/refresh
+  POST /auth/logout
+  POST /auth/logout-all (Jwt)
+  POST /auth/verify-email
+  POST /auth/forgot-password
+  POST /auth/reset-password
+  POST /auth/change-password (Jwt)
+
+users:
+  POST /users (admin)
+  GET /users (admin/moderator, пагинация)
+  GET /users/me (Jwt)
+  GET /users/:id (сам/admin/moderator)
+  PATCH /users/:id (сам/admin)
+  DELETE /users/:id (сам/admin, soft delete)
+  POST /users/cache/clear (admin)
+  GET /users/cache/stats (admin)
+
+recipes:
+  POST /recipes (Jwt)
+  GET /recipes (пагинация+фильтры)
+  GET /recipes/:id (OptionalJwt)
+  GET /recipes/by-path/:srcPath
+  PATCH /recipes/:id (владелец/staff)
+  DELETE /recipes/:id (soft delete)
+  POST /recipes/:id/publish (moderator/admin)
+  POST /recipes/:id/reject (moderator/admin)
+  POST /recipes/:id/submit
+  POST /recipes/:id/make-private
+  GET /recipes/search/public, /search/my, /search/favorites, /search/all
+  GET /recipes/search (legacy)
+
+ingredients:
+  POST /ingredients (admin/moderator)
+  GET /ingredients
+  GET /ingredients/search
+  GET /ingredients/:id
+  GET /ingredients/by-path/:srcPath
+  PATCH /ingredients/:id (admin/moderator)
+  DELETE /ingredients/:id (admin)
+
+categories:
+  POST /categories (admin)
+  GET /categories
+  GET /categories/search
+  GET /categories/:id
+  PATCH /categories/:id (admin)
+  DELETE /categories/:id (admin)
+
+units:
+  POST /units (admin)
+  GET /units
+  GET /units/:id
+  PATCH /units/:id (admin)
+  DELETE /units/:id (admin)
+
+comments:
+  POST /recipes/:recipeId/comments (Jwt)
+  GET /recipes/:recipeId/comments
+  GET /recipes/:recipeId/comments/:id
+  PATCH /recipes/:recipeId/comments/:id (автор)
+  DELETE /recipes/:recipeId/comments/:id (автор/moderator/admin)
+  POST /recipes/:recipeId/comments/:id/hide (moderator/admin)
+  POST /recipes/:recipeId/comments/:id/unhide (moderator/admin)
+  GET /recipes/:recipeId/comments/moderator/all
+
+likes:
+  POST /recipes/:recipeId/likes (toggle, Jwt)
+  GET /recipes/:recipeId/likes/status (OptionalJwt)
+  GET /users/:userId/likes
+
+favorites:
+  POST /recipes/:recipeId/favorites (toggle, Jwt)
+  GET /recipes/:recipeId/favorites/status
+  GET /users/:userId/favorites (Jwt)
+
+menu-planner:
+  CRUD menu-lists, days, slots, слот-позиции (add-recipe, remove, reorder, notes)
+  GET .../structure
+  GET .../slots?startDate&endDate
+  банкет: GET/POST .../banquet-items
+
+shopping-lists:
+  CRUD списков
+  GET /shopping-lists/:id
+  items CRUD
+  POST /:id/items/bulk
+  PATCH /:id/items/reorder
+  POST /:id/items/uncheck-all
+  POST /:id/copy
+  share-токен generate/revoke
+  GET /shared/:token (публично, без авторизации)
+
+articles:
+  POST /articles (Jwt)
+  GET /articles
+  GET /articles/categories
+  GET /articles/:slug
+  GET /articles/id/:id (Jwt)
+  PATCH /articles/:id
+  PATCH /articles/:id/publish, /articles/:id/unpublish
+  DELETE /articles/:id (soft delete)
+
+uploads:
+  POST /uploads (Jwt)
+  POST /uploads/public
+  GET /uploads
+  GET /uploads/user/:userId
+  GET /uploads/:id
+  DELETE /uploads/:id (свой)
+  DELETE /uploads/admin/:id (admin)
+
+dashboard:
+  GET /dashboard (admin/moderator)
+
+health:
+  GET /health (без версии/префикса)
+
+Формат ошибок — единый через AllExceptionsFilter:
+{statusCode, error, message, path, timestamp}, stack наружу не отдаётся,
+5xx логируется.
+
+================================================================================
+7. БИЗНЕС-ЛОГИКА
+================================================================================
+
+- Модерация рецептов: обычный автор не может напрямую опубликовать (PUBLIC);
+  COMMUNITY-рецепт → PENDING на модерацию, PERSONAL → PRIVATE; staff
+  (admin/moderator) может публиковать напрямую через тело запроса.
+- Просмотры рецептов: инкремент дедуплицируется через Redis
+  setOnce(recipe:view:{id}:{ip}) с TTL 3600 — не чаще раза в час с одного IP.
+- Cron: AuthService.cleanExpiredTokens (ежедневно 3:00) — чистка
+  просроченных/давно отозванных refresh-токенов; RecipesService.
+  reconcileCounters (ежедневно 4:00) — self-healing пересчёт
+  commentsCount/likes raw SQL.
+- Refresh-токены: ротация на каждый /auth/refresh (старый отзывается, новый
+  выдаётся), хранится SHA-256-хэш, не сам токен.
+- Лимиты: максимум 20 списков покупок на пользователя (MAX_LISTS_PER_USER);
+  throttler 120 запросов/60с глобально (плюс отдельный RateLimitGuard в auth
+  — детали не проверялись подробно).
+- Внешние интеграции: SMTP (nodemailer, Yandex по умолчанию) для писем;
+  партнёрская доставка на лендинге — только текстовые упоминания
+  (Ozon/Самокат/Сбермаркет), реальной интеграции с API доставки в коде нет.
+- Воркеры/очереди: отсутствуют (BullMQ и т.п. не используется), только
+  @nestjs/schedule.
+
+================================================================================
+8. КОНФИГУРАЦИЯ
+================================================================================
+
+apps/backend/.env.example:
+  PORT=4000, NODE_ENV, DB_HOST/PORT/USERNAME/PASSWORD/DATABASE,
+  DB_LOGGING=false, REDIS_URL=redis://localhost:6379, JWT_ACCESS_SECRET,
+  JWT_REFRESH_SECRET, JWT_ACCESS_EXPIRES_IN=15m, JWT_REFRESH_EXPIRES_IN=7d,
+  CORS_ORIGIN, UPLOAD_DIR=./uploads, MAX_FILE_SIZE=5242880,
+  DOCKER_ENV=false, STORAGE_TYPE=local, BASE_URL=http://localhost:4000.
+  Отсутствуют в .env.example, но требуются кодом: SMTP_HOST, SMTP_PORT,
+  SMTP_USER, SMTP_PASSWORD, FRONTEND_URL.
+
+apps/frontend/.env.example:
+  NUXT_PUBLIC_API_BASE_URL=http://localhost:3001/api/v1,
+  NUXT_PUBLIC_APP_URL=http://localhost:3000,
+  NUXT_PUBLIC_SENTRY_DSN= (пусто),
+  NUXT_PUBLIC_YANDEX_METRICA_ID= (пусто),
+  NUXT_API_SECRET= (пусто).
+
+Docker-окружение (docker-compose.override.yml, redis.conf): Redis-пароль
+3Jd6WtYrurHaNGQ3TMmh захардкожен открытым текстом в обоих файлах.
+
+================================================================================
+9. ЗАПУСК И ДЕПЛОЙ
+================================================================================
+
+pnpm install                                   # корень монорепы
+docker compose up -d                            # postgres, redis, backend(dev), pgadmin
+docker exec ayeda_backend sh -c "cd /repo/apps/backend && pnpm run migration:run"
+pnpm --filter frontend dev                      # фронтенд — локально, вне Docker
+
+- Прод-образ backend: docker compose build backend && docker compose up -d
+  --build backend; миграции применяются автоматически entrypoint.sh перед
+  стартом (dist/migration-run.js).
+- Фронтенд-Dockerfile существует, но собран под npm — несовместим с текущей
+  pnpm-монорепой, сервис frontend в docker-compose.yml закомментирован;
+  деплой фронтенда за пределами pnpm build не описан.
+- deploy.yml (CI) — пустой, автодеплоя нет.
+- setup.sh — скрипт первого запуска содержит устаревшие ссылки
+  (несуществующие npm-скрипты build:shared/build:ui-kit, порт Adminer :8080
+  вместо реального pgAdmin :5050).
+
+================================================================================
+10. ТЕСТЫ
+================================================================================
+
+Слой          | Фреймворк              | Факт
+---------------|------------------------|------
+Backend unit   | Jest 30 + ts-jest      | 5 spec-файлов (auth, menu-planner, shopping-lists — написаны в этой сессии; filter, PublicAuthorDto — были ранее). pnpm --filter backend test
+Backend e2e    | Jest (test/jest-e2e.json) | 5 файлов, 24 теста, 8 snapshot-проверок (auth, health, recipes, response-contract, users). Нужны реальные Postgres+Redis. pnpm --filter backend test:e2e
+Frontend unit  | Vitest 4               | 1 тест (aggregateIngredients.test.ts). pnpm --filter frontend test
+Frontend e2e   | Playwright             | 1 спек (smoke.spec.ts), конфиг playwright.config.ts отсутствует — без baseURL/webServer тест не запустится как есть; текст ожидания (/План питания/) не совпадает с текущим текстом хиро. Не запускается в CI.
+
+================================================================================
+11. ОСОБЕННОСТИ И НЮАНСЫ
+================================================================================
+
+Технический долг/несоответствия, найденные при обходе:
+- README.md — сломанный заголовок (имя проекта пропущено перед тире).
+- generate:api фронтенда обращается к localhost:3000, реальный dev-порт
+  backend — 3001.
+- apps/storybook документирует 2 из 3 stories не из @ayeda/ui-kit, а
+  напрямую из apps/frontend/app/shared/ui/* — ui-kit реально используется
+  только для Button.
+- apps/frontend/Dockerfile на npm, несовместим с pnpm-монорепой; сервис
+  frontend в compose закомментирован.
+- .github/workflows/deploy.yml — пустой.
+- Redis-пароль захардкожен открытым текстом в репозитории (redis.conf,
+  docker-compose.override.yml).
+- EmailService требует переменные, отсутствующие в .env.example (SMTP_*,
+  FRONTEND_URL).
+- setup.sh ссылается на несуществующие npm-скрипты и неверный порт админки БД.
+- middleware/auth.global.ts — одиночный посторонний кириллический символ
+  артефактом правки (синтаксически не влияет).
+- packages/shared не импортируется ни backend, ни frontend — де-факто
+  мёртвый код (содержимое было ранее неверным, исправлено в этой сессии, но
+  интеграции так и нет).
+- DisplayType/SlotType в menu-planner — CLAUDE.md упоминает "три вида"
+  списков меню, но напрямую подтверждены только 2 значения DisplayType
+  (DAYS/BANQUET); третий вид (возможно CALENDAR) не проверялся по файлу
+  enum'а.
+- lint-staged pre-commit хук не проверяет apps/frontend/**/*.vue — только
+  backend и json/md/yml.
+
+TODO/FIXME в коде: не встречались как явные маркеры при обходе (комментарии
+в коде — пояснительные, а не TODO-разметка).
+
+Известные ограничения: нет очередей/воркеров для тяжёлых операций;
+S3-хранилище объявлено, но не реализовано (throw new Error('S3 storage not
+implemented yet')); нет наблюдаемости (Sentry/OTel/Prometheus задекларированы
+переменными окружения фронтенда, но ключи пустые — не активны); нет
+автодеплоя.
+
+================================================================================
+12. ПОЛНЫЙ ПРОМТ ДЛЯ ВОССОЗДАНИЯ
+================================================================================
+
+Создай с нуля SaaS-платформу планирования питания «АуЕда» — pnpm-монорепо
+(apps/backend, apps/frontend, apps/storybook, packages/shared, packages/ui-kit).
+
+=== СТЕК ===
+Backend: NestJS 11 (TypeScript ^5.7), TypeORM 0.3.28, PostgreSQL 15,
+Redis 7 (клиент `redis` ^5), JWT-авторизация (@nestjs/jwt, passport-jwt,
+argon2 для паролей), class-validator/class-transformer, @nestjs/throttler
+(120 req/60s глобально), @nestjs/schedule (cron), Swagger, helmet, multer.
+Frontend: Nuxt 4 (Vue 3.5, SSR), Pinia 3 (Composition API стили), @nuxt/ui 4,
+@nuxt/icon (Lucide), Tailwind CSS 4, vee-validate + zod, @vite-pwa/nuxt,
+isomorphic-dompurify для санитайзинга пользовательского HTML.
+Инфраструктура: Docker multi-stage (backend), docker-compose (postgres,
+redis, backend, pgadmin), GitHub Actions CI (lint→type-check→test→build,
+backend дополнительно e2e с сервис-контейнерами БД/Redis).
+
+=== АРХИТЕКТУРА BACKEND ===
+Строгая слоистость: Controller (только транспорт: guards, DTO, вызов
+сервиса) → Service (вся бизнес-логика, проверка владения ресурсом через
+ForbiddenException, транзакции через DataSource.transaction) → Repository
+(TypeORM) → PostgreSQL. Redis — только через utils/redis.utils.ts
+(cacheGetOrSet, clearCachePattern/getKeysByPattern — SCAN, никогда KEYS).
+Каждый модуль: <feature>.module/controller/service.ts, dto/
+(create/update/response/query), entities/, опционально enums/guards/.
+Ошибки — только HttpException, единый AllExceptionsFilter (main.ts) →
+{statusCode,error,message,path,timestamp}, 5xx логируется без утечки
+стека клиенту. Миграции — вручную (не migration:generate as-is), имя
+<PascalCase><unix-ms>, обязательный рабочий down(), synchronize:false.
+
+=== ДОМЕННЫЕ МОДУЛИ (20) ===
+auth (register/login/refresh-ротация с SHA-256-хэшем токена и revoke
+старого/logout(-all)/verify-email/forgot+reset-password/change-password,
+access 15м + refresh 7д, роли user/moderator/admin, cron очистки
+просроченных токенов ежедневно в 3:00);
+users (CRUD admin, /me, Redis-кэш 5 мин, admin-статистика кэша через SCAN);
+recipes (title/description/cookingTime/servings/calories/difficulty
+easy|medium|hard/status draft|private|pending|public|rejected/type
+personal|community/photo jsonb/video/steps jsonb/srcPath-slug/seo jsonb/
+tsvector полнотекстовый поиск/soft delete; модерация: community→pending,
+personal→private для обычных авторов, staff публикует напрямую; Redis-
+дедуп инкремента просмотров 1 раз/час/IP; cron self-healing пересчёта
+commentsCount/likes ежедневно в 4:00; поиск public/my/favorites/all);
+ingredients/categories/units (справочники CRUD admin/moderator, у
+ingredients — авто-генерация slug транслитерацией + nutritionInfo jsonb);
+recipe-ingredients/recipe-categories (M2M-связки);
+comments (вложены в рецепт, скрытие/показ модератором, очередь модерации);
+likes/favorites (toggle-эндпоинты, Unique(recipeId,userId), статус,
+списки пользователя);
+menu-planner (списки меню displayType DAYS|BANQUET, дни (dayOrder,title),
+слоты (slotType, dayId?, slotDate?, mealType?, order), позиции-рецепты в
+слотах с notes/order, reorder дней и позиций через транзакцию с проверкой
+владения на каждый элемент, выборка слотов по диапазону дат, авто-создание
+banquet-слота при первом добавлении блюда в банкет);
+shopping-lists (списки с shareToken для публичного доступа без авторизации
+по /shared/:token, лимит 20 списков/пользователь, позиции с category/
+quantity/unit/price/isChecked/sortOrder, bulk-добавление с шагом sortOrder
+1000, copy с обязательным isChecked:false и сбросом shareToken, reorder в
+транзакции с проверкой владения);
+shopping-categories (справочник категорий покупок: id/code/name/icon/
+sortOrder/isActive);
+articles (draft/published, slug, steps jsonb, soft delete, публичный
+доступ по slug + отдельный по id для редактирования);
+uploads (авторизованная + публичная загрузка, MulterModule memoryStorage
+лимит 10MB на уровне модуля, allow-list mimetype image/jpeg|png|gif|webp,
+расширение сохраняемого файла ВСЕГДА выводится из провалидированного
+mimetype через карту ALLOWED_MIME_TO_EXTENSION — НЕ из клиентского
+originalname, иначе возможен stored XSS через spoofing расширения;
+абстракция StorageService/IStorageService с local-реализацией, S3 —
+заглушка с throw);
+dashboard (агрегированная статистика для admin/moderator);
+email (nodemailer, SMTP, письма верификации/сброса пароля с токеном-
+ссылкой на FRONTEND_URL);
+health (GET /health без версии — проверка Postgres SELECT 1 + Redis PING,
+200 при ok, 503 при degraded, {status,db,redis,uptime,timestamp});
+redis (глобальный провайдер клиента Redis).
+
+=== АУТЕНТИФИКАЦИЯ ===
+Access-JWT в заголовке Authorization: Bearer, refresh-JWT ротируется на
+каждый /auth/refresh (старый revoke, новый выдаётся), хранится только
+SHA-256-хэш refresh-токена в БД (не сам токен). JwtStrategy подгружает
+User из БД в req.user с Redis-кэшем 5 мин. RolesGuard + @Roles() decorator
+по метадате Reflector. JwtAuthGuard — защищённые роуты; OptionalJwtAuthGuard
+— публичные с опциональным пользователем. Throttler на чувствительных
+роутах через @Throttle.
+
+=== FRONTEND ===
+SSR через Nuxt routeRules (главная/каталоги — ssr:true, cabinet/admin/auth
+— ssr:false SPA-режим, /api/** проксируется через Nitro server route на
+runtimeConfig.public.apiBase). Все запросы к API — через единый composable
+useApi() (bearer-заголовок, автоматический refresh-и-повтор при 401),
+доменные composables (useRecipesApi, useUsersApi, useMenuPlannerApi и т.п.)
+оборачивают его. Pinia-сторы Composition API: userStore, menuPlannerStore,
+shoppingListsStore, notificationsStore, uiStore. Формы — vee-validate+zod.
+PWA — @vite-pwa/nuxt с runtime-caching (изображения CacheFirst 30д,
+API NetworkFirst 1д). Единственный v-html в приложении (страница статьи
+блога) — ОБЯЗАТЕЛЬНО оборачивать в DOMPurify.sanitize() перед рендером
+(isomorphic-dompurify для SSR-совместимости), контент статьи пишут только
+admin/moderator, но без санитайзинга — persistent XSS при компрометации
+аккаунта. Резолв относительных путей к медиа (аватары/фото рецептов) в
+абсолютный URL — через единый composable useImageUrl (path.startsWith
+('http') ? path : apiUrl + path с проверкой ведущего слеша), не дублировать
+логику по компонентам. Middleware auth.global.ts/admin.global.ts защищают
+/cabinet/** и /admin/** соответственно.
+
+=== БД ===
+25 миграций вручную (не generate as-is), стиль имени
+<PascalCase><unix-ms-timestamp>, рабочий down() у каждой, synchronize:false
+всегда. Порядок сущностей: users→refresh_tokens→units→categories→
+ingredients→recipes→recipe_ingredients→recipe_categories→likes→favorites→
+comments→uploads→(seo/unit_id доп.колонки)→menu_planner_tables→
+shopping_lists_tables→articles→(счётчики comments/views)→articles_steps→
+(доп. поля ingredients)→(чистка legacy refresh tokens/индексов/enum'ов
+articles).
+
+=== КОНФИГУРАЦИЯ ===
+backend .env: PORT=4000, DB_HOST/PORT/USERNAME/PASSWORD/DATABASE,
+DB_LOGGING, REDIS_URL, JWT_ACCESS_SECRET/REFRESH_SECRET,
+JWT_ACCESS_EXPIRES_IN=15m/REFRESH_EXPIRES_IN=7d, CORS_ORIGIN, UPLOAD_DIR,
+MAX_FILE_SIZE=5242880, STORAGE_TYPE=local, BASE_URL, + SMTP_HOST/PORT/
+USER/PASSWORD и FRONTEND_URL (обязательны для EmailService, не забыть
+в .env.example). frontend .env: NUXT_PUBLIC_API_BASE_URL,
+NUXT_PUBLIC_APP_URL, опционально Sentry DSN/Яндекс.Метрика.
+
+=== ТЕСТЫ ===
+Backend: Jest unit (transformIgnorePatterns должен явно разрешать
+транспиляцию @nestjs/schedule — это чистый ESM-пакет, иначе тесты cron-
+сервисов не соберутся) + отдельный jest-e2e.json конфиг с реальными
+Postgres/Redis (service-контейнеры в CI). Frontend: Vitest для unit,
+Playwright для e2e (обязательно завести playwright.config.ts с baseURL
+и webServer — без него тест не запустится).
+
+=== ЧЕГО НЕ ДЕЛАТЬ (уроки этого проекта) ===
+Не использовать Redis KEYS (только SCAN); не хранить бизнес-логику или
+прямые обращения к БД/Redis в контроллерах; не строить расширение
+сохраняемого файла из клиентского имени файла; всегда санитайзить
+пользовательский HTML перед v-html; не дублировать одну и ту же функцию
+резолва URL по многим компонентам — выносить в composable; при вычислении
+следующего порядкового номера (sortOrder) из raw SQL агрегатов (MAX(...))
+всегда явно parseInt — значение из Postgres приходит строкой, и оператор +
+в JS сделает конкатенацию, а не сложение, если хотя бы один операнд —
+непустая строка.
