@@ -24,6 +24,7 @@ import { ArticlesModule } from './modules/articles/articles.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { HealthModule } from './modules/health/health.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { VkusvillModule } from './modules/vkusvill/vkusvill.module';
 
 @Module({
   imports: [
@@ -81,6 +82,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     RedisModule,
     HealthModule,
     DashboardModule,
+    VkusvillModule,
   ],
   controllers: [],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

@@ -19,6 +19,54 @@
         </button>
       </div>
 
+      <!-- Блок «Собрать корзину через ИИ» -->
+      <div
+        v-if="ingredients?.length"
+        class="mb-5 rounded-2xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50/60 dark:bg-emerald-900/20 p-4"
+      >
+        <div class="flex items-start gap-3">
+          <div class="flex-shrink-0 w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
+            <UIcon name="i-lucide-sparkles" class="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="font-semibold text-emerald-900 dark:text-emerald-200 text-sm">
+              Собрать корзину автоматически
+            </h3>
+            <p class="text-xs text-emerald-700 dark:text-emerald-300 mt-0.5">
+              Скопируйте готовый промпт и вставьте его в ИИ-помощник с подключённым MCP ВкусВилл
+            </p>
+
+            <div class="mt-3 flex flex-wrap gap-2">
+              <Button
+                size="xs"
+                color="primary"
+                @click="handleCopyPrompt"
+              >
+                <UIcon name="i-lucide-copy" class="w-3.5 h-3.5" />
+                Скопировать промпт
+              </Button>
+              <Button
+                size="xs"
+                variant="outline"
+                color="primary"
+                @click="showPreview = !showPreview"
+              >
+                <UIcon
+                  :name="showPreview ? 'i-lucide-eye-off' : 'i-lucide-eye'"
+                  class="w-3.5 h-3.5"
+                />
+                {{ showPreview ? 'Скрыть' : 'Показать текст' }}
+              </Button>
+            </div>
+
+            <pre
+              v-if="showPreview"
+              class="mt-3 max-h-40 overflow-auto rounded-lg bg-white/70 dark:bg-darkMode-200 p-3 text-[11px] leading-relaxed text-zinc-700 dark:text-darkMode-600 whitespace-pre-wrap break-words"
+            >{{ promptPreview }}</pre>
+          </div>
+        </div>
+      </div>
+
       <!-- Список партнеров -->
       <div class="flex flex-col gap-4">
         <a
@@ -29,7 +77,6 @@
           rel="noopener noreferrer"
           class="group relative overflow-hidden rounded-2xl border border-gray-200 dark:border-darkMode-300 bg-white dark:bg-darkMode-200 p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-emerald-200 dark:hover:border-emerald-800"
         >
-          <!-- Градиентный фон -->
           <div class="absolute inset-0 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
             <div
               class="w-full h-full"
@@ -40,7 +87,6 @@
           </div>
 
           <div class="relative flex items-start gap-4">
-            <!-- Логотип -->
             <div
               class="flex-shrink-0 w-14 h-14 rounded-xl overflow-hidden shadow-lg flex items-center justify-center bg-white dark:bg-darkMode-100 p-2"
             >
@@ -60,17 +106,6 @@
               <p class="text-sm text-gray-500 dark:text-darkMode-500 mt-0.5">
                 {{ partner.description }}
               </p>
-              <!-- <div class="flex items-center gap-3 mt-2 flex-wrap">
-                <span class="text-xs font-medium px-2 py-0.5 rounded-full" :class="partner.badgeClass">
-                  {{ partner.badge }}
-                </span>
-                <span class="text-xs text-gray-400 dark:text-darkMode-400">
-                  🕐 {{ partner.deliveryTime }}
-                </span>
-                <span class="text-xs text-gray-400 dark:text-darkMode-400">
-                  ⭐ {{ partner.rating }}
-                </span>
-              </div> -->
             </div>
 
             <UIcon
@@ -92,7 +127,10 @@
 </template>
 
 <script setup lang="ts">
+import { computed, ref } from 'vue'
 import Modal from '../../shared/ui/modal/Modal.vue'
+import Button from '~/shared/ui/button/Button.vue'
+import { useVkusvillApi } from '~/composables/useVkusvillApi'
 
 interface Partner {
   id: string
@@ -118,6 +156,10 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:open': [value: boolean]
 }>()
+
+const { buildVkusvillPrompt, copyVkusvillPrompt } = useVkusvillApi()
+
+const showPreview = ref(false)
 
 // Импорт логотипов
 import vkusvillLogo from '@/assets/vkusvill-sign-logo.svg'
@@ -177,5 +219,15 @@ const getPartnerUrl = (partner: Partner): string => {
     return `${baseUrl}/search?q=${encodeURIComponent(searchQuery)}`
   }
   return baseUrl
+}
+
+const promptPreview = computed(() => {
+  if (!props.ingredients?.length) return ''
+  return buildVkusvillPrompt(props.ingredients, 4.7)
+})
+
+const handleCopyPrompt = async () => {
+  if (!props.ingredients?.length) return
+  await copyVkusvillPrompt(props.ingredients, { minRating: 4.7 })
 }
 </script>

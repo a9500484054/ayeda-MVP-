@@ -75,6 +75,18 @@
           <UIcon name="i-lucide-truck" class="h-4 w-4" />
           <span>Заказать у партнеров</span>
         </Button>
+
+        <Button
+          size="sm"
+          variant="outline"
+          color="primary"
+          :disabled="!ingredients?.length"
+          @click="handleVkusvillPrompt"
+          block
+        >
+          <UIcon name="i-lucide-sparkles" class="h-4 w-4" />
+          <span>Собрать корзину через ИИ</span>
+        </Button>
       </div>
     </div>
 
@@ -138,6 +150,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   'update:servings': [value: number]
   'add-to-shopping-list': [items: Array<{ name: string; quantity: number; unit: string }>]
+  'vkusvill-prompt': [items: Array<{ name: string; quantity: number; unit: string }>]
 }>()
 
 const toast = useToast()
@@ -151,7 +164,7 @@ const isAddingToList = ref(false)
 const shoppingItems = computed(() => {
   return adjustedIngredients.value.map(ing => ({
     name: getIngredientName(ing),
-    quantity: ing.amount,
+    quantity: typeof ing.amount === 'number' ? ing.amount : parseFloat(String(ing.amount)) || 0,
     unit: getUnitDisplay(ing)
   }))
 })
@@ -253,6 +266,18 @@ const openPartnersModal = () => {
     return
   }
   showPartnersModal.value = true
+}
+
+const handleVkusvillPrompt = () => {
+  if (!props.ingredients?.length) {
+    toast.add({
+      title: 'Нет ингредиентов',
+      description: 'В этом рецепте нет ингредиентов',
+      color: 'warning'
+    })
+    return
+  }
+  emit('vkusvill-prompt', shoppingItems.value)
 }
 
 const handleAddToShoppingList = () => {

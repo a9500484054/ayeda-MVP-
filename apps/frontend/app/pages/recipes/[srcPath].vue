@@ -55,6 +55,7 @@
             :recipe-title="recipe.title"
             @update:servings="handleServingsChange"
             @add-to-shopping-list="addToShoppingList"
+            @vkusvill-prompt="handleVkusvillPrompt"
           />
         </div>
 
@@ -95,6 +96,7 @@ import { useRecipesFavorites } from '~/composables/useRecipesFavorites'
 import { useRecipesComments } from '~/composables/useRecipesComments'
 import { useUnitsApi, type Unit } from '~/composables/useUnitsApi'
 import { useShoppingListsApi } from '~/composables/useShoppingListsApi'
+import { useVkusvillApi } from '~/composables/useVkusvillApi'
 import type { CommentDto } from '~/shared/types/domain'
 
 // Components
@@ -120,6 +122,7 @@ const favoritesApi = useRecipesFavorites()
 const commentsApi = useRecipesComments()
 const unitsApi = useUnitsApi()
 const shoppingListsApi = useShoppingListsApi()
+const { copyVkusvillPrompt } = useVkusvillApi()
 const { isAuthenticated, user } = useAuth()
 const toast = useToast()
 
@@ -347,35 +350,30 @@ const loadComments = async (page: number) => {
     const response = await commentsApi.getComments(recipe.value.id, page, 10)
     console.log('📝 Comments API response:', response)
 
-    // Проверяем структуру ответа и извлекаем данные
     let commentsData: CommentDto[] = []
     let totalData = 0
     let pagesData = 1
     let currentPageData = page
 
     if (response && typeof response === 'object') {
-      // Формат: { data: [...], total, page, pages }
       if (Array.isArray(response.data)) {
         commentsData = response.data
         totalData = response.total || response.data.length
         pagesData = response.pages || Math.ceil(totalData / 10) || 1
         currentPageData = response.page || page
       }
-      // Формат: { items: [...], total, pages }
       else if (Array.isArray(response.items)) {
         commentsData = response.items
         totalData = response.total || response.items.length
         pagesData = response.pages || 1
         currentPageData = response.page || page
       }
-      // Формат: просто массив
       else if (Array.isArray(response)) {
         commentsData = response
         totalData = response.length
         pagesData = 1
         currentPageData = page
       }
-      // Если данные лежат в response.result
       else if (Array.isArray(response.result)) {
         commentsData = response.result
         totalData = response.total || response.result.length
@@ -465,6 +463,12 @@ const addToShoppingList = async (items: Array<{ name: string; quantity: number; 
       color: 'error'
     })
   }
+}
+
+// ВкусВилл — копирование промпта для ИИ-помощника с MCP
+const handleVkusvillPrompt = async (items: Array<{ name: string; quantity: number; unit: string }>) => {
+  console.log('🛒 VkusVill prompt items:', items)
+  await copyVkusvillPrompt(items, { minRating: 4.7 })
 }
 
 // Навигация
